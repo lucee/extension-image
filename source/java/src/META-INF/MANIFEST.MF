@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Export-Package: org.lucee.extension.image,org.lucee.extension.image.functions,org.lucee.extension.image.tag
+Bundle-ManifestVersion: 2
+Require-Bundle: org.apache.commons.codec;bundle-version=1.9.0,
+ org.lucee.commons.sanselan;bundle-version=0.97.0.incubator,
+ org.apache.commons.image;bundle-version=1.0.0.R1534292,
+ metadata.extractor;bundle-version=2.8.1.0002L,
+ sun.jai.codec;bundle-version=1.1.2.0003L,
+ sun.jai.core;bundle-version=1.2.1.0003L
