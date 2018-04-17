@@ -3666,7 +3666,7 @@ The value determines whether the image is blurred or sharpened:
 		<description>Determines whether a variable returns a image.</description>
 		<argument>
 			<name>image</name>
-			<alias>name</alias>
+			<alias>value,object,name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The variable that is checked.</description>
