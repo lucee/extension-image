@@ -41,7 +41,8 @@
 		<keywords>image</keywords>
 		<description>Adds a rectangular border around the outside edge of a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -64,6 +65,7 @@ Only valid if the borderType is not specified or if borderType = "constant".</de
     </argument>
 		<argument>
 			<name>borderType</name>
+			<alias>type,border</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>constant</default>
@@ -273,7 +275,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Copies a rectangular area of an image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -330,7 +333,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
 		<description>Crops a image to a specified rectangular area.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -373,7 +377,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawArc</class>
 		<description>Draws a circular or elliptical arc.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -436,7 +441,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
 		<description>Draws a rectangle with beveled edges.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -495,7 +501,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
 		<description>Draws a cubic curve.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -563,7 +570,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a single line defined by two sets of x and y coordinates on a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -606,7 +614,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a sequence of connected lines defined by arrays of x and y coordinates.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -653,7 +662,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws an oval.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -704,7 +714,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a point at the specified (x,y) coordinate.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -735,7 +746,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a curved line. The curve is controlled by a single point.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -790,7 +802,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a rectangle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -841,7 +854,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a rectangle with rounded corners.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -906,13 +920,15 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a text string on a image with the baseline of the first character positioned at (x,y) in the image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
     </argument>
 		<argument>
-			<name>str</name>
+			<name>string</name>
+			<alias>str</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>the text to draw.</description>
@@ -2444,7 +2460,8 @@ wood
 	- dimensions (Array)
 </description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The image on which this operation is performed.</description>
@@ -2477,7 +2494,8 @@ wood
 		<keywords>image</keywords>
 		<description>Flips an image across an axis.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2571,7 +2589,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the bytes of the underlying image. The bytes are in the same image format as the source image.</description>
 		<argument>
-			<name>source</name>
+			<name>image</name>
+			<alias>source,name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2589,7 +2608,8 @@ wood
 		<keywords>image</keywords>
 		<description>Returns the java.awt.BufferedImage object underlying the current image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2607,7 +2627,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the Exchangeable Image File Format (EXIF) headers in an image as a CFML structure.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The image on which this operation is performed.</description>
@@ -2625,7 +2646,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the specified EXIF tag in an image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2688,7 +2710,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the value of the IPTC tag for a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2713,7 +2736,8 @@ wood
 		<keywords>image</keywords>
 		<description>Converts a image to grayscale.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2751,7 +2775,8 @@ wood
 		<keywords>image</keywords>
 		<description>Returns a structure that contains information about the image, such as height, width, color model, size, and filename.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2770,7 +2795,8 @@ wood
 		<keywords>image</keywords>
 		<description>Inverts the pixel values of a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2805,6 +2831,7 @@ wood
     </argument>
 		<argument>
 			<name>imageType</name>
+			<alias>type</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>The type of the image to create (Valid only when width and height are specified):
@@ -2895,6 +2922,7 @@ wood
 		<description>Creates a image from a Base64 string.</description>
 		<argument>
 			<name>b64str</name>
+			<alias>data</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>a variable or Base64 string.</description>
@@ -2929,7 +2957,8 @@ wood
 		<keywords>image</keywords>
 		<description>Resizes a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -2992,7 +3021,8 @@ wood
 		<keywords>image</keywords>
 		<description>Rotates a image at a specified point by a specified angle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3042,7 +3072,8 @@ wood
 		<keywords>image</keywords>
 		<description>Rotates all subsequent drawing on a image at a specified point by a specified angle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3079,7 +3110,8 @@ wood
 		<keywords>image</keywords>
 		<description>Creates a resized image with the aspect ratio maintained.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3141,7 +3173,8 @@ wood
 		<keywords>image</keywords>
 		<description>Writes a image to the specified filename or destination.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3182,7 +3215,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Writes Base64 images to the specified filename and destination.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The image on which this operation is performed.</description>
@@ -3222,7 +3256,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Writes image to browser.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The image on which this operation is performed.</description>
@@ -3242,7 +3277,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Switches antialiasing on or off in rendered graphics.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3270,7 +3306,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the background color for the image. The background color is used for clearing a region. Setting the background color only affects the subsequent ImageClearRect calls</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3299,7 +3336,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the current drawing alpha for images. All subsequent graphics operations use the specified alpha.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3324,7 +3362,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the current drawing color for images. All subsequent graphics operations use the specified color.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3353,7 +3392,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the drawing stroke for points and lines in subsequent images.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3384,7 +3424,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Specifies the degree of transparency of drawing functions.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3410,7 +3451,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sharpens a image by using the unsharp mask filter.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3440,7 +3482,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Shears an image either horizontally or vertically.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3484,7 +3527,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Shears the drawing canvas.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3515,7 +3559,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Copies an image to a new location on the plane.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3557,7 +3602,8 @@ The value determines whether the image is blurred or sharpened:
 		<description>Translates the origin of the image context to the point (x,y) in the current coordinate system. 
 		Modifies the image context so that its new origin corresponds to the point (x,y) in the image's original coordinate system.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3588,7 +3634,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Sets the paint mode of the image to alternate between the image's current color and the new specified color.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -3618,7 +3665,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image,decision</keywords>
 		<description>Determines whether a variable returns a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The variable that is checked.</description>
@@ -3635,6 +3683,7 @@ The value determines whether the image is blurred or sharpened:
 		<description>Verifies whether an image file is valid.</description>
 		<argument>
 			<name>path</name>
+			<alias>value,file</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>The pathname of the file to be checked. The pathname can be absolute or relative to the CFM page and must be enclosed in quotation marks.</description>
@@ -3656,7 +3705,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>this function is deprecated, use ImagePaste instead. Draws a image on a image with the baseline of the first character positioned at (x,y) in the image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>the image to draw on it</description>
