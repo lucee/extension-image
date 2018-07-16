@@ -97,6 +97,13 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.IImageMetadata;
+import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
+import org.apache.commons.imaging.common.ImageMetadata.Item;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
 import org.lucee.extension.image.filter.QuantizeFilter;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageBlur;
@@ -422,6 +429,64 @@ public class Image extends StructSupport implements Cloneable,Struct {
 			Util.closeEL(is);
         }
         return null;
+    }
+	
+
+	public Struct getIPTCMetadata() throws PageException {
+		IImageMetadata md;
+		Struct rtn = eng().getCreationUtil().createStruct();
+		try {
+			if(source instanceof File) md = Imaging.getMetadata((File)source);
+			else md = Imaging.getMetadata(getImageBytes(format,true));
+			
+			// not jpeg
+			if(!(md instanceof JpegImageMetadata)) return rtn;
+	
+			// fill to struct
+			Key KEYWORDS = eng().getCreationUtil().createKey("Keywords");
+			Key SUBJECT_REFERENCE = eng().getCreationUtil().createKey("Subject Reference");
+			
+			JpegImageMetadata jmd = (JpegImageMetadata)md;
+			JpegPhotoshopMetadata jpmd = jmd.getPhotoshop(); // selects IPTC metadata
+	        if(jpmd==null) return rtn;
+	        Iterator<? extends IImageMetadataItem> it = jpmd.getItems().iterator();
+	        IImageMetadataItem item;
+	        Item i=null;
+	        Collection.Key k;
+	        Object v;
+	        Array arr;
+	        while(it.hasNext()) {
+	        	item = it.next();
+	        	if(item instanceof Item) {
+	        		i=(Item) item;
+	        		k=eng().getCreationUtil().createKey(i.getKeyword());
+	        		v = rtn.get(k,null);
+	        		if(v!=null) {
+	        			if(KEYWORDS.equals(k)) {
+	        				rtn.set(k, v+";"+i.getText());
+	        			}
+	        			else if(SUBJECT_REFERENCE.equals(k)) {
+	        				rtn.set(k, v+" "+i.getText());
+	        			}
+	        			else if(v instanceof Array) {
+	        				arr=(Array) v;
+	        				arr.append(i.getText());
+	        			}
+	        			else {
+	        				arr=eng().getCreationUtil().createArray();
+	        				arr.append(v);
+	        				arr.append(i.getText());
+	        				rtn.set(k, arr);
+	        			}
+	        		}
+	        		else rtn.set(k, i.getText());
+	        	}
+	        }
+		}
+		catch(Exception e) {
+			throw eng().getCastUtil().toPageException(e);
+		}
+        return rtn;
     }
 
 	private void addMetaddata(Struct parent, String name, Node node) {

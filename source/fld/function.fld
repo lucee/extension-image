@@ -2618,6 +2618,25 @@ wood
 			<type>any</type>
 		</return>
 	</function>
+	<!-- ImageGetIptcMetadata -->
+	<function>
+		<name>ImageGetIptcMetadata</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIptcMetadata</class>
+		<member-name>getIptcMetadata</member-name>
+		<member-type>image</member-type>
+		<keywords>image</keywords>
+		<description>Retrieves the International Press Telecommunications Council (IPTC )headers in a image as a struct. The IPTC metadata contains text that describes the image that is stored with it. IPTC metadata includes, but is not limited to, caption, keywords, credit, copyright, object name, created date, byline, headline, and source.</description>
+		<argument>
+			<name>image</name>
+			<alias>name</alias>
+			<type>any</type>
+			<required>Yes</required>
+			<description>The image on which this operation is performed.</description>
+    	</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	<!-- ImageGetEXIFMetadata -->
 	<function>
 		<name>ImageGetEXIFMetadata</name>
