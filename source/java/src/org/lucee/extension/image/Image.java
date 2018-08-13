@@ -228,7 +228,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 
 	public Image(BufferedImage image) {
 		this._image=image;
-		this.format=null;
+		this.format=null; 
 	}
 	
 
@@ -1629,16 +1629,19 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	@Override
 	public Collection duplicate(boolean deepCopy) {
 		try {
-			//if(_image!=null) return new Image(getBufferedImage());
 			return new Image(getImageBytes(null));
-			
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
+			if(Util.isEmpty(getFormat()) && _image!=null) {
+				ColorModel cm = _image.getColorModel();
+				boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+				WritableRaster raster = _image.copyData(null);
+				BufferedImage bi = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+				return new Image(bi);
+			}
 			throw eng().getExceptionUtil().createPageRuntimeException(eng().getCastUtil().toPageException(e));
 		}
 	}
-	
-	
-	
 
 	public ColorModel getColorModel() throws PageException {
 		return image().getColorModel();
