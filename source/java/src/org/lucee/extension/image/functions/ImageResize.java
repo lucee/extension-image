@@ -54,7 +54,7 @@ public class ImageResize extends FunctionSupport implements Function {
 		
 		if (blurFactor <= 0.0 || blurFactor > 10.0) 
 			throw CFMLEngineFactory.getInstance().getExceptionUtil()
-			.createFunctionException(pc,"ImageResize",5,"blurFactor","argument blurFactor must be between 0 and 10",null);
+			.createFunctionException(pc,"ImageResize",5,"blurFactor","argument blurFactor must be between 1 and 10",null);
 			
 		
 		// MUST interpolation/blur

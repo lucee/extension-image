@@ -1233,7 +1233,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 	
     public void resize(int scale, String interpolation, double blurFactor) throws PageException {
     	if (blurFactor <= 0.0 || blurFactor > 10.0)
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("blurFactor must be between 0 and 10");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("blurFactor must be between 1 and 10");
     	
 		float width=getWidth()/100F*scale;
 		float height=getHeight()/100F*scale;
@@ -1245,7 +1245,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
 		if (eng().getStringUtil().isEmpty(strWidth,true) && eng().getStringUtil().isEmpty(strHeight,true))
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("you have to define width or height");
 		if (blurFactor <= 0.0 || blurFactor > 10.0)
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("blurFactor must be between 0 and 10");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("blurFactor must be between 1 and 10");
 		int w = getWidth();
 		int h = getHeight();
 		float height=resizeDimesion("height",strHeight, h);
