@@ -1,14 +1,18 @@
 package org.lucee.extension.image.font;
 
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Iterator;
 
+import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 
@@ -55,7 +59,42 @@ public class FontUtil {
 		return font.getFontName();
 	}
 
-	public static Font getFont(String font, Font defaultValue) {
+	public static Font getFont(String font, Font defaultValue) throws PageException {
+		CFMLEngine eng = CFMLEngineFactory.getInstance();
+
+		/* check if given font is a path to a ttf file (check extension, then check existence) */
+		if(!eng.getStringUtil().isEmpty(font) && font.length() > 4
+				&& font.substring(font.length()-4).toLowerCase() == ".ttf") {
+
+			/* Check if the font is a valid path */
+			Resource res;
+			try {
+				res = eng.getCastUtil().toResource(font);
+				if (res.exists() && res.isFile()) {
+					eng.getThreadPageContext().getConfig().getSecurityManager().checkFileLocation(res);
+				}
+			} catch (PageException ee) {
+				res = null;
+			}
+
+			if (res != null) {
+				/* return the font */
+				try {
+					return Font.createFont(Font.TRUETYPE_FONT, res.getInputStream());
+				} catch(IOException e) {
+					throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+							"Font file could not be read"
+							,"The font file at ["+res.getAbsolutePath()+"] could not be read: " + e.getMessage());
+				} catch(FontFormatException e) {
+					throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+							"Invalid ttf font file"
+							,"A FontFormat exception occurred while trying to use the font file at" +
+									" [" + res.getAbsolutePath() + "]. " +
+									"Make sure the file is a TrueType font. Exception: " + e.getMessage());
+				}
+			}
+		}
+
 		Font f=Font.decode(font);
 		if(f!=null) return f;
 		// font name

@@ -640,12 +640,12 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	if (attr != null && attr.size()>0) {
 
        	 // font
-       		String font=eng().getCastUtil().toString(attr.get("font","")).toLowerCase().trim();
-       	    if(!eng().getStringUtil().isEmpty(font)) {
-   	    	    font=FontUtil.getFont(font).getFontName();
+       		String fontName=eng().getCastUtil().toString(attr.get("font","")).toLowerCase().trim();
+       	    if(eng().getStringUtil().isEmpty(fontName)) {
+       	    	fontName = "Serif";
        	    }
-       	    else font = "Serif";
-       	    
+			Font font = FontUtil.getFont(fontName);
+
     	 // alpha
     		//float alpha=eng().getCastUtil().toFloatValue(attr.get("alpha",null),1F);
     	    
@@ -675,7 +675,7 @@ public class Image extends StructSupport implements Cloneable,Struct {
     	    boolean underline = eng().getCastUtil().toBooleanValue(attr.get("underline",Boolean.FALSE));
     	    
     	    AttributedString as = new AttributedString(text);
-    	    as.addAttribute(TextAttribute.FONT, new Font(font, style, size));
+    	    as.addAttribute(TextAttribute.FONT, font.deriveFont(style, size));
     	    if(strikethrough)	as.addAttribute(TextAttribute.STRIKETHROUGH,TextAttribute.STRIKETHROUGH_ON);
     	    if(underline)		as.addAttribute(TextAttribute.UNDERLINE,TextAttribute.UNDERLINE_ON);
     	    Graphics2D g = getGraphics();

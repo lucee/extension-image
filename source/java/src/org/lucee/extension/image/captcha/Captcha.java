@@ -25,6 +25,9 @@ import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
 
+import lucee.runtime.exp.PageException;
+import org.lucee.extension.image.font.FontUtil;
+
 /**
  * concrete captcha implementation
  */
@@ -38,7 +41,11 @@ public final class Captcha extends AbstractCaptcha {
 
 	@Override
 	public Font getFont(String font, Font defaultValue) {
-		return Font.decode(font);
+		try {
+			return FontUtil.getFont(font,defaultValue);
+		} catch(PageException e){
+			return Font.decode(font);
+		}
 	}
 
 	/**
