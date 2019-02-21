@@ -2998,9 +2998,10 @@ wood
 			<name>interpolation</name>
 			<type>string</type>
 			<required>no</required>
-			<default>highestQuality</default>
+			<default>automatic</default>
 		<description>the interpolation method for resampling. You can specify a specific interpolation algorithm by name (for example, hamming), by image quality (for example, mediumQuality), or by performance (for example, highestPerformance). Valid values are:
-- highestQuality (default)
+- automatic (default)
+- highestQuality
 - highQuality
 - mediumQuality
 - highestPerformance
@@ -3151,9 +3152,10 @@ wood
 			<name>interpolation</name>
 			<type>string</type>
 			<required>no</required>
-			<default>highestQuality</default>
+			<default>automatic</default>
 		<description>The interpolation method for resampling. You can specify a specific interpolation algorithm by name (for example, hamming), by image quality (for example, mediumQuality), or by performance (for example, highestPerformance). Valid values are:
-- highestQuality (default)
+- automatic (default)
+- highestQuality
 - highQuality
 - mediumQuality
 - highestPerformance
