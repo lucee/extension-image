@@ -27,21 +27,21 @@ class DoubleCoder extends Coder {
 
 	private Coder first;
 	private Coder second;
-	
+
 	private String[] writerFormatNames;
 	private String[] readerFormatNames;
 
-	public DoubleCoder(Coder first, Coder second){
-		this.first=first;
-		this.second=second;
+	public DoubleCoder(Coder first, Coder second) {
+		this.first = first;
+		this.second = second;
 	}
-	
+
 	@Override
 	public BufferedImage toBufferedImage(Resource res, String format) throws IOException {
 		try {
 			return first.toBufferedImage(res, format);
 		}
-		catch(IOException ioe){
+		catch (Exception ioe) {
 			return second.toBufferedImage(res, format);
 		}
 	}
@@ -51,23 +51,23 @@ class DoubleCoder extends Coder {
 		try {
 			return first.toBufferedImage(bytes, format);
 		}
-		catch(IOException ioe){
+		catch (Exception ioe) {
 			return second.toBufferedImage(bytes, format);
 		}
 	}
 
 	@Override
 	public final String[] getWriterFormatNames() {
-		if(writerFormatNames==null)	{
-			writerFormatNames=JRECoder.mixTogetherOrdered(first.getWriterFormatNames(),second.getWriterFormatNames());
+		if (writerFormatNames == null) {
+			writerFormatNames = JRECoder.mixTogetherOrdered(first.getWriterFormatNames(), second.getWriterFormatNames());
 		}
 		return writerFormatNames;
 	}
-	
+
 	@Override
 	public final String[] getReaderFormatNames() {
-		if(readerFormatNames==null){
-			readerFormatNames=JRECoder.mixTogetherOrdered(first.getReaderFormatNames(),second.getReaderFormatNames());
+		if (readerFormatNames == null) {
+			readerFormatNames = JRECoder.mixTogetherOrdered(first.getReaderFormatNames(), second.getReaderFormatNames());
 		}
 		return readerFormatNames;
 	}

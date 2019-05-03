@@ -28,119 +28,115 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
+import org.lucee.extension.image.ImageUtil;
+import org.lucee.extension.image.JAIUtil;
+import org.lucee.extension.image.PSDReader;
+
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
-import org.lucee.extension.image.ImageUtil;
-import org.lucee.extension.image.JAIUtil;
-import org.lucee.extension.image.PSDReader;
-
 class JRECoder extends Coder {
-	
 
 	private String[] writerFormatNames;
 	private String[] readerFormatNames;
-	
-	protected JRECoder(){
+
+	protected JRECoder() {
 		super();
 	}
-	
+
 	/**
 	 * translate a file resource to a buffered image
+	 * 
 	 * @param res
 	 * @return
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(Resource res,String format) throws IOException {
+	public final BufferedImage toBufferedImage(Resource res, String format) throws IOException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		if(eng.getStringUtil().isEmpty(format))format=ImageUtil.getFormat(res);
-		if("psd".equalsIgnoreCase(format)) {
+		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
+		if ("psd".equalsIgnoreCase(format)) {
 			PSDReader reader = new PSDReader();
-			InputStream is=null;
+			InputStream is = null;
 			try {
-				reader.read(is=res.getInputStream());
+				reader.read(is = res.getInputStream());
 				return reader.getImage();
 			}
 			finally {
 				Util.closeEL(is);
 			}
 		}
-		if(JAIUtil.isSupportedReadFormat(format)){
-			return JAIUtil.read(res);
-		}
-		
-		BufferedImage img=null;
-		InputStream is=null;
+
+		InputStream is = null;
 		try {
-			img = ImageIO.read(is=res.getInputStream());
+			return ImageIO.read(is = res.getInputStream());
 		}
+		catch (Exception e) {}
 		finally {
 			Util.closeEL(is);
 		}
-		
-		if(img==null && eng.getStringUtil().isEmpty(format)) {
-			return JAIUtil.read(res);
-		}
-		return img;
+
+		return JAIUtil.read(res);
 	}
 
 	/**
 	 * translate a binary array to a buffered image
+	 * 
 	 * @param binary
 	 * @return
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(byte[] bytes,String format) throws IOException {
+	public final BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		if(eng.getStringUtil().isEmpty(format))format=ImageUtil.getFormat(bytes,null);
-		if("psd".equalsIgnoreCase(format)) {
+		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(bytes, null);
+		if ("psd".equalsIgnoreCase(format)) {
 			PSDReader reader = new PSDReader();
 			reader.read(new ByteArrayInputStream(bytes));
 			return reader.getImage();
 		}
-		if(JAIUtil.isSupportedReadFormat(format)){
-			return JAIUtil.read(new ByteArrayInputStream(bytes),format);
+
+		try {
+			return ImageIO.read(new ByteArrayInputStream(bytes));
 		}
-		BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
-		if(img==null && eng.getStringUtil().isEmpty(format))
-			return JAIUtil.read(new ByteArrayInputStream(bytes),null);
-		return img;
+		catch (Exception e) {}
+
+		return JAIUtil.read(new ByteArrayInputStream(bytes), format);
 	}
-	
+
 	@Override
 	public final String[] getWriterFormatNames() {
-		if(writerFormatNames==null)	{
+		if (writerFormatNames == null) {
 			String[] iio = ImageIO.getWriterFormatNames();
-			String[] jai = JAIUtil.isJAISupported()?JAIUtil.getSupportedWriteFormat():null;
-			writerFormatNames=mixTogetherOrdered(iio,jai);
+			String[] jai = null;// JAIUtil.isJAISupported()?JAIUtil.getSupportedWriteFormat():null;
+			writerFormatNames = mixTogetherOrdered(iio, jai);
 		}
 		return writerFormatNames;
 	}
+
 	@Override
 	public final String[] getReaderFormatNames() {
-		if(readerFormatNames==null){
+		if (readerFormatNames == null) {
 			String[] iio = ImageIO.getReaderFormatNames();
-			String[] jai = JAIUtil.isJAISupported()?JAIUtil.getSupportedReadFormat():null;
-			readerFormatNames=mixTogetherOrdered(iio,jai);
+			String[] jai = null;// JAIUtil.isJAISupported()?JAIUtil.getSupportedReadFormat():null;
+			readerFormatNames = mixTogetherOrdered(iio, jai);
 		}
 		return readerFormatNames;
 	}
-	
-	public static final String[] mixTogetherOrdered(String[] names1,String[] names2) {
-		Set<String> set=new HashSet<String>();
-		
-		if(names1!=null)for(int i=0;i<names1.length;i++){
+
+	public static final String[] mixTogetherOrdered(String[] names1, String[] names2) {
+		Set<String> set = new HashSet<String>();
+
+		if (names1 != null) for (int i = 0; i < names1.length; i++) {
 			set.add(names1[i].toLowerCase());
 		}
-		if(names2!=null)for(int i=0;i<names2.length;i++){
+		if (names2 != null) for (int i = 0; i < names2.length; i++) {
 			set.add(names2[i].toLowerCase());
 		}
-		
-		names1= set.toArray(new String[set.size()]);
+
+		names1 = set.toArray(new String[set.size()]);
 		Arrays.sort(names1);
 		return names1;
 	}
