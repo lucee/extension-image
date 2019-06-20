@@ -199,7 +199,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to parse binary image file");
 	}
 
 	public Image(Resource res) throws IOException {
@@ -212,7 +212,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		_image = ImageUtil.toBufferedImage(res, format);
 		this.source = res;
-		if (_image == null) throw new IOException("can not read in file " + res);
+		if (_image == null) throw new IOException("Unable to parse image file [" + res +"]");
 	}
 
 	public Image(BufferedImage image) {
@@ -236,7 +236,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to decode image from base64 string");
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
