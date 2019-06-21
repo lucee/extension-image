@@ -173,9 +173,9 @@ public class ImageResizer {
 
     public static BufferedImage resize(BufferedImage image, int columns, int rows, int interpolation, double blur) throws PageException {
 	CFMLEngine eng = CFMLEngineFactory.getInstance();
-	if (columns == 0 || rows == 0) throw eng.getExceptionUtil().createExpressionException("invalid size for image");
+	// if (columns == 0 || rows == 0) throw eng.getExceptionUtil().createExpressionException("invalid size for image");
 
-	BufferedImage resizeImage = ImageUtil.createBufferedImage(image, columns, rows);
+	BufferedImage resizeImage = ImageUtil.createBufferedImage(image, columns==0?rows:columns, rows==0?columns:rows);
 
 	Interpolation inter = getInterpolation(interpolation);
 	double xFactor = (double) columns / (double) image.getWidth();

@@ -271,7 +271,7 @@ public class ImageUtil {
                 newImage = new BufferedImage(columns, rows, 1);
         } 
         else {
-            newImage = new BufferedImage(colormodel, image.getRaster().createCompatibleWritableRaster(columns, rows), colormodel.isAlphaPremultiplied(), null);
+            newImage = new BufferedImage(colormodel, image.getRaster().createCompatibleWritableRaster(columns==0?rows:columns, rows==0?columns:rows), colormodel.isAlphaPremultiplied(), null);
         }
         return newImage;
     }

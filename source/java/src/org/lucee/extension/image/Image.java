@@ -1300,7 +1300,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				resizeImage(width, height, interpolation);
 			}
 			else {
-				image(ImageResizer.resize(image(), width, height, interpolation, blurFactor));
+				image(ImageResizer.resize(image(), width==0?height:width, height==0?width:height, interpolation, blurFactor));
 
 			}
 		}
