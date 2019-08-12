@@ -1543,7 +1543,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 						return new Image(res, format);
 					}
 					catch (Exception ee) {
-						ee.printStackTrace();
 						e = ee;
 					}
 				}

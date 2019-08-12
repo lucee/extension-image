@@ -19,14 +19,18 @@
 package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.JAIUtil;
@@ -78,7 +82,52 @@ class JRECoder extends Coder {
 			Util.closeEL(is);
 		}
 
-		return JAIUtil.read(res);
+		try {
+			return JAIUtil.read(res);
+		}
+		catch (Exception e) {
+			if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+				InputStream _is = null;
+				try {
+					return cmyk2rgb(_is = res.getInputStream());
+				}
+				catch (Exception ee) {
+					ee.printStackTrace();
+				}
+				finally {
+					Util.closeEL(_is);
+				}
+			}
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
+
+	}
+
+	public BufferedImage cmyk2rgb(Object obj) throws IOException {
+
+		// Find a suitable ImageReader
+		Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("JPEG");
+		ImageReader reader = null;
+		while (readers.hasNext()) {
+			reader = readers.next();
+			if (reader.canReadRaster()) {
+				break;
+			}
+		}
+
+		// Stream the image file (the original CMYK image)
+		ImageInputStream input = ImageIO.createImageInputStream(obj);
+		reader.setInput(input);
+
+		// Read the image raster
+		Raster raster = reader.readRaster(0, null);
+
+		// Create a new RGB image
+		BufferedImage bi = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+
+		// Fill the new image with the old raster
+		bi.getRaster().setRect(raster);
+		return bi;
 	}
 
 	/**
@@ -103,7 +152,20 @@ class JRECoder extends Coder {
 		}
 		catch (Exception e) {}
 
-		return JAIUtil.read(new ByteArrayInputStream(bytes), format);
+		try {
+			return JAIUtil.read(new ByteArrayInputStream(bytes), format);
+		}
+		catch (Exception e) {
+			if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+				try {
+					return cmyk2rgb(new ByteArrayInputStream(bytes));
+				}
+				catch (Exception ee) {
+					ee.printStackTrace();
+				}
+			}
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
 	}
 
 	@Override
