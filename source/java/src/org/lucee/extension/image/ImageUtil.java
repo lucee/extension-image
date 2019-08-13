@@ -109,7 +109,7 @@ public class ImageUtil {
 		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""),defaultValue);
 	}
 
-	public static String getFormatFromExtension(Resource res, String defaultValue) {
+	public static String getFormatFromExtension(Resource res, String defaultValue) throws IOException{
 		String ext=CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res,null);
 		if("gif".equalsIgnoreCase(ext))return "gif";
 		if("jpg".equalsIgnoreCase(ext))return "jpg";
@@ -130,7 +130,9 @@ public class ImageUtil {
 		if("pgm".equalsIgnoreCase(ext))return "pgm";
 		if("pbm".equalsIgnoreCase(ext))return "pbm";
 		if("ppm".equalsIgnoreCase(ext))return "ppm";
-		return defaultValue;	
+		else{
+			throw new IOException("can't find Format ("+ext+") of given image");
+		}
 	}
 	
 	
