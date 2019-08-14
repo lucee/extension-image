@@ -1313,8 +1313,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	 */
 
 	public void rotate(float x, float y, float angle, int interpolation) throws PageException {
-		if (x == -1) x = (float) getWidth() / 2;
-		if (y == -1) y = (float) getHeight() / 2;
+		if (x == -1) {
+			x = Math.round(getWidth() / 2);
+		}
+		if (y == -1) {
+			y = Math.round(getHeight() / 2);
+		}
 
 		angle = (float) Math.toRadians(angle);
 		ColorModel cmSource = image().getColorModel();
@@ -1355,6 +1359,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		params.add(angle);
 		params.add(interp);
 		params.add(new double[] { 0.0 });
+
 		BorderExtender extender = new BorderExtenderConstant(new double[] { 0.0 });
 		RenderingHints hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
 		hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
