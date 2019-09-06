@@ -1224,7 +1224,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		BufferedImage bi = image();
 		float height = resizeDimesion("height", strHeight, bi.getHeight());
 		float width = resizeDimesion("width", strWidth, bi.getWidth());
-
 		resize(bi, (int) width, (int) height, toInterpolation(interpolation), blurFactor);
 	}
 
@@ -1292,9 +1291,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else {
 			int h = bi.getHeight();
 			int w = bi.getWidth();
-
-			if (height == -1) height = h * (width / w);
-			if (width == -1) width = w * (height / h);
+			if (height == -1) height = (int) Math.round(h * (1D / w * width));
+			if (width == -1) width = (int) Math.round(w * (1D / h * height));
 
 			if (interpolation <= IPC_MAX) {
 				resizeImage(width, height, interpolation);
