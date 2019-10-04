@@ -45,18 +45,17 @@ public class JpegReader {
 	}
 
 	public BufferedImage readImage(File file) throws IOException, ImageReadException {
-		return _readImage(file);
+		return _readImage(file, null);
 	}
 
 	public BufferedImage readImage(byte[] bytes) throws IOException, ImageReadException {
-		return _readImage(bytes);
+		return _readImage(null, bytes);
 	}
 
-	public BufferedImage _readImage(Object obj) throws IOException, ImageReadException {
+	public BufferedImage _readImage(File file, byte[] bytes) throws IOException, ImageReadException {
 		colorType = COLOR_TYPE_RGB;
 		hasAdobeMarker = false;
-
-		ImageInputStream stream = obj instanceof File ? ImageIO.createImageInputStream(obj) : ImageIO.createImageInputStream(obj);
+		ImageInputStream stream = file != null ? ImageIO.createImageInputStream(file) : ImageIO.createImageInputStream(new ByteArrayInputStream(bytes));
 		Iterator<ImageReader> iter = ImageIO.getImageReaders(stream);
 		while (iter.hasNext()) {
 			ImageReader reader = iter.next();
@@ -69,8 +68,12 @@ public class JpegReader {
 			}
 			catch (IIOException e) {
 				colorType = COLOR_TYPE_CMYK;
-				checkAdobeMarker(obj instanceof File ? new ByteSourceFile((File) obj) : new ByteSourceArray((byte[]) obj));
-				profile = obj instanceof File ? Imaging.getICCProfile((File) obj) : Imaging.getICCProfile((byte[]) obj);
+				ByteSource bs;
+				if (file != null) bs = new ByteSourceFile(file);
+				else bs = new ByteSourceArray(bytes);
+
+				checkAdobeMarker(bs);
+				profile = file != null ? Imaging.getICCProfile(file) : Imaging.getICCProfile(bytes);
 				WritableRaster raster = (WritableRaster) reader.readRaster(0, null);
 				if (colorType == COLOR_TYPE_YCCK) convertYcckToCmyk(raster);
 				if (hasAdobeMarker) convertInvertedColors(raster);
@@ -78,7 +81,7 @@ public class JpegReader {
 			}
 			return image;
 		}
-		return obj instanceof File ? ImageIO.read((File) obj) : ImageIO.read(new ByteArrayInputStream((byte[]) obj));
+		return file != null ? ImageIO.read(file) : ImageIO.read(new ByteArrayInputStream(bytes));
 	}
 
 	private void checkAdobeMarker(ByteSource byteSource) throws IOException, ImageReadException {
@@ -143,14 +146,12 @@ public class JpegReader {
 	}
 
 	public static BufferedImage convertCmykToRgb(Raster cmykRaster, ICC_Profile cmykProfile) throws IOException {
-		if (cmykProfile == null) cmykProfile = ICC_Profile.getInstance(JpegReader.class.getResourceAsStream("/ISOcoated_v2_300_eci.icc"));
-
+		if (cmykProfile == null) cmykProfile = ICC_Profile.getInstance(JpegReader.class.getResourceAsStream("isocoated-v2-300-eci.icc"));
 		if (cmykProfile.getProfileClass() != ICC_Profile.CLASS_DISPLAY) {
 			byte[] profileData = cmykProfile.getData();
 
 			if (profileData[ICC_Profile.icHdrRenderingIntent] == ICC_Profile.icPerceptual) {
 				intToBigEndian(ICC_Profile.icSigDisplayClass, profileData, ICC_Profile.icHdrDeviceClass); // Header is first
-
 				cmykProfile = ICC_Profile.getInstance(profileData);
 			}
 		}

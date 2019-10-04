@@ -232,7 +232,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format) && !eng().getStringUtil().isEmpty(mimetype.toString())) {
 			format = ImageUtil.getFormatFromMimeType(mimetype.toString());
 		}
-
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);

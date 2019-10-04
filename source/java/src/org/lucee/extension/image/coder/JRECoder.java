@@ -115,7 +115,7 @@ class JRECoder extends Coder {
 		else if ("jpg".equalsIgnoreCase(format)) {
 			JpegReader reader = new JpegReader();
 			try {
-				reader.readImage(bytes);
+				return reader.readImage(bytes);
 			}
 			catch (Exception e) {
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
