@@ -998,8 +998,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		// try it with JAI
-		JAIUtil.write(getBufferedImage(), destination, format);
-
+		JAIUtil.write(getBufferedImage(), destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
@@ -1658,7 +1657,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			JAIUtil.write(getBufferedImage(), baos, format);
+			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 		}
 		catch (IOException e) {
 			throw eng().getCastUtil().toPageException(e);

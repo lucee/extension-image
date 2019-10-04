@@ -19,22 +19,19 @@
 package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.JAIUtil;
 import org.lucee.extension.image.PSDReader;
+import org.lucee.extension.image.jpg.JpegReader;
 
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
@@ -72,6 +69,15 @@ class JRECoder extends Coder {
 				Util.closeEL(is);
 			}
 		}
+		else if ("jpg".equalsIgnoreCase(format)) {
+			JpegReader reader = new JpegReader();
+			try {
+				return reader.readImage(eng.getCastUtil().toFile(res));
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+		}
 
 		InputStream is = null;
 		try {
@@ -86,48 +92,8 @@ class JRECoder extends Coder {
 			return JAIUtil.read(res);
 		}
 		catch (Exception e) {
-			if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
-				InputStream _is = null;
-				try {
-					return cmyk2rgb(_is = res.getInputStream());
-				}
-				catch (Exception ee) {
-					ee.printStackTrace();
-				}
-				finally {
-					Util.closeEL(_is);
-				}
-			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
-
-	}
-
-	public BufferedImage cmyk2rgb(Object obj) throws IOException {
-
-		// Find a suitable ImageReader
-		Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("JPEG");
-		ImageReader reader = null;
-		while (readers.hasNext()) {
-			reader = readers.next();
-			if (reader.canReadRaster()) {
-				break;
-			}
-		}
-
-		// Stream the image file (the original CMYK image)
-		ImageInputStream input = ImageIO.createImageInputStream(obj);
-		reader.setInput(input);
-
-		// Read the image raster
-		Raster raster = reader.readRaster(0, null);
-
-		// Create a new RGB image
-		BufferedImage bi = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-
-		// Fill the new image with the old raster
-		bi.getRaster().setRect(raster);
-		return bi;
 	}
 
 	/**
@@ -146,6 +112,15 @@ class JRECoder extends Coder {
 			reader.read(new ByteArrayInputStream(bytes));
 			return reader.getImage();
 		}
+		else if ("jpg".equalsIgnoreCase(format)) {
+			JpegReader reader = new JpegReader();
+			try {
+				reader.readImage(bytes);
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+		}
 
 		try {
 			return ImageIO.read(new ByteArrayInputStream(bytes));
@@ -153,17 +128,9 @@ class JRECoder extends Coder {
 		catch (Exception e) {}
 
 		try {
-			return JAIUtil.read(new ByteArrayInputStream(bytes), format);
+			return JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 		}
 		catch (Exception e) {
-			if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
-				try {
-					return cmyk2rgb(new ByteArrayInputStream(bytes));
-				}
-				catch (Exception ee) {
-					ee.printStackTrace();
-				}
-			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}
