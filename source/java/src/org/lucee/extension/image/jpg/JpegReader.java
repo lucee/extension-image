@@ -27,6 +27,8 @@ import org.apache.commons.imaging.formats.jpeg.JpegImageParser;
 import org.apache.commons.imaging.formats.jpeg.segments.GenericSegment;
 import org.apache.commons.imaging.formats.jpeg.segments.Segment;
 
+import lucee.commons.lang.types.RefInteger;
+
 public class JpegReader {
 
 	public static final int COLOR_TYPE_RGB = 1;
@@ -44,16 +46,17 @@ public class JpegReader {
 		return hasAdobeMarker;
 	}
 
-	public BufferedImage readImage(File file) throws IOException, ImageReadException {
-		return _readImage(file, null);
+	public BufferedImage readImage(File file, RefInteger colorType) throws IOException, ImageReadException {
+		return _readImage(file, null, colorType);
 	}
 
-	public BufferedImage readImage(byte[] bytes) throws IOException, ImageReadException {
-		return _readImage(null, bytes);
+	public BufferedImage readImage(byte[] bytes, RefInteger colorType) throws IOException, ImageReadException {
+		return _readImage(null, bytes, colorType);
 	}
 
-	public BufferedImage _readImage(File file, byte[] bytes) throws IOException, ImageReadException {
+	public BufferedImage _readImage(File file, byte[] bytes, RefInteger ct) throws IOException, ImageReadException {
 		colorType = COLOR_TYPE_RGB;
+		if (ct != null) ct.setValue(COLOR_TYPE_RGB);
 		hasAdobeMarker = false;
 		ImageInputStream stream = file != null ? ImageIO.createImageInputStream(file) : ImageIO.createImageInputStream(new ByteArrayInputStream(bytes));
 		Iterator<ImageReader> iter = ImageIO.getImageReaders(stream);
@@ -68,6 +71,7 @@ public class JpegReader {
 			}
 			catch (IIOException e) {
 				colorType = COLOR_TYPE_CMYK;
+				if (ct != null) ct.setValue(COLOR_TYPE_CMYK);
 				ByteSource bs;
 				if (file != null) bs = new ByteSourceFile(file);
 				else bs = new ByteSourceArray(bytes);
@@ -75,7 +79,10 @@ public class JpegReader {
 				checkAdobeMarker(bs);
 				profile = file != null ? Imaging.getICCProfile(file) : Imaging.getICCProfile(bytes);
 				WritableRaster raster = (WritableRaster) reader.readRaster(0, null);
-				if (colorType == COLOR_TYPE_YCCK) convertYcckToCmyk(raster);
+				if (colorType == COLOR_TYPE_YCCK) {
+					convertYcckToCmyk(raster);
+					if (ct != null) ct.setValue(COLOR_TYPE_YCCK);
+				}
 				if (hasAdobeMarker) convertInvertedColors(raster);
 				image = convertCmykToRgb(raster, profile);
 			}
@@ -170,5 +177,12 @@ public class JpegReader {
 		array[index + 1] = (byte) (value >> 16);
 		array[index + 2] = (byte) (value >> 8);
 		array[index + 3] = (byte) (value);
+	}
+
+	public static Object toColorType(Integer colorType, String defaultValue) {
+		if (COLOR_TYPE_CMYK == colorType) return "CMYK";
+		if (COLOR_TYPE_RGB == colorType) return "RGB";
+		if (COLOR_TYPE_YCCK == colorType) return "YCCK";
+		return defaultValue;
 	}
 }
