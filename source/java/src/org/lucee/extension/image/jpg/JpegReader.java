@@ -26,6 +26,7 @@ import org.apache.commons.imaging.common.bytesource.ByteSourceFile;
 import org.apache.commons.imaging.formats.jpeg.JpegImageParser;
 import org.apache.commons.imaging.formats.jpeg.segments.GenericSegment;
 import org.apache.commons.imaging.formats.jpeg.segments.Segment;
+import org.lucee.extension.image.util.CommonUtil;
 
 import lucee.commons.lang.types.RefInteger;
 
@@ -60,33 +61,38 @@ public class JpegReader {
 		hasAdobeMarker = false;
 		ImageInputStream stream = file != null ? ImageIO.createImageInputStream(file) : ImageIO.createImageInputStream(new ByteArrayInputStream(bytes));
 		Iterator<ImageReader> iter = ImageIO.getImageReaders(stream);
-		while (iter.hasNext()) {
-			ImageReader reader = iter.next();
-			reader.setInput(stream);
+		try {
+			while (iter.hasNext()) {
+				ImageReader reader = iter.next();
+				reader.setInput(stream);
 
-			BufferedImage image;
-			ICC_Profile profile = null;
-			try {
-				image = reader.read(0);
-			}
-			catch (IIOException e) {
-				colorType = COLOR_TYPE_CMYK;
-				if (ct != null) ct.setValue(COLOR_TYPE_CMYK);
-				ByteSource bs;
-				if (file != null) bs = new ByteSourceFile(file);
-				else bs = new ByteSourceArray(bytes);
-
-				checkAdobeMarker(bs);
-				profile = file != null ? Imaging.getICCProfile(file) : Imaging.getICCProfile(bytes);
-				WritableRaster raster = (WritableRaster) reader.readRaster(0, null);
-				if (colorType == COLOR_TYPE_YCCK) {
-					convertYcckToCmyk(raster);
-					if (ct != null) ct.setValue(COLOR_TYPE_YCCK);
+				BufferedImage image;
+				ICC_Profile profile = null;
+				try {
+					image = reader.read(0);
 				}
-				if (hasAdobeMarker) convertInvertedColors(raster);
-				image = convertCmykToRgb(raster, profile);
+				catch (IIOException e) {
+					colorType = COLOR_TYPE_CMYK;
+					if (ct != null) ct.setValue(COLOR_TYPE_CMYK);
+					ByteSource bs;
+					if (file != null) bs = new ByteSourceFile(file);
+					else bs = new ByteSourceArray(bytes);
+
+					checkAdobeMarker(bs);
+					profile = file != null ? Imaging.getICCProfile(file) : Imaging.getICCProfile(bytes);
+					WritableRaster raster = (WritableRaster) reader.readRaster(0, null);
+					if (colorType == COLOR_TYPE_YCCK) {
+						convertYcckToCmyk(raster);
+						if (ct != null) ct.setValue(COLOR_TYPE_YCCK);
+					}
+					if (hasAdobeMarker) convertInvertedColors(raster);
+					image = convertCmykToRgb(raster, profile);
+				}
+				return image;
 			}
-			return image;
+		}
+		finally {
+			CommonUtil.close(stream);
 		}
 		return file != null ? ImageIO.read(file) : ImageIO.read(new ByteArrayInputStream(bytes));
 	}
