@@ -1023,7 +1023,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				finally {
 					if (!tmp.delete()) tmp.deleteOnExit();
 				}
-
 			}
 		}
 		catch (Exception e) {}
@@ -1033,7 +1032,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		// try it with JAI
-		JAIUtil.write(getBufferedImage(), destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		BufferedImage bi = getBufferedImage();
+		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+			bi = ensureOpaque(bi);
+		}
+		JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
@@ -1070,13 +1073,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format)) format = this.format;
 		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
 
-		BufferedImage im = image();
+		BufferedImage bi = image();
 
 		// IIOMetadata meta = noMeta?null:metadata(format);
 		IIOMetadata meta = noMeta ? null : getMetaData(null);
 
 		ImageWriter writer = null;
-		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(im);
+		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
 		Iterator<ImageWriter> iter = ImageIO.getImageWriters(type, format);
 
 		if (iter.hasNext()) {
@@ -1085,18 +1088,38 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (writer == null) throw new IOException(
 				"no writer for format [" + format + "] available, available writer formats are [" + eng().getListUtil().toList(ImageUtil.getWriterFormatNames(), ",") + "]");
 
-		ImageWriteParam iwp = getImageWriteParam(im, writer, quality, this.format, format);
+		ImageWriteParam iwp = getImageWriteParam(bi, writer, quality, this.format, format);
 
 		writer.setOutput(ios);
 
+		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+			BufferedImage nbi = ensureOpaque(bi);
+			if (nbi != bi) {
+				bi = nbi;
+				meta = null;
+			}
+		}
+
 		try {
-			writer.write(meta, new IIOImage(im, null, meta), iwp);
+			writer.write(meta, new IIOImage(bi, null, meta), iwp);
 		}
 		finally {
 			writer.dispose();
 			ios.flush();
 			this.format = format;
 		}
+	}
+
+	private static BufferedImage ensureOpaque(BufferedImage bi) {
+		if (bi.getTransparency() == BufferedImage.OPAQUE) return bi;
+
+		int w = bi.getWidth();
+		int h = bi.getHeight();
+		int[] pixels = new int[w * h];
+		bi.getRGB(0, 0, w, h, pixels, 0, w);
+		BufferedImage bi2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		bi2.setRGB(0, 0, w, h, pixels, 0, w);
+		return bi2;
 	}
 
 	private static ImageWriteParam getImageWriteParam(BufferedImage im, ImageWriter writer, float quality, String srcFormat, String trgFormat) {
@@ -1571,7 +1594,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				String str = obj.toString();
 				CFMLEngineFactory.getInstance().getDecisionUtil().isCastableToBinary(str, true);
 
-				Exception e;
+				Exception e = null;
 				// file
 				if (str.length() < 4000) {
 					try {
@@ -1589,7 +1612,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					return new Image(str, format);
 				}
 				catch (Exception ee) {
-					e = ee;
+					if (e == null) e = ee;
 				}
 
 				// variable
