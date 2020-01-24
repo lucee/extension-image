@@ -89,7 +89,11 @@ public class ImageUtil {
 	public static String getFormat(Resource res) throws IOException {
 		String ext = getFormatFromExtension(res, null);
 		if (ext != null) return ext;
-		String mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
+		String mt = null;
+		try {
+			mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
+		}
+		catch (Exception e) {}
 		if (mt == null) return null;// throw new IOException("can't extract mimetype from ["+res+"]");
 		return getFormatFromMimeType(mt);
 	}

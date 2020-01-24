@@ -978,7 +978,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void writeOut(Resource destination, boolean overwrite, float quality) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
-		if (format == null) format = ImageUtil.getFormat(destination);
+		if (format == null && destination != null) {
+			format = ImageUtil.getFormat(destination);
+		}
+		if (format == null) throw new IOException("cannot detect Format for given image");
 		writeOut(destination, format, overwrite, quality);
 	}
 
