@@ -1327,10 +1327,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private void resize(BufferedImage bi, int width, int height, int interpolation, double blurFactor) throws PageException {
 
 		if (interpolation == IP_AUTOMATIC && blurFactor == 1) {
-			Img img = new Img(bi);
-			img.resize(width, height);
-			image(img.getBufferedImage());
-			return;
+			try {
+				Img img = new Img(bi);
+				img.resize(width, height);
+				image(img.getBufferedImage());
+				return;
+			}
+			catch (Exception e) {}
 		}
 
 		ColorModel cm = bi.getColorModel();
