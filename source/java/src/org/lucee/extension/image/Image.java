@@ -66,6 +66,7 @@ import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
+import java.io.*;
 
 import javax.imageio.IIOException;
 import javax.imageio.IIOImage;
@@ -978,10 +979,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void writeOut(Resource destination, boolean overwrite, float quality) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
+		String[] destnSplit = destination.toString().split("\\\\");
+		String split = destnSplit[destnSplit.length-1];
+		String[] extn = split.split("[.]");
+		String[] destn = destination.toString().split(split);
+		File path = new File(destn[0].toString());
 		if (format == null && destination != null) {
 			format = ImageUtil.getFormat(destination);
 		}
-		if (format == null) throw new IOException("cannot detect Format for given image");
+		if(!path.isDirectory()) throw new IOException("destination folder [ " + destination + " ] doesn't exist");
+		if (format == null) throw new IOException("Unsupported image file type [ " + extn[extn.length-1] + " ]");
 		writeOut(destination, format, overwrite, quality);
 	}
 
