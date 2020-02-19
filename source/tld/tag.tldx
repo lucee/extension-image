@@ -193,5 +193,13 @@
 			<rtexprvalue>true</rtexprvalue>
 			<description>should action "writetobrowser" embed the source of the image as base64 encoded string, default is false.</description>
 		</attribute>
+
+		<attribute>
+			<type>boolean</type>
+			<name>nometadata</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>only used for action "write", if set to true, the meta data from a source image are NOT written to the destination image.</description>
+		</attribute>
 	</tag>
 </taglib>

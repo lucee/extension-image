@@ -976,16 +976,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return new String(eng().getCastUtil().toBase64(imageBytes));
 	}
 
-	public void writeOut(Resource destination, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
 		if (format == null && destination != null) {
 			format = ImageUtil.getFormat(destination);
 		}
 		if (format == null) throw new IOException("cannot detect Format for given image");
-		writeOut(destination, format, overwrite, quality);
+		writeOut(destination, format, overwrite, quality, noMeta);
 	}
 
-	public void writeOut(Resource destination, final String format, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		if (destination == null) {
 			if (source != null) destination = source;
 			else throw new IOException("missing destination file");
@@ -1001,7 +1001,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 			return;
 		}
 		catch (IIOException iioe) {
@@ -1014,7 +1014,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				File tmp = new File(Util.getTempDirectory(), "tmp-" + System.currentTimeMillis() + ".png");
 				FileOutputStream fos = new FileOutputStream(tmp);
 				try {
-					writeOut(fos, "png", 1f, true);
+					writeOut(fos, "png", 1f, true, noMeta);
 					os = destination.getOutputStream();
 					ios = ImageIO.createImageOutputStream(os);
 					PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
@@ -1061,10 +1061,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 	}
 
-	public void writeOut(OutputStream os, String format, float quality, boolean closeStream) throws IOException, PageException {
+	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
 		ImageOutputStream ios = ImageIO.createImageOutputStream(os);
 		try {
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 		}
 		finally {
 			eng().getIOUtil().closeSilent(ios);

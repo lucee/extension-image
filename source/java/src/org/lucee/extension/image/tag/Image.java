@@ -56,6 +56,7 @@ public final class Image extends TagImpl {
 	private int thickness = 1;
 	private String passthrough;
 	private boolean base64;
+	private boolean nometadata;
 	private CFMLEngine eng;
 
 	public Image() {
@@ -87,6 +88,7 @@ public final class Image extends TagImpl {
 		thickness = 1;
 		passthrough = null;
 		base64 = false;
+		nometadata = false;
 	}
 
 	/**
@@ -116,6 +118,10 @@ public final class Image extends TagImpl {
 	 */
 	public void setBase64(boolean base64) {
 		this.base64 = base64;
+	}
+
+	public void setNometadata(boolean nometadata) {
+		this.nometadata = nometadata;
 	}
 
 	/**
@@ -431,7 +437,7 @@ public final class Image extends TagImpl {
 		required("source", source);
 		required("destination", destination);
 
-		source.writeOut(destination, overwrite, quality);
+		source.writeOut(destination, overwrite, quality, nometadata);
 	}
 
 	// Write an image to the browser
