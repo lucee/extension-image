@@ -20,6 +20,7 @@ package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -31,8 +32,10 @@ import javax.imageio.ImageIO;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.JAIUtil;
 import org.lucee.extension.image.PSDReader;
+import org.lucee.extension.image.jpg.JpegReader;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -54,7 +57,7 @@ class JRECoder extends Coder {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(Resource res, String format) throws IOException {
+	public final BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
 		if ("psd".equalsIgnoreCase(format)) {
@@ -68,6 +71,26 @@ class JRECoder extends Coder {
 				Util.closeEL(is);
 			}
 		}
+		else if ("jpg".equalsIgnoreCase(format)) {
+			JpegReader reader = new JpegReader();
+			try {
+				if (res instanceof File) return reader.readImage((File) res, jpegColorType);
+				else {
+					Resource tmp = eng.getSystemUtil().getTempFile("jpg", false);
+					eng.getIOUtil().copy(res, tmp);
+					try {
+						return reader.readImage((File) tmp, jpegColorType);
+					}
+					finally {
+						if (!tmp.delete()) ((File) tmp).deleteOnExit();
+					}
+				}
+
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+		}
 
 		InputStream is = null;
 		try {
@@ -78,7 +101,12 @@ class JRECoder extends Coder {
 			Util.closeEL(is);
 		}
 
-		return JAIUtil.read(res);
+		try {
+			return JAIUtil.read(res);
+		}
+		catch (Exception e) {
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
 	}
 
 	/**
@@ -89,7 +117,7 @@ class JRECoder extends Coder {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
+	public final BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(bytes, null);
 		if ("psd".equalsIgnoreCase(format)) {
@@ -97,13 +125,27 @@ class JRECoder extends Coder {
 			reader.read(new ByteArrayInputStream(bytes));
 			return reader.getImage();
 		}
+		else if ("jpg".equalsIgnoreCase(format)) {
+			JpegReader reader = new JpegReader();
+			try {
+				return reader.readImage(bytes, jpegColorType);
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+		}
 
 		try {
 			return ImageIO.read(new ByteArrayInputStream(bytes));
 		}
 		catch (Exception e) {}
 
-		return JAIUtil.read(new ByteArrayInputStream(bytes), format);
+		try {
+			return JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		}
+		catch (Exception e) {
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
 	}
 
 	@Override

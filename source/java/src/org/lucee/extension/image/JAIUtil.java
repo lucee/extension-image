@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -150,11 +152,17 @@ public class JAIUtil {
 
 	private static BufferedImage getAsBufferedImage(Object im) throws IOException {
 		// RenderedOp.getAsBufferedImage();
+		PrintStream err = System.err;
+
 		try {
+			System.setErr(DevNullOutputStream.DEV_NULL_PRINT_STREAM);
 			return (BufferedImage) getAsBufferedImage().invoke(im, new Object[0]);
 		}
 		catch (Exception e) {
 			throw toIOException(e);
+		}
+		finally {
+			System.setErr(err);
 		}
 	}
 
@@ -209,5 +217,35 @@ public class JAIUtil {
 		IOException ioe = new IOException(e.getMessage());
 		ioe.setStackTrace(e.getStackTrace());
 		return ioe;
+	}
+
+	/**
+	 * dev null output stream, write data to nirvana
+	 */
+	private static class DevNullOutputStream extends OutputStream implements Serializable {
+
+		public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
+		public static final PrintStream DEV_NULL_PRINT_STREAM = new PrintStream(new DevNullOutputStream());
+
+		/**
+		 * Constructor of the class
+		 */
+		private DevNullOutputStream() {}
+
+		@Override
+		public void close() {}
+
+		@Override
+		public void flush() {}
+
+		@Override
+		public void write(byte[] b, int off, int len) {}
+
+		@Override
+		public void write(byte[] b) {}
+
+		@Override
+		public void write(int b) {}
+
 	}
 }

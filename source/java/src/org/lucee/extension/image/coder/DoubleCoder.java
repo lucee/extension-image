@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
 
 class DoubleCoder extends Coder {
 
@@ -37,22 +38,22 @@ class DoubleCoder extends Coder {
 	}
 
 	@Override
-	public BufferedImage toBufferedImage(Resource res, String format) throws IOException {
+	public BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
 		try {
-			return first.toBufferedImage(res, format);
+			return first.toBufferedImage(res, format, jpegColorType);
 		}
 		catch (Exception ioe) {
-			return second.toBufferedImage(res, format);
+			return second.toBufferedImage(res, format, jpegColorType);
 		}
 	}
 
 	@Override
-	public BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
+	public BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
 		try {
-			return first.toBufferedImage(bytes, format);
+			return first.toBufferedImage(bytes, format, jpegColorType);
 		}
 		catch (Exception ioe) {
-			return second.toBufferedImage(bytes, format);
+			return second.toBufferedImage(bytes, format, jpegColorType);
 		}
 	}
 

@@ -57,6 +57,7 @@ import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -66,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
 
+import javax.imageio.IIOException;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -97,6 +99,7 @@ import org.lucee.extension.image.filter.QuantizeFilter;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
 import org.lucee.extension.image.gif.GifEncoder;
+import org.lucee.extension.image.jpg.JpegReader;
 import org.lucee.extension.image.util.ArrayUtil;
 import org.lucee.extension.image.util.CommonUtil;
 import org.lucee.extension.image.util.CommonUtil.Coll;
@@ -106,6 +109,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -183,6 +187,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private float alpha = 1;
 
 	private Composite composite;
+	private RefInteger jpegColorType;
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
@@ -199,6 +204,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
+		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
+		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to read binary image file");
 	}
 
@@ -209,8 +216,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(Resource res, String format) throws IOException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
 		this.format = format;
-
-		_image = ImageUtil.toBufferedImage(res, format);
+		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
+		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
 		if (_image == null) throw new IOException("Unable to read image file [" + res +"]");
 	}
@@ -218,6 +225,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(BufferedImage image) {
 		this._image = image;
 		this.format = null;
+		// TODO find out jpeg type
 	}
 
 	public Image(String b64str) throws IOException {
@@ -232,11 +240,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format) && !eng().getStringUtil().isEmpty(mimetype.toString())) {
 			format = ImageUtil.getFormatFromMimeType(mimetype.toString());
 		}
-
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
+		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
+		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
+
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
@@ -332,6 +342,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		sctInfo.setEL("height", Double.valueOf(getHeight()));
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
 		sctInfo.setEL("source", source == null ? "" : source.getAbsolutePath());
+		if (jpegColorType != null && jpegColorType.toInteger() > 0) {
+			sctInfo.setEL("jpeg_color_type", JpegReader.toColorType(jpegColorType.toInteger(), ""));
+		}
 		// sct.setEL("mime_type",getMimeType());
 
 		ColorModel cm = image().getColorModel();
@@ -966,13 +979,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return new String(eng().getCastUtil().toBase64(imageBytes));
 	}
 
-	public void writeOut(Resource destination, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
-		if (format == null) format = ImageUtil.getFormat(destination);
-		writeOut(destination, format, overwrite, quality);
+		if (format == null && destination != null) {
+			format = ImageUtil.getFormat(destination);
+		}
+		if (format == null) throw new IOException("cannot detect Format for given image");
+		writeOut(destination, format, overwrite, quality, noMeta);
 	}
 
-	public void writeOut(Resource destination, final String format, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		if (destination == null) {
 			if (source != null) destination = source;
 			else throw new IOException("missing destination file");
@@ -988,8 +1004,32 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 			return;
+		}
+		catch (IIOException iioe) {
+			// TODO correct the bands in case a CMYK image is read in when creating the BufferedImage
+			if (jpegColorType != null && jpegColorType.toInt() > 0 && (iioe.getMessage() + "").indexOf("Metadata components != number of destination bands") != -1) {
+				ImageUtil.closeEL(ios);
+				eng().getIOUtil().closeSilent(os);
+
+				// as a workaround we convert first to a png and then we convert that png to jpeg
+				File tmp = new File(Util.getTempDirectory(), "tmp-" + System.currentTimeMillis() + ".png");
+				FileOutputStream fos = new FileOutputStream(tmp);
+				try {
+					writeOut(fos, "png", 1f, true, noMeta);
+					os = destination.getOutputStream();
+					ios = ImageIO.createImageOutputStream(os);
+					PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
+					Image img = Image.createImage(pc, tmp, false, false, false, format);
+					img._writeOut(ios, format, quality, false);
+					return;
+				}
+				catch (Exception e) {}
+				finally {
+					if (!tmp.delete()) tmp.deleteOnExit();
+				}
+			}
 		}
 		catch (Exception e) {}
 		finally {
@@ -998,8 +1038,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		// try it with JAI
-		JAIUtil.write(getBufferedImage(), destination, format);
-
+		BufferedImage bi = getBufferedImage();
+		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+			bi = ensureOpaque(bi);
+		}
+		JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
@@ -1021,10 +1064,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 	}
 
-	public void writeOut(OutputStream os, String format, float quality, boolean closeStream) throws IOException, PageException {
+	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
 		ImageOutputStream ios = ImageIO.createImageOutputStream(os);
 		try {
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 		}
 		finally {
 			eng().getIOUtil().closeSilent(ios);
@@ -1036,13 +1079,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format)) format = this.format;
 		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
 
-		BufferedImage im = image();
+		BufferedImage bi = image();
 
 		// IIOMetadata meta = noMeta?null:metadata(format);
 		IIOMetadata meta = noMeta ? null : getMetaData(null);
 
 		ImageWriter writer = null;
-		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(im);
+		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
 		Iterator<ImageWriter> iter = ImageIO.getImageWriters(type, format);
 
 		if (iter.hasNext()) {
@@ -1051,18 +1094,38 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (writer == null) throw new IOException(
 				"no writer for format [" + format + "] available, available writer formats are [" + eng().getListUtil().toList(ImageUtil.getWriterFormatNames(), ",") + "]");
 
-		ImageWriteParam iwp = getImageWriteParam(im, writer, quality, this.format, format);
+		ImageWriteParam iwp = getImageWriteParam(bi, writer, quality, this.format, format);
 
 		writer.setOutput(ios);
 
+		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+			BufferedImage nbi = ensureOpaque(bi);
+			if (nbi != bi) {
+				bi = nbi;
+				meta = null;
+			}
+		}
+
 		try {
-			writer.write(meta, new IIOImage(im, null, meta), iwp);
+			writer.write(meta, new IIOImage(bi, null, meta), iwp);
 		}
 		finally {
 			writer.dispose();
 			ios.flush();
 			this.format = format;
 		}
+	}
+
+	private static BufferedImage ensureOpaque(BufferedImage bi) {
+		if (bi.getTransparency() == BufferedImage.OPAQUE) return bi;
+
+		int w = bi.getWidth();
+		int h = bi.getHeight();
+		int[] pixels = new int[w * h];
+		bi.getRGB(0, 0, w, h, pixels, 0, w);
+		BufferedImage bi2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		bi2.setRGB(0, 0, w, h, pixels, 0, w);
+		return bi2;
 	}
 
 	private static ImageWriteParam getImageWriteParam(BufferedImage im, ImageWriter writer, float quality, String srcFormat, String trgFormat) {
@@ -1224,7 +1287,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		BufferedImage bi = image();
 		float height = resizeDimesion("height", strHeight, bi.getHeight());
 		float width = resizeDimesion("width", strWidth, bi.getWidth());
-
 		resize(bi, (int) width, (int) height, toInterpolation(interpolation), blurFactor);
 	}
 
@@ -1267,6 +1329,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private void resize(BufferedImage bi, int width, int height, int interpolation, double blurFactor) throws PageException {
 
+		if (interpolation == IP_AUTOMATIC && blurFactor == 1) {
+			try {
+				Img img = new Img(bi);
+				img.resize(width, height);
+				image(img.getBufferedImage());
+				return;
+			}
+			catch (Exception e) {}
+		}
+
 		ColorModel cm = bi.getColorModel();
 
 		if (interpolation == IP_HIGHESTPERFORMANCE) {
@@ -1292,9 +1364,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else {
 			int h = bi.getHeight();
 			int w = bi.getWidth();
-
-			if (height == -1) height = h * (width / w);
-			if (width == -1) width = w * (height / h);
+			if (height == -1) height = (int) Math.round(h * (1D / w * width));
+			if (width == -1) width = (int) Math.round(w * (1D / h * height));
 
 			if (interpolation <= IPC_MAX) {
 				resizeImage(width, height, interpolation);
@@ -1313,8 +1384,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	 */
 
 	public void rotate(float x, float y, float angle, int interpolation) throws PageException {
-		if (x == -1) x = (float) getWidth() / 2;
-		if (y == -1) y = (float) getHeight() / 2;
+		if (x == -1) {
+			x = Math.round(getWidth() / 2);
+		}
+		if (y == -1) {
+			y = Math.round(getHeight() / 2);
+		}
 
 		angle = (float) Math.toRadians(angle);
 		ColorModel cmSource = image().getColorModel();
@@ -1355,6 +1430,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		params.add(angle);
 		params.add(interp);
 		params.add(new double[] { 0.0 });
+
 		BorderExtender extender = new BorderExtenderConstant(new double[] { 0.0 });
 		RenderingHints hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
 		hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
@@ -1525,16 +1601,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public static Image createImage(PageContext pc, Object obj, boolean check4Var, boolean clone, boolean checkAccess, String format) throws PageException {
 		try {
-			if (obj instanceof Resource || obj instanceof File) {
+			if ((obj instanceof Resource || obj instanceof File)) {
 				Resource res = eng().getCastUtil().toResource(obj);
-				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				if (checkAccess) pc.getConfig().getSecurityManager().checkFileLocation(res);
 				return new Image(res, format);
 			}
 			if (obj instanceof CharSequence) {
 				String str = obj.toString();
 				CFMLEngineFactory.getInstance().getDecisionUtil().isCastableToBinary(str, true);
 
-				Exception e;
+				Exception e = null;
 				// file
 				if (str.length() < 4000) {
 					try {
@@ -1543,7 +1619,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 						return new Image(res, format);
 					}
 					catch (Exception ee) {
-						ee.printStackTrace();
 						e = ee;
 					}
 				}
@@ -1553,7 +1628,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					return new Image(str, format);
 				}
 				catch (Exception ee) {
-					e = ee;
+					if (e == null) e = ee;
 				}
 
 				// variable
@@ -1656,7 +1731,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			JAIUtil.write(getBufferedImage(), baos, format);
+			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 		}
 		catch (IOException e) {
 			throw eng().getCastUtil().toPageException(e);
