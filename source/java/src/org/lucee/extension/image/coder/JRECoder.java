@@ -87,9 +87,7 @@ class JRECoder extends Coder {
 				}
 
 			}
-			catch (Exception e) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
-			}
+			catch (Exception e) {}
 		}
 
 		InputStream is = null;
