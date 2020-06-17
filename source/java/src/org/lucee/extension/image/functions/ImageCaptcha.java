@@ -26,7 +26,7 @@ public class ImageCaptcha extends FunctionSupport implements Function {
 		int fontSize=toFontSize(dFontSize);
 		Color fontColor=toFontColor(strFontColor);
 		int difficulty = toDifficulty(strDifficulty);
-		if(width<=0 && height<=0) throw eng.getExceptionUtil().createApplicationException("You need to set width or height of the captcha.");
+		if(width<=0 && height<=0) throw eng.getExceptionUtil().createApplicationException("A captcha requires width or height to be specified.");
 		
 		try {
 			MarpleCaptcha c=new MarpleCaptcha();
@@ -64,8 +64,8 @@ public class ImageCaptcha extends FunctionSupport implements Function {
 		if("medium".equals(strDifficulty))	return MarpleCaptcha.DIFFICULTY_MEDIUM;
 		if("high".equals(strDifficulty))	return MarpleCaptcha.DIFFICULTY_HIGH;
 		
-		throw eng.getExceptionUtil().createApplicationException("invalid difficulty level ["+strDifficulty+"], " +
-		"valid difficulty level are [low,medium,high]");
+		throw eng.getExceptionUtil().createApplicationException("Unsupported captcha difficulty level ["+strDifficulty+"], " +
+		"supported difficulty levels are [low,medium,high]");
 		
 	}
 
@@ -90,6 +90,6 @@ public class ImageCaptcha extends FunctionSupport implements Function {
 			}
 			return DEFAULT_FONTS;
 		}
-		throw eng.getExceptionUtil().createApplicationException("cannot convert ["+oFonts.getClass().getName()+"] to font");
+		throw eng.getExceptionUtil().createApplicationException("Cannot find captcha font ["+oFonts.getClass().getName()+"]");
 	}
 }
