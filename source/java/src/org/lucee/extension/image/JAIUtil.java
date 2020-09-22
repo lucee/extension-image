@@ -20,7 +20,10 @@ package org.lucee.extension.image;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,6 +32,7 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import javax.imageio.ImageIO;
 import javax.media.jai.JAI;
 import javax.media.jai.RenderedOp;
 
@@ -37,6 +41,8 @@ import org.lucee.extension.image.util.IDGenerator;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
+import lucee.runtime.exp.PageException;
 
 public class JAIUtil {
 
@@ -128,6 +134,36 @@ public class JAIUtil {
 				tmp.delete();
 			}
 		}
+	}
+
+	public static void writee(BufferedImage img, OutputStream os, String format) throws IOException {
+		File tmp = null;
+		// CFMLEngine eng = CFMLEngineFactory.getInstance();
+		try {
+			// tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
+			tmp = new File(File.createTempFile("wkw", "qtq").getParentFile(), IDGenerator.intId() + "." + format);
+			// JAI.create("filestore", img, tmp.getAbsolutePath(), format);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			// ImageIO.write(img, "jpeg", baos);
+			Img _img = new Img(img);
+			byte[] barr = _img.getByteArray(format);
+			// create("filestore", img, tmp.getAbsolutePath(), format);
+			Util.copy(new ByteArrayInputStream(barr), os, true, true);
+		}
+		finally {
+			if (tmp != null) {
+				tmp.delete();
+			}
+		}
+	}
+
+	public static void main(String[] args) throws IOException, PageException {
+		JAIUtil util = new JAIUtil();
+		BufferedImage bi = ImageIO.read(new File("/Users/mic/Projects/Distrokid/distrokid/webroot/images/mic.jpg"));
+
+		// new BufferedInputStream(new FileInputStream());
+		System.err.println(bi);
+		util.writee(bi, new FileOutputStream("/Users/mic/aaaaaaaaaaaax.jpg"), "jpeg");
 	}
 
 	////////////////////////////////////////////////////////////////////

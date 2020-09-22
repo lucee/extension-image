@@ -372,14 +372,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else if (cm instanceof PackedColorModel) sct.setEL("colormodel_type", "PackedColorModel");
 		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
-		getMetaData(sctInfo);
+		getMetaData(sctInfo, null);
 		// Metadata.addInfo(format,source,sctInfo);
 		Metadata.addExifInfo(format, source, sctInfo);
 		this.sctInfo = sctInfo;
 		return sctInfo;
 	}
 
-	public IIOMetadata getMetaData(Struct parent) {
+	public IIOMetadata getMetaData(Struct parent, String format) {
+		if (Util.isEmpty(format)) format = Util.isEmpty(this.format) ? "jpeg" : this.format;
+
 		InputStream is = null;
 		javax.imageio.stream.ImageInputStreamImpl iis = null;
 		try {
@@ -1028,7 +1030,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				}
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 		finally {
 			ImageUtil.closeEL(ios);
 			eng().getIOUtil().closeSilent(os);
@@ -1039,7 +1043,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
 			bi = ensureOpaque(bi);
 		}
-		JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+
+		try {
+			JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		}
+		catch (IOException ioe) {
+			Img img = new Img(bi);
+			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			if (barr == null) throw ioe;
+			eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+		}
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
@@ -1079,7 +1092,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		BufferedImage bi = image();
 
 		// IIOMetadata meta = noMeta?null:metadata(format);
-		IIOMetadata meta = noMeta ? null : getMetaData(null);
+		IIOMetadata meta = noMeta ? null : getMetaData(null, format);
 
 		ImageWriter writer = null;
 		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
@@ -1727,13 +1740,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		IOException ioe = null;
 		try {
 			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			return baos.toByteArray();
 		}
 		catch (IOException e) {
-			throw eng().getCastUtil().toPageException(e);
+			ioe = e;
 		}
-		return baos.toByteArray();
+
+		Img img = new Img(getBufferedImage());
+		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		if (barr == null) throw eng().getCastUtil().toPageException(ioe);
+		return barr;
 	}
 
 	public void setColor(Color color) throws PageException {

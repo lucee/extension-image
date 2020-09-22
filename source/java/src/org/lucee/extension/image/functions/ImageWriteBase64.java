@@ -20,28 +20,25 @@ package org.lucee.extension.image.functions;
 
 import java.io.IOException;
 
+import org.lucee.extension.image.Image;
+
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-import org.lucee.extension.image.Image;
-
-
 public class ImageWriteBase64 extends FunctionSupport {
-	
+
 	public static String call(PageContext pc, Object name, String destination, String format) throws PageException {
-		return call(pc, name, destination, format,false);
+		return call(pc, name, destination, format, false);
 	}
-	
+
 	public static String call(PageContext pc, Object name, String destination, String format, boolean inHTMLFormat) throws PageException {
-		//if(name instanceof String)name=pc.getVariable(Caster.toString(name));
-		Image image=Image.toImage(pc,name);
+		// if(name instanceof String)name=pc.getVariable(Caster.toString(name));
+		Image image = Image.toImage(pc, name);
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		Resource res=eng.getStringUtil().isEmpty(destination)?
-				image.getSource():
-				eng.getResourceUtil().toResourceNotExisting(pc, destination);
+		Resource res = eng.getStringUtil().isEmpty(destination) ? image.getSource() : eng.getResourceUtil().toResourceNotExisting(pc, destination);
 
 		try {
 			return image.writeBase64(res, format, inHTMLFormat);
@@ -49,13 +46,13 @@ public class ImageWriteBase64 extends FunctionSupport {
 		catch (IOException e) {
 			throw eng.getCastUtil().toPageException(e);
 		}
-		
+
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==4) return call(pc, args[0],cast.toString(args[1]),cast.toString(args[2]),cast.toBooleanValue(args[3]));
-		if(args.length==3) return call(pc, args[0],cast.toString(args[1]),cast.toString(args[2]));
+		if (args.length == 4) return call(pc, args[0], cast.toString(args[1]), cast.toString(args[2]), cast.toBooleanValue(args[3]));
+		if (args.length == 3) return call(pc, args[0], cast.toString(args[1]), cast.toString(args[2]));
 		throw exp.createFunctionException(pc, "ImageWriteBase64", 3, 4, args.length);
 	}
 }
