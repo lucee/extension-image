@@ -191,15 +191,13 @@ public class JAIUtil {
 		PrintStream err = System.err;
 
 		try {
-			System.setErr(DevNullOutputStream.DEV_NULL_PRINT_STREAM);
+
 			return (BufferedImage) getAsBufferedImage().invoke(im, new Object[0]);
 		}
 		catch (Exception e) {
 			throw toIOException(e);
 		}
-		finally {
-			System.setErr(err);
-		}
+
 	}
 
 	private static Method getAsBufferedImage() throws IOException {
