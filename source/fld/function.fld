@@ -2724,6 +2724,7 @@ wood
 	<function>
 		<name>ImageGetIPTCTag</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIPTCTag</class>
+		<status>unimplemented</status>
 		<member-name>getIPTCTag</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
