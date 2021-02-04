@@ -64,8 +64,10 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.imageio.IIOException;
 import javax.imageio.IIOImage;
@@ -88,6 +90,7 @@ import javax.media.jai.operator.ShearDir;
 import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.imaging.ImageFormat;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
@@ -996,7 +999,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (destination.exists()) {
 			if (!overwrite) throw new IOException("can't overwrite existing image");
 		}
-
+		PageException pe = null;
 		// try to write with ImageIO
 		OutputStream os = null;
 		ImageOutputStream ios = null;
@@ -1024,32 +1027,76 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					img._writeOut(ios, format, quality, false);
 					return;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+					pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+				}
 				finally {
 					if (!tmp.delete()) tmp.deleteOnExit();
 				}
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 		finally {
 			ImageUtil.closeEL(ios);
 			eng().getIOUtil().closeSilent(os);
 		}
 
 		// try it with JAI
-		BufferedImage bi = getBufferedImage();
-		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-			bi = ensureOpaque(bi);
+		try {
+			BufferedImage bi = getBufferedImage();
+			if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+				bi = ensureOpaque(bi);
+			}
+
+			Img img = new Img(bi);
+			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			if (barr != null) {
+				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+				return;
+			}
+			else {
+				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+				return;
+			}
+		}
+		catch (Exception e) {
+			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
 
-		Img img = new Img(bi);
-		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-		if (barr != null) {
-			eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+		// try it with Apache commons imaging (does NOT support JPEG)
+		ImageFormat imgFor = ImageUtil.toFormat(format, null);
+		if (imgFor != null && !ImageUtil.isJPEG(format)) {
+			try {
+				final Map<String, Object> params = new HashMap<>();
+
+				final byte[] barr = Imaging.writeImageToBytes(getBufferedImage(), imgFor, params);
+				if (barr != null) {
+					eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+					return;
+				}
+			}
+			catch (Exception e) {}
 		}
-		else {
-			JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+
+		// let's give it a last try by converting first to a different format
+		if (!ImageUtil.isBMP(format)) {
+			try {
+				final byte[] bytes = Imaging.writeImageToBytes(getBufferedImage(), ImageFormat.IMAGE_FORMAT_BMP, new HashMap<>());
+				Image img = new Image(bytes, "bmp");
+				os = destination.getOutputStream();
+				ios = ImageIO.createImageOutputStream(os);
+				img._writeOut(ios, format, quality, false);
+				return;
+			}
+			catch (Exception e) {}
+			finally {
+				ImageUtil.closeEL(ios);
+				eng().getIOUtil().closeSilent(os);
+			}
 		}
+		if (pe != null) throw pe;
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
