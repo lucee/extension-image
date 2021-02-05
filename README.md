@@ -1,6 +1,6 @@
 # Lucee Image Extension
 
-Provides CFML Image functions. for Lucee
+Provides CFML Image functions for Lucee
 
 Docs: https://docs.lucee.org/categories/image.html
 
