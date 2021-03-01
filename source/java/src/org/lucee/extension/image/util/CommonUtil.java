@@ -96,7 +96,7 @@ public class CommonUtil {
 	public static Object callWithNamedValues(PageContext pc, Object coll, Collection.Key methodName, Struct args, short type, String strType) throws PageException {
 		try {
 			Class<?> clazz = CFMLEngineFactory.getInstance().getClassUtil().loadClass("lucee.runtime.type.util.MemberUtil");
-			Method m = clazz.getMethod("call", new Class[] { PageContext.class, Object.class, Collection.Key.class, Struct.class, short.class, String.class });
+			Method m = clazz.getMethod("callWithNamedValues", new Class[] { PageContext.class, Object.class, Collection.Key.class, Struct.class, short.class, String.class });
 			return m.invoke(null, new Object[] { pc, coll, methodName, args, type, strType });
 		}
 		catch (Exception e) {
