@@ -26,7 +26,7 @@ public class ImageCaptcha extends FunctionSupport implements Function {
 		int fontSize=toFontSize(dFontSize);
 		Color fontColor=toFontColor(strFontColor);
 		int difficulty = toDifficulty(strDifficulty);
-		if(width<=0 && height<=0) throw eng.getExceptionUtil().createApplicationException("A captcha requires width or height to be specified.");
+		if(width<=0 && height<=0) throw eng.getExceptionUtil().createApplicationException("A captcha requires [width] or [height] to be specified.");
 		
 		try {
 			MarpleCaptcha c=new MarpleCaptcha();
@@ -65,7 +65,7 @@ public class ImageCaptcha extends FunctionSupport implements Function {
 		if("high".equals(strDifficulty))	return MarpleCaptcha.DIFFICULTY_HIGH;
 		
 		throw eng.getExceptionUtil().createApplicationException("Unsupported captcha difficulty level ["+strDifficulty+"], " +
-		"supported difficulty levels are [low,medium,high]");
+		"supported difficulty levels are [low, medium ,high]");
 		
 	}
 
