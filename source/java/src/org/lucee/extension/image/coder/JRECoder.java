@@ -30,6 +30,7 @@ import java.util.Set;
 import javax.imageio.ImageIO;
 
 import org.lucee.extension.image.ImageUtil;
+import org.lucee.extension.image.Img;
 import org.lucee.extension.image.JAIUtil;
 import org.lucee.extension.image.PSDReader;
 import org.lucee.extension.image.jpg.JpegReader;
@@ -87,9 +88,7 @@ class JRECoder extends Coder {
 				}
 
 			}
-			catch (Exception e) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
-			}
+			catch (Exception e) {}
 		}
 
 		InputStream is = null;
@@ -105,6 +104,11 @@ class JRECoder extends Coder {
 			return JAIUtil.read(res);
 		}
 		catch (Exception e) {
+			if (res instanceof File) {
+				Img img = new Img((File) res);
+				BufferedImage bi = img.getBufferedImage();
+				if (bi != null) return bi;
+			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}
@@ -144,6 +148,9 @@ class JRECoder extends Coder {
 			return JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 		}
 		catch (Exception e) {
+			Img img = new Img(bytes);
+			BufferedImage bi = img.getBufferedImage();
+			if (bi != null) return bi;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}
@@ -152,7 +159,7 @@ class JRECoder extends Coder {
 	public final String[] getWriterFormatNames() {
 		if (writerFormatNames == null) {
 			String[] iio = ImageIO.getWriterFormatNames();
-			String[] jai = null;// JAIUtil.isJAISupported()?JAIUtil.getSupportedWriteFormat():null;
+			String[] jai = null;
 			writerFormatNames = mixTogetherOrdered(iio, jai);
 		}
 		return writerFormatNames;
@@ -162,7 +169,7 @@ class JRECoder extends Coder {
 	public final String[] getReaderFormatNames() {
 		if (readerFormatNames == null) {
 			String[] iio = ImageIO.getReaderFormatNames();
-			String[] jai = null;// JAIUtil.isJAISupported()?JAIUtil.getSupportedReadFormat():null;
+			String[] jai = null;
 			readerFormatNames = mixTogetherOrdered(iio, jai);
 		}
 		return readerFormatNames;

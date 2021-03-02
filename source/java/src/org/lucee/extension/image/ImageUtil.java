@@ -26,11 +26,13 @@ import java.io.IOException;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.imaging.ImageFormat;
 import org.lucee.extension.image.coder.Coder;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 public class ImageUtil {
 
@@ -268,5 +270,32 @@ public class ImageUtil {
 
 	public static BufferedImage createBufferedImage(BufferedImage image) {
 		return createBufferedImage(image, image.getWidth(), image.getHeight());
+	}
+
+	public static boolean isJPEG(String format) {
+		return "jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format);
+	}
+
+	public static boolean isBMP(String format) {
+		return "bmp".equalsIgnoreCase(format);
+	}
+
+	public static ImageFormat toFormat(String format, ImageFormat defaultValue) {
+		if (Util.isEmpty(format, true)) return defaultValue;
+		format = format.toLowerCase().trim();
+
+		// equals?
+		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
+			if (imgFor.equals(format)) return imgFor;
+		}
+		// ext match
+		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
+			if (imgFor.getExtension().equalsIgnoreCase(format)) return imgFor;
+		}
+		// name match
+		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
+			if (imgFor.getName().equalsIgnoreCase(format)) return imgFor;
+		}
+		return defaultValue;
 	}
 }

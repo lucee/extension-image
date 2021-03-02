@@ -1243,7 +1243,9 @@ public class Img {
 				rgb = bas.toByteArray();
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 		return rgb;
 	}
 
@@ -1321,7 +1323,7 @@ public class Img {
 	/**
 	 * Returns true if the given file extension is associated with a jpeg compressed image.
 	 */
-	private boolean isJPEG(String FileExtension) {
+	private static boolean isJPEG(String FileExtension) {
 		FileExtension = FileExtension.trim().toLowerCase();
 		if (FileExtension.equals("jpg") || FileExtension.equals("jpeg") || FileExtension.equals("jpe") || FileExtension.equals("jff")) {
 			return true;
@@ -1335,7 +1337,7 @@ public class Img {
 	/**
 	 * Returns true if the given file extension is associated with a jpeg2000 compressed image.
 	 */
-	private boolean isJPEG2000(String FileExtension) {
+	private static boolean isJPEG2000(String FileExtension) {
 		FileExtension = FileExtension.trim().toLowerCase();
 		if (FileExtension.equals("jp2") || FileExtension.equals("jpc") || FileExtension.equals("j2k") || FileExtension.equals("jpx")) {
 			return true;

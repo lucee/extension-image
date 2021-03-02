@@ -2724,6 +2724,7 @@ wood
 	<function>
 		<name>ImageGetIPTCTag</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIPTCTag</class>
+		<status>unimplemented</status>
 		<member-name>getIPTCTag</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -3198,31 +3199,38 @@ wood
 			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>The image on which this operation is performed.</description>
-    </argument>
+			<description>The image on which this operation is performed.</description>
+    	</argument>
 		<argument>
 			<name>destination</name>
 			<type>string</type>
 			<required>no</required>
-		<description>The path to write the file.
+			<description>The path to write the file.
 
 If you create the image with the ImageNew function or another operation where you do not specify the filename, specify the destination parameter.
 The file format is derived from the extension of the filename. The default value for this parameter is the filename of the original image source.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>quality</name>
 			<type>number</type>
 			<required>no</required>
 			<default>0.75</default>
-		<description>Defines the JPEG quality used to encode the image. This parameter applies only to destination files with an extension of JPG or JPEG. Valid values are fractions that range from 0 through 1 (the lower the number, the lower the quality). The default value is 0.75.</description>
-    </argument>
+			<description>Defines the JPEG quality used to encode the image. This parameter applies only to destination files with an extension of JPG or JPEG. Valid values are fractions that range from 0 through 1 (the lower the number, the lower the quality). The default value is 0.75.</description>
+   		</argument>
 		<argument>
 			<name>overwrite</name>
 			<type>boolean</type>
 			<required>no</required>
 			<default>true</default>
-		<description>If set to true (default), overwrites the destination file.</description>
-    </argument>
+			<description>If set to true (default), overwrites the destination file.</description>
+    	</argument>
+		<argument>
+			<name>noMetaData</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if true the meta data from the source file are ignored.</description>
+    	</argument>
 		<return>
 			<type>void</type>
 		</return>

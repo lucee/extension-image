@@ -64,9 +64,12 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.io.*;
+import java.util.Map;
+
 
 import javax.imageio.IIOException;
 import javax.imageio.IIOImage;
@@ -89,6 +92,7 @@ import javax.media.jai.operator.ShearDir;
 import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.imaging.ImageFormat;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
@@ -204,9 +208,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(byte[] binary, String format) throws IOException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
+		_image = ImageUtil.toBufferedImage(binary, format);
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to read binary image file");
 	}
 
 	public Image(Resource res) throws IOException {
@@ -219,7 +224,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
-		if (_image == null) throw new IOException("can not read in file " + res);
+		if (_image == null) throw new IOException("Unable to read image file [" + res +"]");
 	}
 
 	public Image(BufferedImage image) {
@@ -242,9 +247,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
+		_image = ImageUtil.toBufferedImage(binary, format);
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to decode image from base64 string");
+
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
@@ -373,14 +380,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else if (cm instanceof PackedColorModel) sct.setEL("colormodel_type", "PackedColorModel");
 		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
-		getMetaData(sctInfo);
+		getMetaData(sctInfo, null);
 		// Metadata.addInfo(format,source,sctInfo);
 		Metadata.addExifInfo(format, source, sctInfo);
 		this.sctInfo = sctInfo;
 		return sctInfo;
 	}
 
-	public IIOMetadata getMetaData(Struct parent) {
+	public IIOMetadata getMetaData(Struct parent, String format) {
+		if (Util.isEmpty(format)) format = Util.isEmpty(this.format) ? "jpeg" : this.format;
+
 		InputStream is = null;
 		javax.imageio.stream.ImageInputStreamImpl iis = null;
 		try {
@@ -977,7 +986,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return new String(eng().getCastUtil().toBase64(imageBytes));
 	}
 
-	public void writeOut(Resource destination, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
 		String[] destnSplit = destination.toString().split("\\\\");
 		String split = destnSplit[destnSplit.length-1];
@@ -989,10 +998,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 		if(!path.isDirectory()) throw new IOException("destination folder [ " + destination + " ] doesn't exist");
 		if (format == null) throw new IOException("Unsupported image file type [ " + extn[extn.length-1] + " ]");
-		writeOut(destination, format, overwrite, quality);
+		writeOut(destination, format, overwrite, quality, noMeta);
 	}
 
-	public void writeOut(Resource destination, final String format, boolean overwrite, float quality) throws IOException, PageException {
+	public void writeOut(Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		if (destination == null) {
 			if (source != null) destination = source;
 			else throw new IOException("missing destination file");
@@ -1001,14 +1010,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (destination.exists()) {
 			if (!overwrite) throw new IOException("can't overwrite existing image");
 		}
-
+		PageException pe = null;
 		// try to write with ImageIO
 		OutputStream os = null;
 		ImageOutputStream ios = null;
 		try {
 			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 			return;
 		}
 		catch (IIOException iioe) {
@@ -1021,7 +1030,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				File tmp = new File(Util.getTempDirectory(), "tmp-" + System.currentTimeMillis() + ".png");
 				FileOutputStream fos = new FileOutputStream(tmp);
 				try {
-					writeOut(fos, "png", 1f, true);
+					writeOut(fos, "png", 1f, true, noMeta);
 					os = destination.getOutputStream();
 					ios = ImageIO.createImageOutputStream(os);
 					PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
@@ -1029,24 +1038,76 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					img._writeOut(ios, format, quality, false);
 					return;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+					pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+				}
 				finally {
 					if (!tmp.delete()) tmp.deleteOnExit();
 				}
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 		finally {
 			ImageUtil.closeEL(ios);
 			eng().getIOUtil().closeSilent(os);
 		}
 
 		// try it with JAI
-		BufferedImage bi = getBufferedImage();
-		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-			bi = ensureOpaque(bi);
+		try {
+			BufferedImage bi = getBufferedImage();
+			if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+				bi = ensureOpaque(bi);
+			}
+
+			Img img = new Img(bi);
+			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			if (barr != null) {
+				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+				return;
+			}
+			else {
+				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+				return;
+			}
 		}
-		JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		catch (Exception e) {
+			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
+
+		// try it with Apache commons imaging (does NOT support JPEG)
+		ImageFormat imgFor = ImageUtil.toFormat(format, null);
+		if (imgFor != null && !ImageUtil.isJPEG(format)) {
+			try {
+				final Map<String, Object> params = new HashMap<>();
+
+				final byte[] barr = Imaging.writeImageToBytes(getBufferedImage(), imgFor, params);
+				if (barr != null) {
+					eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
+					return;
+				}
+			}
+			catch (Exception e) {}
+		}
+
+		// let's give it a last try by converting first to a different format
+		if (!ImageUtil.isBMP(format)) {
+			try {
+				final byte[] bytes = Imaging.writeImageToBytes(getBufferedImage(), ImageFormat.IMAGE_FORMAT_BMP, new HashMap<>());
+				Image img = new Image(bytes, "bmp");
+				os = destination.getOutputStream();
+				ios = ImageIO.createImageOutputStream(os);
+				img._writeOut(ios, format, quality, false);
+				return;
+			}
+			catch (Exception e) {}
+			finally {
+				ImageUtil.closeEL(ios);
+				eng().getIOUtil().closeSilent(os);
+			}
+		}
+		if (pe != null) throw pe;
 	}
 
 	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
@@ -1068,10 +1129,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 	}
 
-	public void writeOut(OutputStream os, String format, float quality, boolean closeStream) throws IOException, PageException {
+	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
 		ImageOutputStream ios = ImageIO.createImageOutputStream(os);
 		try {
-			_writeOut(ios, format, quality, false);
+			_writeOut(ios, format, quality, noMeta);
 		}
 		finally {
 			eng().getIOUtil().closeSilent(ios);
@@ -1086,7 +1147,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		BufferedImage bi = image();
 
 		// IIOMetadata meta = noMeta?null:metadata(format);
-		IIOMetadata meta = noMeta ? null : getMetaData(null);
+		IIOMetadata meta = noMeta ? null : getMetaData(null, format);
 
 		ImageWriter writer = null;
 		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
@@ -1733,14 +1794,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			CFMLEngineFactory.getInstance().getIOUtil().closeSilent(ios);
 		}
 
+		Img img = new Img(getBufferedImage());
+		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		if (barr != null) return barr;
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			return baos.toByteArray();
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
-		return baos.toByteArray();
 	}
 
 	public void setColor(Color color) throws PageException {

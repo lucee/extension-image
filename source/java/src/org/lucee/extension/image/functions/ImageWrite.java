@@ -18,8 +18,9 @@
  **/
 package org.lucee.extension.image.functions;
 
-
 import java.io.IOException;
+
+import org.lucee.extension.image.Image;
 
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
@@ -28,41 +29,39 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
-import org.lucee.extension.image.Image;
-
-
 public class ImageWrite extends FunctionSupport implements Function {
 
 	public static String call(PageContext pc, Object name) throws PageException {
-		return call(pc, name, null, 0.75,true);
+		return call(pc, name, null, 0.75, true, false);
 	}
 
 	public static String call(PageContext pc, Object name, String destination) throws PageException {
-		return call(pc, name, destination, 0.75,true);
+		return call(pc, name, destination, 0.75, true, false);
 	}
-	
+
 	public static String call(PageContext pc, Object name, String destination, double quality) throws PageException {
-		return call(pc, name,destination,quality,true);
+		return call(pc, name, destination, quality, true, false);
 	}
-	
+
 	public static String call(PageContext pc, Object name, String destination, double quality, boolean overwrite) throws PageException {
-		//if(name instanceof String)name=pc.getVariable(Caster.toString(name));
-		Image image=Image.toImage(pc,name);
+		return call(pc, name, destination, quality, overwrite, false);
+	}
+
+	public static String call(PageContext pc, Object name, String destination, double quality, boolean overwrite, boolean noMeta) throws PageException {
+		// if(name instanceof String)name=pc.getVariable(Caster.toString(name));
+		Image image = Image.toImage(pc, name);
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		if(quality<0 || quality>1)
-			throw CFMLEngineFactory.getInstance().getExceptionUtil()
-			.createFunctionException(pc,"ImageWrite",3,"quality","value have to be between 0 and 1",null);
-		
-		Resource res=eng.getStringUtil().isEmpty(destination)?
-					image.getSource():
-					eng.getResourceUtil().toResourceNotExisting(pc, destination);
-		
-		
+		if (quality < 0 || quality > 1)
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createFunctionException(pc, "ImageWrite", 3, "quality", "value have to be between 0 and 1", null);
+
+		Resource res = eng.getStringUtil().isEmpty(destination) ? image.getSource() : eng.getResourceUtil().toResourceNotExisting(pc, destination);
+
 		// MUST beide boolschen argumente checken
-		if(res==null) return null;
+		if (res == null) return null;
 		try {
-			image.writeOut(res, overwrite , (float)quality);
-		} catch (IOException e) {
+			image.writeOut(res, overwrite, (float) quality, noMeta);
+		}
+		catch (IOException e) {
 			throw eng.getCastUtil().toPageException(e);
 		}
 		return null;
@@ -70,10 +69,11 @@ public class ImageWrite extends FunctionSupport implements Function {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==4) return call(pc, args[0],cast.toString(args[1]),cast.toDoubleValue(args[2]),cast.toBooleanValue(args[3]));
-		if(args.length==3) return call(pc, args[0],cast.toString(args[1]),cast.toDoubleValue(args[2]));
-		if(args.length==2) return call(pc, args[0],cast.toString(args[1]));
-		if(args.length==1) return call(pc, args[0]);
-		throw exp.createFunctionException(pc, "ImageWrite", 1, 4, args.length);
+		if (args.length == 5) return call(pc, args[0], cast.toString(args[1]), cast.toDoubleValue(args[2]), cast.toBooleanValue(args[3]), cast.toBooleanValue(args[4]));
+		if (args.length == 4) return call(pc, args[0], cast.toString(args[1]), cast.toDoubleValue(args[2]), cast.toBooleanValue(args[3]), false);
+		if (args.length == 3) return call(pc, args[0], cast.toString(args[1]), cast.toDoubleValue(args[2]), true, false);
+		if (args.length == 2) return call(pc, args[0], cast.toString(args[1]), 0.75, true, false);
+		if (args.length == 1) return call(pc, args[0], null, 0.75, true, false);
+		throw exp.createFunctionException(pc, "ImageWrite", 1, 5, args.length);
 	}
 }
