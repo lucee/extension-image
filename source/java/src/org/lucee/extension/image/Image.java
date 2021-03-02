@@ -206,7 +206,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(byte[] binary, String format) throws IOException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
-		_image = ImageUtil.toBufferedImage(binary, format);
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to read binary image file");
@@ -245,7 +244,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
-		_image = ImageUtil.toBufferedImage(binary, format);
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
