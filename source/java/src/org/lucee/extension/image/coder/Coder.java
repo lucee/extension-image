@@ -22,49 +22,52 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
+
 public abstract class Coder {
-	
+
 	private static Coder instance;
-	
-	protected Coder(){}
-	
-	public static Coder getInstance(){
-		
-		if(instance==null){
+
+	protected Coder() {}
+
+	public static Coder getInstance() {
+
+		if (instance == null) {
 			instance = new JRECoder();
-			
+
 			// try to load Sanselan, does not load when lib not exist
-			try{
+			try {
 				SanselanCoder sanselan = new SanselanCoder();
-				instance=new DoubleCoder(instance,sanselan); // used JRE first because Sanselan has troubles with JPG (inverted colors)
-				//SystemOut.printDate("use JRE and Sanselan Image Coder ");
+				instance = new DoubleCoder(instance, sanselan); // used JRE first because Sanselan has troubles with JPG (inverted colors)
+				// SystemOut.printDate("use JRE and Sanselan Image Coder ");
 			}
-			catch(Exception e){
-				//SystemOut.printDate("use JRE Image Coder ");
+			catch (Exception e) {
+				// SystemOut.printDate("use JRE Image Coder ");
 			}
-		} 
+		}
 		return instance;
 	}
-	
 
 	/**
 	 * translate a file resource to a buffered image
+	 * 
 	 * @param res
 	 * @return
 	 * @throws IOException
 	 */
-	public abstract BufferedImage toBufferedImage(Resource res,String format) throws IOException;
+	public abstract BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException;
 
 	/**
 	 * translate a binary array to a buffered image
+	 * 
 	 * @param binary
 	 * @return
 	 * @throws IOException
 	 */
-	public abstract BufferedImage toBufferedImage(byte[] bytes,String format) throws IOException;
+	public abstract BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException;
 
 	public abstract String[] getWriterFormatNames();
-	
+
 	public abstract String[] getReaderFormatNames();
-	
+
 }

@@ -23,35 +23,37 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lucee.commons.io.res.Resource;
-import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.util.Util;
-
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
 
+import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
+
 class SanselanCoder extends Coder {
-	
-	private String[] writerFormatNames=new String[]{"PNG","GIF","TIFF","JPEG","BMP","PNM","PGM","PBM","PPM","XMP"};
-	private String[] readerFormatNames=new String[]{"PNG","GIF","TIFF","JPEG","BMP","PNM","PGM","PBM","PPM","XMP" ,"ICO","PSD"};
-	
-	protected SanselanCoder(){
+
+	private String[] writerFormatNames = new String[] { "PNG", "GIF", "TIFF", "JPEG", "BMP", "PNM", "PGM", "PBM", "PPM", "XMP" };
+	private String[] readerFormatNames = new String[] { "PNG", "GIF", "TIFF", "JPEG", "BMP", "PNM", "PGM", "PBM", "PPM", "XMP", "ICO", "PSD" };
+
+	protected SanselanCoder() {
 		super();
 		Imaging.hasImageFileExtension("lucee.gif");// to make sure Sanselan exist when load this class
 	}
-	
+
 	/**
 	 * translate a file resource to a buffered image
+	 * 
 	 * @param res
 	 * @return
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(Resource res,String format) throws IOException {
-		InputStream is=null;
+	public final BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
+		InputStream is = null;
 		try {
-			return Imaging.getBufferedImage(is=res.getInputStream());
-		} 
+			return Imaging.getBufferedImage(is = res.getInputStream());
+		}
 		catch (ImageReadException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
@@ -62,15 +64,16 @@ class SanselanCoder extends Coder {
 
 	/**
 	 * translate a binary array to a buffered image
+	 * 
 	 * @param binary
 	 * @return
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(byte[] bytes,String format) throws IOException {
+	public final BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
 		try {
 			return Imaging.getBufferedImage(new ByteArrayInputStream(bytes));
-		} 
+		}
 		catch (ImageReadException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}

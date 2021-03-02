@@ -20,13 +20,19 @@ package org.lucee.extension.image;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import javax.imageio.ImageIO;
 import javax.media.jai.JAI;
 import javax.media.jai.RenderedOp;
 
@@ -35,115 +41,145 @@ import org.lucee.extension.image.util.IDGenerator;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-
+import lucee.loader.util.Util;
+import lucee.runtime.exp.PageException;
 
 public class JAIUtil {
 
 	private static Method getAsBufferedImage;
 	private static Method create1;
 	private static Method create3;
-	private static String[] readFormats=new String[]{"tiff","pnm","fpx"};
-	private static String[] writeFormats=new String[]{"tiff","pnm"};
-	
+	// private static String[] readFormats = new String[] { "tiff", "pnm", "fpx" };
+	// private static String[] writeFormats = new String[] { "tiff", "pnm" };
 
-	public static boolean isSupportedWriteFormat(String format) {
-		return "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format);
-	}
-	
-	public static boolean isSupportedReadFormat(String format) {
-		return "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format) || "fpx".equalsIgnoreCase(format);
-	}
+	/*
+	 * public static boolean isSupportedWriteFormat(String format) { return
+	 * "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format); }
+	 */
 
-	public static String[] getSupportedReadFormat() {
-		return readFormats;
-	}
+	/*
+	 * public static boolean isSupportedReadFormat(String format) { return
+	 * "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format) ||
+	 * "fpx".equalsIgnoreCase(format); }
+	 */
 
-	public static String[] getSupportedWriteFormat() {
-		return writeFormats;
-	}
-	
+	// public static String[] getSupportedReadFormat() { return readFormats; }
+	/*
+	 * public static String[] getSupportedWriteFormat() { return writeFormats; }
+	 */
+
 	public static boolean isJAISupported() {
 		return true;
 	}
 
-
-
 	public static BufferedImage read(Resource res) throws IOException {
-		Resource tmp=null;
+		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		try{
-			if(!(res instanceof File)) {
-				tmp=eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId()+"-"+res.getName());
+		try {
+			if (!(res instanceof File)) {
+				tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
 				eng.getIOUtil().copy(res, tmp);
-				res=tmp;
+				res = tmp;
 			}
-			//Object im = JAI.create("fileload", res.getAbsolutePath());
+			// Object im = JAI.create("fileload", res.getAbsolutePath());
 			return getAsBufferedImage(create("fileload", res.getAbsolutePath()));
 		}
 		finally {
-			if(tmp!=null) tmp.delete();
+			if (tmp != null) tmp.delete();
 		}
 	}
-	public static BufferedImage read(InputStream is,String format) throws IOException {
-		Resource tmp=null;
+
+	public static BufferedImage read(InputStream is, String format) throws IOException {
+		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		try{
-			tmp=eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId()+(eng.getStringUtil().isEmpty(format)?"":"."+format));
-			eng.getIOUtil().copy(is, tmp,false);
-			//Object im = JAI.create("fileload", tmp.getAbsolutePath());
+		try {
+			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + (eng.getStringUtil().isEmpty(format) ? "" : "." + format));
+			eng.getIOUtil().copy(is, tmp, false);
+			// Object im = JAI.create("fileload", tmp.getAbsolutePath());
 			return getAsBufferedImage(create("fileload", tmp.getAbsolutePath()));
 		}
 		finally {
-			if(tmp!=null) tmp.delete();
+			if (tmp != null) tmp.delete();
 		}
 	}
-	
-	public static void write(BufferedImage img, Resource res,String format) throws IOException {
-		Resource tmp=res;
+
+	public static void write(BufferedImage img, Resource res, String format) throws IOException {
+		Resource tmp = res;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		try{
-			if(!(res instanceof File)) {
-				tmp=eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId()+"-"+res.getName());
+		try {
+			if (!(res instanceof File)) {
+				tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
 			}
-			//JAI.create("filestore", img, tmp.getAbsolutePath(),format);
-			create("filestore", img, tmp.getAbsolutePath(),format);
+			// JAI.create("filestore", img, tmp.getAbsolutePath(),format);
+			create("filestore", img, tmp.getAbsolutePath(), format);
 		}
 		finally {
-			if(tmp!=res) {
+			if (tmp != res) {
 				eng.getIOUtil().copy(tmp, res);
 				tmp.delete();
 			}
 		}
 	}
-	
-	public static void write(BufferedImage img, OutputStream os,String format) throws IOException {
-		Resource tmp=null;
+
+	public static void write(BufferedImage img, OutputStream os, String format) throws IOException {
+		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
-		try{
-			tmp=eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId()+"."+format);
-			create("filestore", img, tmp.getAbsolutePath(),format);
-			eng.getIOUtil().copy(tmp.getInputStream(), os,true,false);
+		try {
+			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
+			create("filestore", img, tmp.getAbsolutePath(), format);
+			eng.getIOUtil().copy(tmp.getInputStream(), os, true, false);
 		}
 		finally {
-			if(tmp!=null) {
+			if (tmp != null) {
 				tmp.delete();
 			}
 		}
 	}
-	
-////////////////////////////////////////////////////////////////////
+
+	public static void writee(BufferedImage img, OutputStream os, String format) throws IOException {
+		File tmp = null;
+		// CFMLEngine eng = CFMLEngineFactory.getInstance();
+		try {
+			// tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
+			tmp = new File(File.createTempFile("wkw", "qtq").getParentFile(), IDGenerator.intId() + "." + format);
+			// JAI.create("filestore", img, tmp.getAbsolutePath(), format);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			// ImageIO.write(img, "jpeg", baos);
+			Img _img = new Img(img);
+			byte[] barr = _img.getByteArray(format);
+			// create("filestore", img, tmp.getAbsolutePath(), format);
+			Util.copy(new ByteArrayInputStream(barr), os, true, true);
+		}
+		finally {
+			if (tmp != null) {
+				tmp.delete();
+			}
+		}
+	}
+
+	public static void main(String[] args) throws IOException, PageException {
+		JAIUtil util = new JAIUtil();
+		BufferedImage bi = ImageIO.read(new File("/Users/mic/Projects/Distrokid/distrokid/webroot/images/mic.jpg"));
+
+		// new BufferedInputStream(new FileInputStream());
+		System.err.println(bi);
+		util.writee(bi, new FileOutputStream("/Users/mic/aaaaaaaaaaaax.jpg"), "jpeg");
+	}
+
+	////////////////////////////////////////////////////////////////////
 
 	private static Object create(String name, Object param) throws IOException {
 		try {
-			return create1().invoke(null, new Object[]{name,param});
-		} catch (Exception e) {
+			return create1().invoke(null, new Object[] { name, param });
+		}
+		catch (Exception e) {
 			throw toIOException(e);
 		}
 	}
-	
+
 	private static Object create(String name, Object img, Object param1, Object param2) throws IOException {
 		try {
-			return create3().invoke(null, new Object[]{name,img,param1,param2});
+			return create3().invoke(null, new Object[] { name, img, param1, param2 });
 		}
 		catch (Exception e) {
 			throw toIOException(e);
@@ -151,17 +187,21 @@ public class JAIUtil {
 	}
 
 	private static BufferedImage getAsBufferedImage(Object im) throws IOException {
-		//RenderedOp.getAsBufferedImage();
+		// RenderedOp.getAsBufferedImage();
+		PrintStream err = System.err;
+
 		try {
+
 			return (BufferedImage) getAsBufferedImage().invoke(im, new Object[0]);
-		} 
+		}
 		catch (Exception e) {
 			throw toIOException(e);
 		}
+
 	}
 
 	private static Method getAsBufferedImage() throws IOException {
-		if(getAsBufferedImage==null) {
+		if (getAsBufferedImage == null) {
 			try {
 				getAsBufferedImage = getRenderedOp().getMethod("getAsBufferedImage", new Class[0]);
 			}
@@ -173,10 +213,10 @@ public class JAIUtil {
 	}
 
 	private static Method create1() throws IOException {
-		if(create1==null) {
+		if (create1 == null) {
 			try {
-				create1 = getJAI().getMethod("create", new Class[]{String.class,Object.class});
-			} 
+				create1 = getJAI().getMethod("create", new Class[] { String.class, Object.class });
+			}
 			catch (Exception e) {
 				throw toIOException(e);
 			}
@@ -185,34 +225,61 @@ public class JAIUtil {
 	}
 
 	private static Method create3() throws IOException {
-		if(create3==null) {
+		if (create3 == null) {
 			try {
-				create3 = getJAI().getMethod("create", new Class[]{String.class,RenderedImage.class,Object.class,Object.class});
-			} catch (Exception e) {
+				create3 = getJAI().getMethod("create", new Class[] { String.class, RenderedImage.class, Object.class, Object.class });
+			}
+			catch (Exception e) {
 				throw toIOException(e);
 			}
 		}
 		return create3;
 	}
-	
+
 	private static Class getRenderedOp() throws IOException {
 		return RenderedOp.class;
 	}
-	
+
 	private static Class getJAI() throws IOException {
 		return JAI.class;
 	}
 
-	
-
-	
 	private static IOException toIOException(Throwable e) {
-		if(e instanceof InvocationTargetException)
-			e=((InvocationTargetException)e).getTargetException();
-		
-		if(e instanceof IOException) return (IOException) e;
+		if (e instanceof InvocationTargetException) e = ((InvocationTargetException) e).getTargetException();
+
+		if (e instanceof IOException) return (IOException) e;
 		IOException ioe = new IOException(e.getMessage());
 		ioe.setStackTrace(e.getStackTrace());
 		return ioe;
+	}
+
+	/**
+	 * dev null output stream, write data to nirvana
+	 */
+	private static class DevNullOutputStream extends OutputStream implements Serializable {
+
+		public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
+		public static final PrintStream DEV_NULL_PRINT_STREAM = new PrintStream(new DevNullOutputStream());
+
+		/**
+		 * Constructor of the class
+		 */
+		private DevNullOutputStream() {}
+
+		@Override
+		public void close() {}
+
+		@Override
+		public void flush() {}
+
+		@Override
+		public void write(byte[] b, int off, int len) {}
+
+		@Override
+		public void write(byte[] b) {}
+
+		@Override
+		public void write(int b) {}
+
 	}
 }

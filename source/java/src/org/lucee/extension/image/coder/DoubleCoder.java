@@ -22,52 +22,53 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefInteger;
 
 class DoubleCoder extends Coder {
 
 	private Coder first;
 	private Coder second;
-	
+
 	private String[] writerFormatNames;
 	private String[] readerFormatNames;
 
-	public DoubleCoder(Coder first, Coder second){
-		this.first=first;
-		this.second=second;
+	public DoubleCoder(Coder first, Coder second) {
+		this.first = first;
+		this.second = second;
 	}
-	
+
 	@Override
-	public BufferedImage toBufferedImage(Resource res, String format) throws IOException {
+	public BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
 		try {
-			return first.toBufferedImage(res, format);
+			return first.toBufferedImage(res, format, jpegColorType);
 		}
-		catch(IOException ioe){
-			return second.toBufferedImage(res, format);
+		catch (Exception ioe) {
+			return second.toBufferedImage(res, format, jpegColorType);
 		}
 	}
 
 	@Override
-	public BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
+	public BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
 		try {
-			return first.toBufferedImage(bytes, format);
+			return first.toBufferedImage(bytes, format, jpegColorType);
 		}
-		catch(IOException ioe){
-			return second.toBufferedImage(bytes, format);
+		catch (Exception ioe) {
+			return second.toBufferedImage(bytes, format, jpegColorType);
 		}
 	}
 
 	@Override
 	public final String[] getWriterFormatNames() {
-		if(writerFormatNames==null)	{
-			writerFormatNames=JRECoder.mixTogetherOrdered(first.getWriterFormatNames(),second.getWriterFormatNames());
+		if (writerFormatNames == null) {
+			writerFormatNames = JRECoder.mixTogetherOrdered(first.getWriterFormatNames(), second.getWriterFormatNames());
 		}
 		return writerFormatNames;
 	}
-	
+
 	@Override
 	public final String[] getReaderFormatNames() {
-		if(readerFormatNames==null){
-			readerFormatNames=JRECoder.mixTogetherOrdered(first.getReaderFormatNames(),second.getReaderFormatNames());
+		if (readerFormatNames == null) {
+			readerFormatNames = JRECoder.mixTogetherOrdered(first.getReaderFormatNames(), second.getReaderFormatNames());
 		}
 		return readerFormatNames;
 	}
