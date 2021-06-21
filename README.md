@@ -1,5 +1,7 @@
 # Lucee Image Extension
 
+[![Java CI](https://github.com/lucee/extension-image/actions/workflows/main.yml/badge.svg)](https://github.com/lucee/extension-image/actions/workflows/main.yml)
+
 Provides CFML Image functions for Lucee
 
 Docs: https://docs.lucee.org/categories/image.html
