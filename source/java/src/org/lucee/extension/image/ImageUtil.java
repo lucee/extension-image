@@ -89,15 +89,16 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(Resource res) throws IOException {
-		String ext = getFormatFromExtension(res, null);
-		if (ext != null) return ext;
-		String mt = null;
-		try {
-			mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
+		String mt = getMimeType(res, null);
+		if (!Util.isEmpty(mt)) {
+			String format = getImageFormatFromMimeType(mt, null);
+			if (!Util.isEmpty(format)) return format;
 		}
-		catch (Exception e) {}
-		if (mt == null) return null;// throw new IOException("can't extract mimetype from ["+res+"]");
-		return getFormatFromMimeType(mt);
+		return getFormatFromExtension(res, null);
+	}
+
+	private static String getMimeType(Resource res, String defaultValue) {
+		return CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
@@ -105,7 +106,7 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(byte[] binary, String defaultValue) {
-		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
+		return getImageFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
 	}
 
 	public static String getFormatFromExtension(Resource res, String defaultValue) {
@@ -129,18 +130,20 @@ public class ImageUtil {
 		if ("pgm".equalsIgnoreCase(ext)) return "pgm";
 		if ("pbm".equalsIgnoreCase(ext)) return "pbm";
 		if ("ppm".equalsIgnoreCase(ext)) return "ppm";
+		if ("heic".equalsIgnoreCase(ext)) return "heic";
+		if ("heif".equalsIgnoreCase(ext)) return "heif";
 		return defaultValue;
 	}
 
 	public static String getFormatFromMimeType(String mt) throws IOException {
-		String format = getFormatFromMimeType(mt, null);
+		String format = getImageFormatFromMimeType(mt, null);
 		if (format != null) return format;
 
 		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt)) throw new IOException("cannot find Format of given image");// 31
 		throw new IOException("can't find Format (" + mt + ") of given image");
 	}
 
-	public static String getFormatFromMimeType(String mt, String defaultValue) {
+	public static String getImageFormatFromMimeType(String mt, String defaultValue) {
 		if ("image/gif".equals(mt)) return "gif";
 		if ("image/gi_".equals(mt)) return "gif";
 
@@ -214,6 +217,11 @@ public class ImageUtil {
 		if ("application/psd".equals(mt)) return "psd";
 		if ("zz-application/zz-winassoc-psd".equals(mt)) return "psd";
 
+		if ("image/heif".equals(mt)) return "heif";
+		if ("image/heic".equals(mt)) return "heic";
+		if ("image/heif-sequence".equals(mt)) return "heif";
+		if ("image/heic-sequence".equals(mt)) return "heic";
+
 		// can not terminate this types exactly
 		// image/x-xbitmap
 		// application/x-win-bitmap
@@ -251,7 +259,8 @@ public class ImageUtil {
 		try {
 			if (iis != null) iis.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 	}
 

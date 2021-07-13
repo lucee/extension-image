@@ -66,7 +66,8 @@ class JRECoder extends Coder {
 			InputStream is = null;
 			try {
 				reader.read(is = res.getInputStream());
-				return reader.getImage();
+				BufferedImage bi = reader.getImage();
+				if (bi != null) return bi;
 			}
 			finally {
 				Util.closeEL(is);
@@ -75,12 +76,16 @@ class JRECoder extends Coder {
 		else if ("jpg".equalsIgnoreCase(format)) {
 			JpegReader reader = new JpegReader();
 			try {
-				if (res instanceof File) return reader.readImage((File) res, jpegColorType);
+				if (res instanceof File) {
+					BufferedImage bi = reader.readImage((File) res, jpegColorType);
+					if (bi != null) return bi;
+				}
 				else {
 					Resource tmp = eng.getSystemUtil().getTempFile("jpg", false);
 					eng.getIOUtil().copy(res, tmp);
 					try {
-						return reader.readImage((File) tmp, jpegColorType);
+						BufferedImage bi = reader.readImage((File) tmp, jpegColorType);
+						if (bi != null) return bi;
 					}
 					finally {
 						if (!tmp.delete()) ((File) tmp).deleteOnExit();
@@ -88,20 +93,24 @@ class JRECoder extends Coder {
 				}
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		InputStream is = null;
 		try {
-			return ImageIO.read(is = res.getInputStream());
+			BufferedImage bi = ImageIO.read(is = res.getInputStream());
+			if (bi != null) return bi;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		finally {
 			Util.closeEL(is);
 		}
 
 		try {
-			return JAIUtil.read(res);
+			BufferedImage bi = JAIUtil.read(res);
+			if (bi != null) return bi;
 		}
 		catch (Exception e) {
 			if (res instanceof File) {
@@ -111,6 +120,7 @@ class JRECoder extends Coder {
 			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
+		return null;
 	}
 
 	/**
@@ -127,12 +137,14 @@ class JRECoder extends Coder {
 		if ("psd".equalsIgnoreCase(format)) {
 			PSDReader reader = new PSDReader();
 			reader.read(new ByteArrayInputStream(bytes));
-			return reader.getImage();
+			BufferedImage bi = reader.getImage();
+			if (bi != null) return bi;
 		}
 		else if ("jpg".equalsIgnoreCase(format)) {
 			JpegReader reader = new JpegReader();
 			try {
-				return reader.readImage(bytes, jpegColorType);
+				BufferedImage bi = reader.readImage(bytes, jpegColorType);
+				if (bi != null) return bi;
 			}
 			catch (Exception e) {
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
@@ -140,12 +152,15 @@ class JRECoder extends Coder {
 		}
 
 		try {
-			return ImageIO.read(new ByteArrayInputStream(bytes));
+			BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes));
+			if (bi != null) return bi;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		try {
-			return JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			BufferedImage bi = JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			if (bi != null) return bi;
 		}
 		catch (Exception e) {
 			Img img = new Img(bytes);
@@ -153,6 +168,7 @@ class JRECoder extends Coder {
 			if (bi != null) return bi;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
+		return null;
 	}
 
 	@Override

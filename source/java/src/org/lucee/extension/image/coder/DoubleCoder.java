@@ -39,22 +39,25 @@ class DoubleCoder extends Coder {
 
 	@Override
 	public BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
+
 		try {
-			return first.toBufferedImage(res, format, jpegColorType);
+			BufferedImage bi = first.toBufferedImage(res, format, jpegColorType);
+			if (bi != null) return bi;
 		}
 		catch (Exception ioe) {
-			return second.toBufferedImage(res, format, jpegColorType);
 		}
+		return second.toBufferedImage(res, format, jpegColorType);
 	}
 
 	@Override
 	public BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
 		try {
-			return first.toBufferedImage(bytes, format, jpegColorType);
+			BufferedImage bi = first.toBufferedImage(bytes, format, jpegColorType);
+			if (bi != null) return bi;
 		}
 		catch (Exception ioe) {
-			return second.toBufferedImage(bytes, format, jpegColorType);
 		}
+		return second.toBufferedImage(bytes, format, jpegColorType);
 	}
 
 	@Override
