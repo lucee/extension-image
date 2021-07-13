@@ -142,7 +142,7 @@ public abstract class ConvolveFilter extends AbstractBufferedImageOp  implements
 	}
 
     /**
-     * Set the action to perfomr for pixels off the image edges.
+     * Set the action to perform for pixels off the image edges.
      * valid values are:
      * - clamp (default): Clamp pixels off the edge to the nearest edge.
      * - wrap: Wrap pixels off the edge to the opposite edge.
@@ -161,7 +161,7 @@ public abstract class ConvolveFilter extends AbstractBufferedImageOp  implements
 	}
 
     /**
-     * Get the action to perfomr for pixels off the image edges.
+     * Get the action to perform for pixels off the image edges.
      * @return the action
      * @see #setEdgeAction
      */

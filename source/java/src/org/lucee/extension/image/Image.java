@@ -208,7 +208,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to read binary image file");
 	}
 
 	public Image(Resource res) throws IOException {
@@ -221,7 +221,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
-		if (_image == null) throw new IOException("can not read in file " + res);
+		if (_image == null) throw new IOException("Unable to read image file [" + res +"]");
 	}
 
 	public Image(BufferedImage image) {
@@ -246,7 +246,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
-		if (_image == null) throw new IOException("can not read in image");
+		if (_image == null) throw new IOException("Unable to decode image from base64 string");
+
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
