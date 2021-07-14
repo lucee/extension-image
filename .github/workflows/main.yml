@@ -44,7 +44,7 @@ jobs:
         repository: lucee/lucee
         path: lucee
     - name: Run Lucee Test Suite (testFilter="image")
-      uses: lucee/script-engine@main
+      uses: lucee/script-runner@main
       with:
         webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
