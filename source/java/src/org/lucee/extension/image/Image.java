@@ -221,7 +221,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
-		if (_image == null) throw new IOException("Unable to read image file [" + res +"]");
+		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
 	}
 
 	public Image(BufferedImage image) {
@@ -422,7 +422,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				return meta;
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		finally {
 			ImageUtil.closeEL(iis);
 			eng().getIOUtil().closeSilent(is);
@@ -672,15 +673,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else getGraphics().drawString(text, x, y);
 
 	}
-
-	/*
-	 * private void setAlpha(Graphics2D graphics,float alpha) { //Composite originalComposite =
-	 * graphics.getComposite();
-	 * 
-	 * AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
-	 * 
-	 * graphics.setComposite(alphaComposite); //graphics.setComposite(originalComposite); }
-	 */
 
 	public void setDrawingStroke(Struct attr) throws PageException {
 
@@ -1078,7 +1070,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					return;
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		// let's give it a last try by converting first to a different format
@@ -1091,7 +1084,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				img._writeOut(ios, format, quality, false);
 				return;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			finally {
 				ImageUtil.closeEL(ios);
 				eng().getIOUtil().closeSilent(os);
@@ -1231,14 +1225,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			iwp.setCompressionMode(mode);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	private static void setCompressionQualityEL(ImageWriteParam iwp, float quality) {
 		try {
 			iwp.setCompressionQuality(quality);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/*
@@ -1278,7 +1274,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			transparency = img.getTransparency();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		int type = (transparency == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
 
 		BufferedImage ret = img;
@@ -1391,7 +1388,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				image(img.getBufferedImage());
 				return;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		ColorModel cm = bi.getColorModel();
@@ -1909,7 +1907,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			try {
 				dt.setComment("<img style=\"margin:5px\" src=\"data:image/png;base64," + getBase64String("png") + "\">");
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 
 		}
 
@@ -2111,7 +2110,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			pg.grabPixels();
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 
 		// Get the image's color model
 		ColorModel cm = pg.getColorModel();
