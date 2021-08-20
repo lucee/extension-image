@@ -23,7 +23,6 @@ import java.awt.image.RenderedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +31,6 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import javax.imageio.ImageIO;
 import javax.media.jai.JAI;
 import javax.media.jai.RenderedOp;
 
@@ -42,7 +40,6 @@ import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
-import lucee.runtime.exp.PageException;
 
 public class JAIUtil {
 
@@ -157,15 +154,6 @@ public class JAIUtil {
 		}
 	}
 
-	public static void main(String[] args) throws IOException, PageException {
-		JAIUtil util = new JAIUtil();
-		BufferedImage bi = ImageIO.read(new File("/Users/mic/Projects/Distrokid/distrokid/webroot/images/mic.jpg"));
-
-		// new BufferedInputStream(new FileInputStream());
-		System.err.println(bi);
-		util.writee(bi, new FileOutputStream("/Users/mic/aaaaaaaaaaaax.jpg"), "jpeg");
-	}
-
 	////////////////////////////////////////////////////////////////////
 
 	private static Object create(String name, Object param) throws IOException {
@@ -264,22 +252,28 @@ public class JAIUtil {
 		/**
 		 * Constructor of the class
 		 */
-		private DevNullOutputStream() {}
+		private DevNullOutputStream() {
+		}
 
 		@Override
-		public void close() {}
+		public void close() {
+		}
 
 		@Override
-		public void flush() {}
+		public void flush() {
+		}
 
 		@Override
-		public void write(byte[] b, int off, int len) {}
+		public void write(byte[] b, int off, int len) {
+		}
 
 		@Override
-		public void write(byte[] b) {}
+		public void write(byte[] b) {
+		}
 
 		@Override
-		public void write(int b) {}
+		public void write(int b) {
+		}
 
 	}
 }

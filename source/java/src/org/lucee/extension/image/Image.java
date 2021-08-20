@@ -18,7 +18,6 @@
  */
 package org.lucee.extension.image;
 
-import java.awt.AWTException;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -30,7 +29,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Transparency;
@@ -44,42 +42,26 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBufferInt;
-import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.PackedColorModel;
 import java.awt.image.PixelGrabber;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
-import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.AttributedString;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
 
-import javax.imageio.IIOException;
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
-import javax.imageio.ImageTypeSpecifier;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
 import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.FileImageInputStream;
-import javax.imageio.stream.ImageOutputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.media.jai.BorderExtender;
 import javax.media.jai.BorderExtenderConstant;
@@ -90,7 +72,6 @@ import javax.media.jai.operator.ShearDir;
 import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.imaging.ImageFormat;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
@@ -98,10 +79,8 @@ import org.apache.commons.imaging.common.ImageMetadata.Item;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
 import org.imgscalr.Scalr;
-import org.lucee.extension.image.filter.QuantizeFilter;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
-import org.lucee.extension.image.gif.GifEncoder;
 import org.lucee.extension.image.jpg.JpegReader;
 import org.lucee.extension.image.util.ArrayUtil;
 import org.lucee.extension.image.util.CommonUtil;
@@ -190,7 +169,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private float alpha = 1;
 
 	private Composite composite;
-	private RefInteger jpegColorType;
+	public final RefInteger jpegColorType;
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
@@ -227,6 +206,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(BufferedImage image) {
 		this._image = image;
 		this.format = null;
+		jpegColorType = null;
 		// TODO find out jpeg type
 	}
 
@@ -258,10 +238,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			clearRect(0, 0, width, height);
 		}
 		this.format = null;
+		jpegColorType = null;
 	}
 
 	public Image() {
 		this.format = null;
+		jpegColorType = null;
 	}
 
 	/**
@@ -393,7 +375,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			if (source instanceof File) {
 				iis = new FileImageInputStream((File) source);
 			}
-			else if (source == null) iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes(format, true)));
+			else if (source == null) iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes("png", true)));
 			else iis = new MemoryCacheImageInputStream(is = source.getInputStream());
 
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
@@ -992,249 +974,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (destination.exists()) {
 			if (!overwrite) throw new IOException("can't overwrite existing image");
 		}
-		PageException pe = null;
-		// try to write with ImageIO
-		OutputStream os = null;
-		ImageOutputStream ios = null;
-		try {
-			os = destination.getOutputStream();
-			ios = ImageIO.createImageOutputStream(os);
-			_writeOut(ios, format, quality, noMeta);
-			return;
-		}
-		catch (IIOException iioe) {
-			// TODO correct the bands in case a CMYK image is read in when creating the BufferedImage
-			if (jpegColorType != null && jpegColorType.toInt() > 0 && (iioe.getMessage() + "").indexOf("Metadata components != number of destination bands") != -1) {
-				ImageUtil.closeEL(ios);
-				eng().getIOUtil().closeSilent(os);
 
-				// as a workaround we convert first to a png and then we convert that png to jpeg
-				File tmp = new File(Util.getTempDirectory(), "tmp-" + System.currentTimeMillis() + ".png");
-				FileOutputStream fos = new FileOutputStream(tmp);
-				try {
-					writeOut(fos, "png", 1f, true, noMeta);
-					os = destination.getOutputStream();
-					ios = ImageIO.createImageOutputStream(os);
-					PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
-					Image img = Image.createImage(pc, tmp, false, false, false, format);
-					img._writeOut(ios, format, quality, false);
-					return;
-				}
-				catch (Exception e) {
-					pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
-				}
-				finally {
-					if (!tmp.delete()) tmp.deleteOnExit();
-				}
-			}
-		}
-		catch (Exception e) {
-			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
-		}
-		finally {
-			ImageUtil.closeEL(ios);
-			eng().getIOUtil().closeSilent(os);
-		}
-
-		// try it with JAI
-		try {
-			BufferedImage bi = getBufferedImage();
-			if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-				bi = ensureOpaque(bi);
-			}
-
-			Img img = new Img(bi);
-			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			if (barr != null) {
-				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
-				return;
-			}
-			else {
-				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-				return;
-			}
-		}
-		catch (Exception e) {
-			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
-		}
-
-		// try it with Apache commons imaging (does NOT support JPEG)
-		ImageFormat imgFor = ImageUtil.toFormat(format, null);
-		if (imgFor != null && !ImageUtil.isJPEG(format)) {
-			try {
-				final Map<String, Object> params = new HashMap<>();
-
-				final byte[] barr = Imaging.writeImageToBytes(getBufferedImage(), imgFor, params);
-				if (barr != null) {
-					eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
-					return;
-				}
-			}
-			catch (Exception e) {
-			}
-		}
-
-		// let's give it a last try by converting first to a different format
-		if (!ImageUtil.isBMP(format)) {
-			try {
-				final byte[] bytes = Imaging.writeImageToBytes(getBufferedImage(), ImageFormat.IMAGE_FORMAT_BMP, new HashMap<>());
-				Image img = new Image(bytes, "bmp");
-				os = destination.getOutputStream();
-				ios = ImageIO.createImageOutputStream(os);
-				img._writeOut(ios, format, quality, false);
-				return;
-			}
-			catch (Exception e) {
-			}
-			finally {
-				ImageUtil.closeEL(ios);
-				eng().getIOUtil().closeSilent(os);
-			}
-		}
-		if (pe != null) throw pe;
-	}
-
-	public static void writeOutGif(BufferedImage src, OutputStream os) throws IOException {
-		BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
-		QuantizeFilter filter = new QuantizeFilter();
-		filter.setSerpentine(true);
-		filter.setDither(true);
-		// filter.setNumColors(8);
-		filter.filter(src, dst);
-
-		// image(Quantizer.quantize(image(), 8));
-		try {
-			GifEncoder enc = new GifEncoder(dst);
-			enc.Write(os);
-			os.flush();
-		}
-		catch (AWTException e) {
-			throw new IOException(e.getMessage());
-		}
+		ImageUtil.writeOut(this, destination, format, quality, noMeta);
 	}
 
 	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
-		ImageOutputStream ios = ImageIO.createImageOutputStream(os);
-		try {
-			_writeOut(ios, format, quality, noMeta);
-		}
-		finally {
-			eng().getIOUtil().closeSilent(ios);
-		}
-	}
-
-	private void _writeOut(ImageOutputStream ios, String format, float quality, boolean noMeta) throws IOException, PageException {
-		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
-		if (eng().getStringUtil().isEmpty(format)) format = this.format;
-		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
-
-		BufferedImage bi = image();
-
-		// IIOMetadata meta = noMeta?null:metadata(format);
-		IIOMetadata meta = noMeta ? null : getMetaData(null, format);
-
-		ImageWriter writer = null;
-		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
-		Iterator<ImageWriter> iter = ImageIO.getImageWriters(type, format);
-
-		if (iter.hasNext()) {
-			writer = iter.next();
-		}
-		if (writer == null) throw new IOException(
-				"no writer for format [" + format + "] available, available writer formats are [" + eng().getListUtil().toList(ImageUtil.getWriterFormatNames(), ",") + "]");
-
-		ImageWriteParam iwp = getImageWriteParam(bi, writer, quality, this.format, format);
-
-		writer.setOutput(ios);
-
-		if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-			BufferedImage nbi = ensureOpaque(bi);
-			if (nbi != bi) {
-				bi = nbi;
-				meta = null;
-			}
-		}
-
-		try {
-			writer.write(meta, new IIOImage(bi, null, meta), iwp);
-		}
-		finally {
-			writer.dispose();
-			ios.flush();
-			this.format = format;
-		}
-	}
-
-	private static BufferedImage ensureOpaque(BufferedImage bi) {
-		if (bi.getTransparency() == BufferedImage.OPAQUE) return bi;
-
-		int w = bi.getWidth();
-		int h = bi.getHeight();
-		int[] pixels = new int[w * h];
-		bi.getRGB(0, 0, w, h, pixels, 0, w);
-		BufferedImage bi2 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		bi2.setRGB(0, 0, w, h, pixels, 0, w);
-		return bi2;
-	}
-
-	private static ImageWriteParam getImageWriteParam(BufferedImage im, ImageWriter writer, float quality, String srcFormat, String trgFormat) {
-		ImageWriteParam iwp;
-		if ("jpg".equalsIgnoreCase(srcFormat)) {
-			ColorModel cm = im.getColorModel();
-			if (cm.hasAlpha()) im = jpgImage(im);
-			JPEGImageWriteParam jiwp = new JPEGImageWriteParam(Locale.getDefault());
-			jiwp.setOptimizeHuffmanTables(true);
-			iwp = jiwp;
-		}
-		else iwp = writer.getDefaultWriteParam();
-
-		setCompressionModeEL(iwp, ImageWriteParam.MODE_EXPLICIT);
-		setCompressionQualityEL(iwp, quality);
-
-		return iwp;
-	}
-
-	private static BufferedImage jpgImage(BufferedImage src) {
-		int w = src.getWidth();
-		int h = src.getHeight();
-		SampleModel srcSM = src.getSampleModel();
-		WritableRaster srcWR = src.getRaster();
-		java.awt.image.DataBuffer srcDB = srcWR.getDataBuffer();
-
-		ColorModel rgb = new DirectColorModel(32, 0xff0000, 65280, 255);
-		int[] bitMasks = new int[] { 0xff0000, 65280, 255 };
-
-		SampleModel csm = new SinglePixelPackedSampleModel(3, w, h, bitMasks);
-		int data[] = new int[w * h];
-		for (int i = 0; i < h; i++) {
-			for (int j = 0; j < w; j++) {
-				int pix[] = null;
-				int sample[] = srcSM.getPixel(j, i, pix, srcDB);
-				if (sample[3] == 0 && sample[2] == 0 && sample[1] == 0 && sample[0] == 0) data[i * w + j] = 0xffffff;
-				else data[i * w + j] = sample[0] << 16 | sample[1] << 8 | sample[2];
-			}
-
-		}
-
-		java.awt.image.DataBuffer db = new DataBufferInt(data, w * h * 3);
-		WritableRaster wr = Raster.createWritableRaster(csm, db, new Point(0, 0));
-		return new BufferedImage(rgb, wr, false, null);
-	}
-
-	private static void setCompressionModeEL(ImageWriteParam iwp, int mode) {
-		try {
-			iwp.setCompressionMode(mode);
-		}
-		catch (Exception e) {
-		}
-	}
-
-	private static void setCompressionQualityEL(ImageWriteParam iwp, float quality) {
-		try {
-			iwp.setCompressionQuality(quality);
-		}
-		catch (Exception e) {
-		}
+		ImageUtil.writeOut(this, os, format, quality, closeStream, noMeta);
 	}
 
 	/*
@@ -1767,33 +1512,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public byte[] getImageBytes(String format, boolean noMeta) throws PageException {
-
-		ImageOutputStream ios = null;
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ios = ImageIO.createImageOutputStream(baos);
-			_writeOut(ios, format, 1, noMeta);
-			return baos.toByteArray();
-		}
-		catch (Exception e) {
-			// throw eng().getCastUtil().toPageException(e);
-		}
-		finally {
-			CFMLEngineFactory.getInstance().getIOUtil().closeSilent(ios);
-		}
-
-		Img img = new Img(getBufferedImage());
-		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-		if (barr != null) return barr;
-
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			return baos.toByteArray();
+			writeOut(baos, format, 1f, true, noMeta);
 		}
-		catch (Exception e) {
-			throw eng().getCastUtil().toPageException(e);
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
+		return baos.toByteArray();
 	}
 
 	public void setColor(Color color) throws PageException {
@@ -2177,6 +1903,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private static CFMLEngine eng() {
 		if (_eng == null) _eng = CFMLEngineFactory.getInstance();
 		return _eng;
+	}
+
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
 }

@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.imageio.stream.ImageInputStream;
 
@@ -31,23 +32,27 @@ import org.lucee.extension.image.coder.Coder;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
 public class ImageUtil {
 
-	private static Coder coder;
+	private static Coder _coder;
 
-	static {
-		coder = Coder.getInstance();
+	private static Coder getCoder() {
+		if (_coder == null) {
+			_coder = Coder.getInstance();
+		}
+		return _coder;
 	}
 
 	public static String[] getWriterFormatNames() {
-		return coder.getWriterFormatNames();
+		return getCoder().getWriterFormatNames();
 	}
 
 	public static String[] getReaderFormatNames() {
-		return coder.getReaderFormatNames();
+		return getCoder().getReaderFormatNames();
 	}
 
 	/**
@@ -58,7 +63,7 @@ public class ImageUtil {
 	 * @throws IOException
 	 */
 	public static BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
-		return coder.toBufferedImage(res, format, jpegColorType);
+		return getCoder().read(res, format, jpegColorType);
 	}
 
 	/**
@@ -69,7 +74,23 @@ public class ImageUtil {
 	 * @throws IOException
 	 */
 	public static BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
-		return coder.toBufferedImage(bytes, format, jpegColorType);
+		return getCoder().read(bytes, format, jpegColorType);
+	}
+
+	public static void writeOut(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
+		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
+		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
+
+		getCoder().write(img, destination, format, quality, noMeta);
+	}
+
+	public static void writeOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
+		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
+		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
+
+		getCoder().write(img, os, format, quality, closeStream, noMeta);
 	}
 
 	public static byte[] readBase64(String b64str, StringBuilder mimetype) throws IOException {
@@ -89,9 +110,12 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(Resource res) throws IOException {
+		String format = getCoder().getFormat(res, null);
+		if (!Util.isEmpty(format, true)) return format;
+
 		String mt = getMimeType(res, null);
 		if (!Util.isEmpty(mt)) {
-			String format = getImageFormatFromMimeType(mt, null);
+			format = getImageFormatFromMimeType(mt, null);
 			if (!Util.isEmpty(format)) return format;
 		}
 		return getFormatFromExtension(res, null);
@@ -102,10 +126,16 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
+		String format = getCoder().getFormat(binary, null);
+		if (!Util.isEmpty(format, true)) return format;
+
 		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""));
 	}
 
 	public static String getFormat(byte[] binary, String defaultValue) {
+		String format = getCoder().getFormat(binary, null);
+		if (!Util.isEmpty(format, true)) return format;
+
 		return getImageFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
 	}
 
@@ -306,5 +336,9 @@ public class ImageUtil {
 			if (imgFor.getName().equalsIgnoreCase(format)) return imgFor;
 		}
 		return defaultValue;
+	}
+
+	private static CFMLEngine eng() {
+		return CFMLEngineFactory.getInstance();
 	}
 }

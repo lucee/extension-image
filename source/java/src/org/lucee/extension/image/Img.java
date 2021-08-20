@@ -90,7 +90,8 @@ public class Img {
 		try {
 			createBufferedImage(new FileInputStream(file));
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public Img(java.io.InputStream InputStream) {
@@ -132,21 +133,6 @@ public class Img {
 		}
 	}
 
-	// **************************************************************************
-	// ** Constructor
-	// **************************************************************************
-	/**
-	 * Creates a new instance of this class using a block of text.
-	 * 
-	 * @param fontName Name of the font you with to use. Note that you can get a list of available fonts
-	 *            like this:
-	 * 
-	 *            <pre>
-	 *            for (String fontName: GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-	 *            	System.out.println(fontName);
-	 *            }
-	 *            </pre>
-	 */
 	public Img(String text, String fontName, int fontSize, int r, int g, int b) {
 		this(text, new Font(fontName, Font.TRUETYPE_FONT, fontSize), r, g, b);
 	}
@@ -1244,7 +1230,6 @@ public class Img {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 		}
 		return rgb;
 	}
@@ -1287,7 +1272,6 @@ public class Img {
 				}
 				rendImage = null;
 			}
-			// System.out.println("Output image is " + width + "x" + height + "...");
 		}
 		catch (Exception e) {
 			// printError(e);
@@ -1355,9 +1339,6 @@ public class Img {
 			ByteArrayOutputStream bas = new ByteArrayOutputStream();
 			BufferedImage bi = bufferedImage;
 			int t = bufferedImage.getTransparency();
-
-			// if (t==BufferedImage.BITMASK) System.out.println("BITMASK");
-			// if (t==BufferedImage.OPAQUE) System.out.println("OPAQUE");
 
 			if (t == BufferedImage.TRANSLUCENT) {
 				bi = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -1720,19 +1701,22 @@ public class Img {
 		try {
 			degDenominator = Double.parseDouble(deg[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		double minNumerator = Double.parseDouble(min[0]);
 		double minDenominator = 1D;
 		try {
 			minDenominator = Double.parseDouble(min[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		double secNumerator = Double.parseDouble(sec[0]);
 		double secDenominator = 1D;
 		try {
 			secDenominator = Double.parseDouble(sec[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		double m = 0;
 		if (degDenominator != 0 || degNumerator != 0) {
@@ -1971,13 +1955,15 @@ public class Img {
 					int tagIdentifier = tagType | (directoryType << 8);
 
 					String str = "";
-					if (tagByteCount < 1 || tagByteCount > (data.length - offset)) {}
+					if (tagByteCount < 1 || tagByteCount > (data.length - offset)) {
+					}
 					else {
 						try {
 							str = new String(data, offset, tagByteCount, "UTF-8");
 							offset += tagByteCount;
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 					}
 					tags.put(tagIdentifier, str);
 				}

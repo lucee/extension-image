@@ -22,9 +22,15 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.imaging.ImageFormat;
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
+import org.lucee.extension.image.Image;
+import org.lucee.extension.image.ImageUtil;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -49,7 +55,8 @@ class SanselanCoder extends Coder {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+		// System.out.println("Sanselan.read");
 		InputStream is = null;
 		try {
 			return Imaging.getBufferedImage(is = res.getInputStream());
@@ -70,12 +77,37 @@ class SanselanCoder extends Coder {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+		// System.out.println("Sanselan.read");
 		try {
 			return Imaging.getBufferedImage(new ByteArrayInputStream(bytes));
 		}
 		catch (ImageReadException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
+	}
+
+	@Override
+	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
+		write(img, destination.getOutputStream(), format, quality, true, noMeta);
+	}
+
+	@Override
+	public void write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
+		// System.out.println("Sanselan.write");
+		ImageFormat imgFor = ImageUtil.toFormat(format, null);
+		if (imgFor != null && !ImageUtil.isJPEG(format)) {
+			final Map<String, Object> params = new HashMap<>();
+			try {
+				final byte[] barr = Imaging.writeImageToBytes(img.getBufferedImage(), imgFor, params);
+				if (barr != null) {
+					CFMLEngineFactory.getInstance().getIOUtil().copy(new ByteArrayInputStream(barr), os, true, closeStream);
+					return;
+				}
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
 		}
 	}
 
@@ -88,4 +120,30 @@ class SanselanCoder extends Coder {
 	public String[] getReaderFormatNames() {
 		return readerFormatNames;
 	}
+
+	@Override
+	public boolean supported() {
+		return true;
+	}
+
+	@Override
+	public String getFormat(Resource res) throws IOException {
+		throw new IOException("not supported");
+	}
+
+	@Override
+	public String getFormat(byte[] bytes) throws IOException {
+		throw new IOException("not supported");
+	}
+
+	@Override
+	public String getFormat(Resource res, String defaultValue) {
+		return defaultValue;
+	}
+
+	@Override
+	public String getFormat(byte[] bytes, String defaultValue) {
+		return defaultValue;
+	}
+
 }
