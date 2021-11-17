@@ -47,6 +47,7 @@ import java.awt.image.PackedColorModel;
 import java.awt.image.PixelGrabber;
 import java.awt.image.WritableRaster;
 import java.awt.image.renderable.ParameterBlock;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -72,12 +73,19 @@ import javax.media.jai.operator.ShearDir;
 import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImageWriteException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
 import org.apache.commons.imaging.common.ImageMetadata.Item;
+import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
@@ -170,6 +178,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private Composite composite;
 	public final RefInteger jpegColorType;
+	private int orientation = Metadata.ORIENTATION_UNDEFINED;
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
@@ -178,29 +187,34 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ImageIO.scanForPlugins();
 	}
 
-	public Image(byte[] binary) throws IOException {
+	public Image(byte[] binary) throws IOException, ImageReadException, PageException {
 		this(binary, null);
 	}
 
-	public Image(byte[] binary, String format) throws IOException {
+	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to read binary image file");
+
+		checkOrientation(binary);
 	}
 
-	public Image(Resource res) throws IOException {
+	public Image(Resource res) throws IOException, ImageReadException, PageException {
 		this(res, null);
 	}
 
-	public Image(Resource res, String format) throws IOException {
+	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
 		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
+
+		checkOrientation(res);
+
 	}
 
 	public Image(BufferedImage image) {
@@ -208,13 +222,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		this.format = null;
 		jpegColorType = null;
 		// TODO find out jpeg type
+
 	}
 
-	public Image(String b64str) throws IOException {
+	public Image(String b64str) throws IOException, ImageReadException, PageException {
 		this(b64str, null);
 	}
 
-	public Image(String b64str, String format) throws IOException {
+	public Image(String b64str, String format) throws IOException, ImageReadException, PageException {
 
 		// load binary from base64 string and get format
 		StringBuilder mimetype = new StringBuilder();
@@ -228,6 +243,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
 
+		checkOrientation(binary);
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
@@ -244,6 +260,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image() {
 		this.format = null;
 		jpegColorType = null;
+
 	}
 
 	/**
@@ -321,7 +338,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		Struct sctInfo = eng().getCreationUtil().createStruct(), sct;
 		ImageMetaDrew.addInfo(format, source, sctInfo);
 		sctInfo = ImageGetEXIFMetadata.flatten(sctInfo);
-
 		sctInfo.setEL("height", Double.valueOf(getHeight()));
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
 		sctInfo.setEL("source", source == null ? "" : source.getAbsolutePath());
@@ -359,8 +375,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
 		getMetaData(sctInfo, null);
+
 		// Metadata.addInfo(format,source,sctInfo);
 		Metadata.addExifInfo(format, source, sctInfo);
+
 		this.sctInfo = sctInfo;
 		return sctInfo;
 	}
@@ -975,11 +993,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			if (!overwrite) throw new IOException("can't overwrite existing image");
 		}
 
-		ImageUtil.writeOut(this, destination, format, quality, noMeta);
+		ImageUtil.writeOut(this, destination, format, quality, noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
 	}
 
 	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
-		ImageUtil.writeOut(this, os, format, quality, closeStream, noMeta);
+		ImageUtil.writeOut(this, os, format, quality, closeStream, noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
 	}
 
 	/*
@@ -1175,13 +1193,191 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 	}
 
-	/*
-	 * private double toScale(int src, int dst) { double tmp = Math.round((int)
-	 * ((eng().getCastUtil().toDoubleValue(dst) / eng().getCastUtil().toDoubleValue(src)) * 100D));
-	 * return tmp / 100D; }
-	 */
+	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
+		IImageMetadata metadata;
+		if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
+		else metadata = Metadata.getMetadata((byte[]) input);
+
+		int ori = Metadata.getOrientation(metadata);
+		if (ori > 0) {
+			changeOrientation(metadata, ori);
+			orientation = Metadata.ORIENTATION_NORMAL;
+			// if (input instanceof Resource) changeExifMetadata(metadata, (Resource) input);
+
+			// IImageMetadata metadata
+		}
+	}
+
+	private void changeOrientation(IImageMetadata metadata, int orientation) throws PageException {
+		if (orientation == Metadata.ORIENTATION_ROTATE_90) {
+			rotateClockwise90();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_ROTATE_180) {
+			rotateClockwise180();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_ROTATE_270) {
+			rotateClockwise270();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_FLIP_HORIZONTAL) {
+			flipHorizontally();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_FLIP_VERTICAL) {
+			flipVertically();
+			return;
+		}
+
+	}
+
+	public void rotateClockwise90() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(height, width, src.getType());
+
+		Graphics2D graphics2D = dest.createGraphics();
+		graphics2D.translate((height - width) / 2, (height - width) / 2);
+		graphics2D.rotate(Math.PI / 2, height / 2, width / 2);
+		graphics2D.drawRenderedImage(src, null);
+		image(dest);
+	}
+
+	public void rotateClockwise180() throws PageException {
+		rotateClockwise90();
+		rotateClockwise90();
+	}
+
+	public void rotateClockwise270() throws PageException {
+		rotateClockwise90();
+		rotateClockwise90();
+		rotateClockwise90();
+	}
+
+	public void flipVertically() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(width, height, src.getType());
+
+		Graphics2D g2 = dest.createGraphics();
+		g2.drawImage(src, 0, height, width, -height, null);
+		image(dest);
+	}
+
+	public void flipHorizontally() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(width, height, src.getType());
+
+		Graphics2D g2 = dest.createGraphics();
+
+		g2.drawImage(src, width, 0, -width, height, null);
+		image(dest);
+	}
+
+	public void changeExifMetadata(IImageMetadata metadata, final Resource dst) throws IOException, ImageReadException, ImageWriteException {
+		OutputStream os = null;
+		boolean canThrow = false;
+		try {
+			TiffOutputSet outputSet = null;
+
+			// note that metadata might be null if no metadata is found.
+			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+			if (null != jpegMetadata) {
+				// note that exif might be null if no Exif metadata is found.
+				final TiffImageMetadata exif = jpegMetadata.getExif();
+
+				if (null != exif) {
+					// TiffImageMetadata class is immutable (read-only).
+					// TiffOutputSet class represents the Exif data to write.
+					//
+					// Usually, we want to update existing Exif metadata by
+					// changing
+					// the values of a few fields, or adding a field.
+					// In these cases, it is easiest to use getOutputSet() to
+					// start with a "copy" of the fields read from the image.
+					outputSet = exif.getOutputSet();
+				}
+			}
+
+			// if file does not contain any exif metadata, we create an empty
+			// set of exif metadata. Otherwise, we keep all of the other
+			// existing tags.
+			if (null == outputSet) {
+				outputSet = new TiffOutputSet();
+			}
+
+			{
+				// Example of how to add a field/tag to the output set.
+				//
+				// Note that you should first remove the field/tag if it already
+				// exists in this directory, or you may end up with duplicate
+				// tags. See above.
+				//
+				// Certain fields/tags are expected in certain Exif directories;
+				// Others can occur in more than one directory (and often have a
+				// different meaning in different directories).
+				//
+				// TagInfo constants often contain a description of what
+				// directories are associated with a given tag.
+				//
+				final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
+				// make sure to remove old value if present (this method will
+				// not fail if the tag does not exist).
+				exifDirectory.removeField(ExifTagConstants.EXIF_TAG_APERTURE_VALUE);
+				exifDirectory.add(ExifTagConstants.EXIF_TAG_APERTURE_VALUE, new RationalNumber(3, 10));
+			}
+
+			{
+				// Example of how to add/update GPS info to output set.
+
+				// New York City
+				final double longitude = -74.0; // 74 degrees W (in Degrees East)
+				final double latitude = 40 + 43 / 60.0; // 40 degrees N (in Degrees
+				// North)
+
+				outputSet.setGPSInDegrees(longitude, latitude);
+			}
+
+			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateRootDirectory();
+			exifDirectory.removeField(ExifTagConstants.EXIF_TAG_SOFTWARE);
+			exifDirectory.add(ExifTagConstants.EXIF_TAG_SOFTWARE, "SomeKind");
+
+			os = dst.getOutputStream();
+			os = new BufferedOutputStream(os);
+
+			// new ExifRewriter().updateExifMetadataLossless(jpegImageFile, os, outputSet);
+
+			canThrow = true;
+		}
+		finally {
+			Util.closeEL(os);
+		}
+	}
 
 	public void rotate(float x, float y, float angle, int interpolation) throws PageException {
+		if (x == -1 && y == -1) {
+			if (angle == 90) {
+				rotateClockwise90();
+				return;
+			}
+			if (angle == 180) {
+				rotateClockwise180();
+				return;
+			}
+			if (angle == 90) {
+				rotateClockwise270();
+				return;
+			}
+		}
+
 		if (x == -1) {
 			x = Math.round(getWidth() / 2);
 		}
@@ -1314,7 +1510,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			try {
 				return new Image(eng().getCastUtil().toBinary(obj), null);
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				throw eng().getCastUtil().toPageException(e);
 			}
 		}
@@ -1328,7 +1524,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			try {
 				return new Image(str);
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 
 				throw eng().getCastUtil().toPageException(e);
 			}
@@ -1414,6 +1610,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					try {
 						Resource res = eng().getResourceUtil().toResourceExisting(pc, str);
 						pc.getConfig().getSecurityManager().checkFileLocation(res);
+
 						return new Image(res, format);
 					}
 					catch (Exception ee) {

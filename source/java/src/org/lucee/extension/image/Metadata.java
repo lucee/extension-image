@@ -41,8 +41,21 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
+import lucee.runtime.util.Cast;
 
 public class Metadata {
+
+	public static final int ORIENTATION_UNDEFINED = 0;
+	public static final int ORIENTATION_NORMAL = 1;
+	public static final int ORIENTATION_FLIP_HORIZONTAL = 2; // left right reversed mirror
+	public static final int ORIENTATION_ROTATE_180 = 3;
+	public static final int ORIENTATION_FLIP_VERTICAL = 4; // upside down mirror
+	// flipped about top-left <--> bottom-right axis
+	public static final int ORIENTATION_TRANSPOSE = 5;
+	public static final int ORIENTATION_ROTATE_90 = 6; // rotate 90 cw to right it
+	// flipped about top-right <--> bottom-left axis
+	public static final int ORIENTATION_TRANSVERSE = 7;
+	public static final int ORIENTATION_ROTATE_270 = 8; // rotate 270 to right it
 
 	public static void addExifInfo(String format, final Resource res, Struct info) {
 		InputStream is = null;
@@ -56,6 +69,60 @@ public class Metadata {
 			Util.closeEL(is);
 		}
 	}
+
+	public static IImageMetadata getMetadata(Resource res) throws ImageReadException, IOException {
+		InputStream is = null;
+		try {
+			return Imaging.getMetadata(is = res.getInputStream(), res.getName());
+		}
+		finally {
+			Util.closeEL(is);
+		}
+	}
+
+	public static IImageMetadata getMetadata(InputStream is, String format, boolean closeStream) throws ImageReadException, IOException {
+		try {
+			return Imaging.getMetadata(is, "test." + format);
+		}
+		finally {
+			if (closeStream) Util.closeEL(is);
+		}
+	}
+
+	public static IImageMetadata getMetadata(byte[] barr) throws ImageReadException, IOException {
+		return Imaging.getMetadata(barr);
+
+	}
+
+	public static int getOrientation(IImageMetadata metadata) {
+		if (metadata instanceof JpegImageMetadata) {
+			Item item;
+			Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
+			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+			for (IImageMetadataItem i: jpegMetadata.getExif().getItems()) {
+				item = (Item) i;
+				if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
+					return cast.toIntValue(CommonUtil.unwrap(item.getText()), -1);
+				}
+			}
+		}
+		return ORIENTATION_UNDEFINED;
+	}
+
+	/*
+	 * public static void removeOrientation(IImageMetadata metadata) throws ImageReadException,
+	 * IOException, ImageWriteException { // get all metadata stored in EXIF format (ie. from JPEG or
+	 * TIFF). if (metadata instanceof JpegImageMetadata) { final JpegImageMetadata jpegMetadata =
+	 * (JpegImageMetadata) metadata;
+	 * 
+	 * final TiffImageMetadata exif = jpegMetadata.getExif(); TiffOutputSet outputSet =
+	 * exif.getOutputSet(); if (null == outputSet) return;
+	 * 
+	 * outputSet.removeField(new TagInfoShort("Orientation", 0x112, 1,
+	 * TiffDirectoryType.TIFF_DIRECTORY_ROOT));
+	 * 
+	 * } }
+	 */
 
 	private static void fillExif(String format, InputStream is, Struct info) throws ImageReadException, IOException {
 		// get all metadata stored in EXIF format (ie. from JPEG or TIFF).
@@ -242,9 +309,10 @@ public class Metadata {
 		Item item;
 		while (it.hasNext()) {
 			item = (Item) it.next();
-
 			data1.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
-			if (data2 != null) data2.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
+			if (data2 != null) {
+				data2.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
+			}
 		}
 	}
 
