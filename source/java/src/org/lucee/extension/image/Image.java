@@ -1194,17 +1194,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
-		IImageMetadata metadata;
-		if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
-		else metadata = Metadata.getMetadata((byte[]) input);
+		try {
+			IImageMetadata metadata;
+			if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
+			else metadata = Metadata.getMetadata((byte[]) input);
 
-		int ori = Metadata.getOrientation(metadata);
-		if (ori > 0) {
-			changeOrientation(metadata, ori);
-			orientation = Metadata.ORIENTATION_NORMAL;
-			// if (input instanceof Resource) changeExifMetadata(metadata, (Resource) input);
+			int ori = Metadata.getOrientation(metadata);
+			if (ori > 0) {
+				changeOrientation(metadata, ori);
+				orientation = Metadata.ORIENTATION_NORMAL;
+				// if (input instanceof Resource) changeExifMetadata(metadata, (Resource) input);
 
-			// IImageMetadata metadata
+				// IImageMetadata metadata
+			}
+		}
+		catch (Exception e) {
+
 		}
 	}
 
