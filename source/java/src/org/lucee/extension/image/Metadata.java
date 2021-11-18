@@ -39,6 +39,7 @@ import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
+import lucee.runtime.config.Config;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
@@ -96,14 +97,26 @@ public class Metadata {
 
 	public static int getOrientation(IImageMetadata metadata) {
 		if (metadata instanceof JpegImageMetadata) {
-			Item item;
-			Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
-			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-			for (IImageMetadataItem i: jpegMetadata.getExif().getItems()) {
-				item = (Item) i;
-				if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
-					return cast.toIntValue(CommonUtil.unwrap(item.getText()), -1);
+			try {
+				Item item;
+				Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
+				final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+				TiffImageMetadata tim = jpegMetadata.getExif();
+				if (tim != null) {
+					List<? extends IImageMetadataItem> items = tim.getItems();
+					if (items != null) {
+						for (IImageMetadataItem i: items) {
+							item = (Item) i;
+							if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
+								return cast.toIntValue(CommonUtil.unwrap(item.getText()), ORIENTATION_UNDEFINED);
+							}
+						}
+					}
 				}
+			}
+			catch (Exception e) {
+				Config config = CFMLEngineFactory.getInstance().getThreadConfig();
+				if (config != null) config.getLog("application").error("image", e);
 			}
 		}
 		return ORIENTATION_UNDEFINED;
