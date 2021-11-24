@@ -91,6 +91,7 @@ import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.imaging.ImageFormat;
+import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
@@ -191,6 +192,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private Composite composite;
 	private RefInteger jpegColorType;
+	private int orientation = Metadata.ORIENTATION_UNDEFINED;
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
@@ -199,29 +201,33 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ImageIO.scanForPlugins();
 	}
 
-	public Image(byte[] binary) throws IOException {
+	public Image(byte[] binary) throws IOException, ImageReadException, PageException {
 		this(binary, null);
 	}
 
-	public Image(byte[] binary, String format) throws IOException {
+	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to read binary image file");
+
+		checkOrientation(binary);
 	}
 
-	public Image(Resource res) throws IOException {
+	public Image(Resource res) throws IOException, ImageReadException, PageException {
 		this(res, null);
 	}
 
-	public Image(Resource res, String format) throws IOException {
+	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
 		this.format = format;
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
 		this.source = res;
 		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
+
+		checkOrientation(res);
 	}
 
 	public Image(BufferedImage image) {
@@ -230,11 +236,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		// TODO find out jpeg type
 	}
 
-	public Image(String b64str) throws IOException {
+	public Image(String b64str) throws IOException, ImageReadException, PageException {
 		this(b64str, null);
 	}
 
-	public Image(String b64str, String format) throws IOException {
+	public Image(String b64str, String format) throws IOException, ImageReadException, PageException {
 
 		// load binary from base64 string and get format
 		StringBuilder mimetype = new StringBuilder();
@@ -247,6 +253,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
 		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
+
+		checkOrientation(binary);
 
 	}
 
@@ -980,7 +988,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			format = ImageUtil.getFormat(destination);
 		}
 		if (format == null) throw new IOException("cannot detect Format for given image");
-		writeOut(destination, format, overwrite, quality, noMeta);
+		writeOut(destination, format, overwrite, quality, noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
 	}
 
 	public void writeOut(Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
@@ -1131,7 +1139,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		BufferedImage bi = image();
 
 		// IIOMetadata meta = noMeta?null:metadata(format);
-		IIOMetadata meta = noMeta ? null : getMetaData(null, format);
+		IIOMetadata meta = noMeta || orientation != Metadata.ORIENTATION_UNDEFINED ? null : getMetaData(null, format);
 
 		ImageWriter writer = null;
 		ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(bi);
@@ -1437,6 +1445,20 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	 */
 
 	public void rotate(float x, float y, float angle, int interpolation) throws PageException {
+		if (x == -1 && y == -1) {
+			if (angle == 90) {
+				rotateClockwise90();
+				return;
+			}
+			if (angle == 180) {
+				rotateClockwise180();
+				return;
+			}
+			if (angle == 90) {
+				rotateClockwise270();
+				return;
+			}
+		}
 		if (x == -1) {
 			x = Math.round(getWidth() / 2);
 		}
@@ -1569,7 +1591,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			try {
 				return new Image(eng().getCastUtil().toBinary(obj), null);
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				throw eng().getCastUtil().toPageException(e);
 			}
 		}
@@ -1583,7 +1605,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			try {
 				return new Image(str);
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 
 				throw eng().getCastUtil().toPageException(e);
 			}
@@ -2179,4 +2201,93 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return _eng;
 	}
 
+	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
+		try {
+			IImageMetadata metadata;
+			if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
+			else metadata = Metadata.getMetadata((byte[]) input);
+
+			int ori = Metadata.getOrientation(metadata);
+			if (ori > 0) {
+				changeOrientation(metadata, ori);
+				orientation = Metadata.ORIENTATION_NORMAL;
+			}
+		}
+		catch (Exception e) {
+		}
+	}
+
+	private void changeOrientation(IImageMetadata metadata, int orientation) throws PageException {
+		if (orientation == Metadata.ORIENTATION_ROTATE_90) {
+			rotateClockwise90();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_ROTATE_180) {
+			rotateClockwise180();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_ROTATE_270) {
+			rotateClockwise270();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_FLIP_HORIZONTAL) {
+			flipHorizontally();
+			return;
+		}
+		if (orientation == Metadata.ORIENTATION_FLIP_VERTICAL) {
+			flipVertically();
+			return;
+		}
+
+	}
+
+	public void rotateClockwise90() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(height, width, src.getType());
+
+		Graphics2D graphics2D = dest.createGraphics();
+		graphics2D.translate((height - width) / 2, (height - width) / 2);
+		graphics2D.rotate(Math.PI / 2, height / 2, width / 2);
+		graphics2D.drawRenderedImage(src, null);
+		image(dest);
+	}
+
+	public void rotateClockwise180() throws PageException {
+		rotateClockwise90();
+		rotateClockwise90();
+	}
+
+	public void rotateClockwise270() throws PageException {
+		rotateClockwise90();
+		rotateClockwise90();
+		rotateClockwise90();
+	}
+
+	public void flipVertically() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(width, height, src.getType());
+
+		Graphics2D g2 = dest.createGraphics();
+		g2.drawImage(src, 0, height, width, -height, null);
+		image(dest);
+	}
+
+	public void flipHorizontally() throws PageException {
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+
+		BufferedImage dest = new BufferedImage(width, height, src.getType());
+
+		Graphics2D g2 = dest.createGraphics();
+
+		g2.drawImage(src, width, 0, -width, height, null);
+		image(dest);
+	}
 }
