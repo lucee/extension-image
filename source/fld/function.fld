@@ -188,6 +188,7 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- ImageFilterKernel -->
 	<function>
 		<name>ImageFilterKernel</name>
@@ -968,7 +969,7 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
 		<keywords>image,filter</keywords>
-		<description></description>
+		<description>Executes a filter on the given image</description>
 		<argument>
 			<name>image</name>
 			<alias>name</alias>
@@ -1448,6 +1449,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<function>
 		<name>ImageReadBase64</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageReadBase64</class>
+		<member-name>readBase64</member-name>
+		<member-type>image</member-type>
 		<keywords>image</keywords>
 		<description>Creates a image from a Base64 string.</description>
 		<argument>
