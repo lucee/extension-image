@@ -132,7 +132,6 @@ start-bundles: false
         <exclude name="**/javax.*"/>
         <exclude name="**/jsp-*"/>
         <exclude name="**/lucee.jar"/>
-        <exclude name="**/org.apache.commons.codec-*.jar"/>
       </fileset>
     </copy>
 
