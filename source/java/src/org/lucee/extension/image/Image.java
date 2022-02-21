@@ -988,16 +988,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
-		String[] destnSplit = destination.toString().split("\\\\");
-		String split = destnSplit[destnSplit.length-1];
-		String[] extn = split.split("[.]");
-		String[] destn = destination.toString().split(split);
-		File path = new File(destn[0].toString());
+		
+		String ext = eng().getResourceUtil().getExtension(destination, null);
+		if (ext == null) throw new IOException("destination [ " + destination + " ] must be contain a extension");
+
 		if (format == null && destination != null) {
 			format = ImageUtil.getFormat(destination);
 		}
-		if(!path.isDirectory()) throw new IOException("destination folder [ " + destination + " ] doesn't exist");
-		if (format == null) throw new IOException("Unsupported image file type [ " + extn[extn.length-1] + " ]");
+
+		if (format == null) throw new IOException("Unsupported image file type [ " + ext + " ]");
+
+		if (!destination.getParentResource().exists()) throw new IOException("destination folder [ " + destination.getParentResource() + " ] doesn't exist");
+
 		writeOut(destination, format, overwrite, quality, noMeta);
 	}
 
