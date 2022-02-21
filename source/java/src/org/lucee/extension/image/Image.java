@@ -976,10 +976,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		String format = ImageUtil.getFormatFromExtension(destination, null);
+		
+		String ext = eng().getResourceUtil().getExtension(destination, null);
+		if (ext == null) throw new IOException("destination [ " + destination + " ] must be contain a extension");
+
 		if (format == null && destination != null) {
 			format = ImageUtil.getFormat(destination);
 		}
-		if (format == null) throw new IOException("cannot detect Format for given image");
+
+		if (format == null) throw new IOException("Unsupported image file type [ " + ext + " ]");
+
+		if (!destination.getParentResource().exists()) throw new IOException("destination folder [ " + destination.getParentResource() + " ] doesn't exist");
+
 		writeOut(destination, format, overwrite, quality, noMeta);
 	}
 
