@@ -47,11 +47,11 @@ public class ImageUtil {
 		return _coder;
 	}
 
-	public static String[] getWriterFormatNames() {
+	public static String[] getWriterFormatNames() throws IOException {
 		return getCoder().getWriterFormatNames();
 	}
 
-	public static String[] getReaderFormatNames() {
+	public static String[] getReaderFormatNames() throws IOException {
 		return getCoder().getReaderFormatNames();
 	}
 

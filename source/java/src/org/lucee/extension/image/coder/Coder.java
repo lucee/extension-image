@@ -56,24 +56,25 @@ public abstract class Coder {
 				}
 			}
 			catch (Exception e) {
+				if (log != null) log.error("image", e);
 			}
 
 			// JRE
 			JRECoder jreCoder = new JRECoder();
 			listCoders.add(jreCoder);
-			if (log != null) log.info("image", "use JRE Image Decoder");
-			listCoders.add(new JRECoder());
+			if (log != null) log.info("image", "use JRE Image En/Decoder");
 
 			// Sanselan/Commons Imaging - used last because Sanselan has troubles with JPG (inverted colors)
 			try {
 				SanselanCoder sanselanCoder = new SanselanCoder();
 				if (sanselanCoder.supported()) {
 					listCoders.add(sanselanCoder);
-					if (log != null) log.info("image", "use Sanselan Image Decoder");
+					if (log != null) log.info("image", "use Sanselan Image En/Decoder");
 					// System.out.println("use Sanselan Image Coder ");
 				}
 			}
 			catch (Exception e) {
+				if (log != null) log.error("image", e);
 			}
 			if (listCoders.size() < 2) instance = jreCoder;
 			else instance = new MultiCoder(listCoders.toArray(new Coder[listCoders.size()]));
@@ -99,9 +100,9 @@ public abstract class Coder {
 	 */
 	public abstract BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException;
 
-	public abstract String[] getWriterFormatNames();
+	public abstract String[] getWriterFormatNames() throws IOException;
 
-	public abstract String[] getReaderFormatNames();
+	public abstract String[] getReaderFormatNames() throws IOException;
 
 	public abstract boolean supported();
 

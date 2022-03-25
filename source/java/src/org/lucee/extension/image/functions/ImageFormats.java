@@ -18,39 +18,43 @@
  **/
 package org.lucee.extension.image.functions;
 
+import java.io.IOException;
 import java.util.HashSet;
+
+import org.lucee.extension.image.ImageUtil;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-
-import org.lucee.extension.image.ImageUtil;
-
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 
 public class ImageFormats extends FunctionSupport {
 
 	public static Struct call(PageContext pc) throws PageException {
-		Struct sct=CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-		sct.set("decoder", toArray(ImageUtil.getReaderFormatNames()));
-		sct.set("encoder", toArray(ImageUtil.getWriterFormatNames()));
-		
+		Struct sct = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
+		try {
+			sct.set("decoder", toArray(ImageUtil.getReaderFormatNames()));
+			sct.set("encoder", toArray(ImageUtil.getWriterFormatNames()));
+		}
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
+
 		return sct;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==0) return call(pc);
+		if (args.length == 0) return call(pc);
 		throw exp.createFunctionException(pc, "ImageFormats", 0, 0, args.length);
 	}
 
 	private static Object toArray(String[] arr) {
-		HashSet set=new HashSet();
-		for(int i=0;i<arr.length;i++) {
+		HashSet set = new HashSet();
+		for (int i = 0; i < arr.length; i++) {
 			set.add(arr[i].toUpperCase());
 		}
-		
+
 		return set.toArray(new String[set.size()]);
 	}
 }

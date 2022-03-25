@@ -18,8 +18,11 @@
  **/
 package org.lucee.extension.image.functions;
 
+import java.io.IOException;
+
 import org.lucee.extension.image.ImageUtil;
 
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
@@ -27,8 +30,13 @@ public class GetWriteableImageFormats extends FunctionSupport {
 
 	private static final long serialVersionUID = -60088825150776253L;
 
-	public static String call(PageContext pc) {
-		return GetReadableImageFormats.format(add(ImageUtil.getWriterFormatNames(), "gif"));
+	public static String call(PageContext pc) throws PageException {
+		try {
+			return GetReadableImageFormats.format(add(ImageUtil.getWriterFormatNames(), "gif"));
+		}
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 	}
 
 	private static String[] add(String[] formats, String value) {

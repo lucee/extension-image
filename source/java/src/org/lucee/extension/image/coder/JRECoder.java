@@ -69,12 +69,12 @@ import lucee.runtime.exp.PageException;
 
 class JRECoder extends Coder {
 
-	private String[] writerFormatNames;
-	private String[] readerFormatNames;
 	private CFMLEngine enc;
+	private ImageIOCoder imageIOCoder;
 
 	protected JRECoder() {
 		super();
+		imageIOCoder = new ImageIOCoder();
 	}
 
 	/**
@@ -125,15 +125,11 @@ class JRECoder extends Coder {
 			}
 		}
 
-		InputStream is = null;
 		try {
-			BufferedImage bi = ImageIO.read(is = res.getInputStream());
+			BufferedImage bi = imageIOCoder.read(res, format, jpegColorType);
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
-		}
-		finally {
-			Util.closeEL(is);
 		}
 
 		try {
@@ -141,11 +137,6 @@ class JRECoder extends Coder {
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
-			if (res instanceof File) {
-				Img img = new Img((File) res);
-				BufferedImage bi = img.getBufferedImage();
-				if (bi != null) return bi;
-			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 		return null;
@@ -181,7 +172,7 @@ class JRECoder extends Coder {
 		}
 
 		try {
-			BufferedImage bi = ImageIO.read(new ByteArrayInputStream(bytes));
+			BufferedImage bi = imageIOCoder.read(bytes, format, jpegColorType);
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
@@ -192,9 +183,6 @@ class JRECoder extends Coder {
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
-			Img img = new Img(bytes);
-			BufferedImage bi = img.getBufferedImage();
-			if (bi != null) return bi;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 		return null;
@@ -206,8 +194,15 @@ class JRECoder extends Coder {
 		try {
 			writeOut(img, destination, format, noMeta, quality, noMeta);
 		}
-		catch (PageException e) {
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		catch (Exception e) {
+
+			try {
+				imageIOCoder.write(img, destination, format, quality, noMeta);
+			}
+			catch (Exception ee) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+
 		}
 	}
 
@@ -217,32 +212,27 @@ class JRECoder extends Coder {
 		try {
 			writeOut(img, os, format, quality, closeStream, noMeta);
 		}
-		catch (PageException e) {
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		catch (Exception e) {
+			try {
+				imageIOCoder.write(img, os, format, quality, closeStream, noMeta);
+			}
+			catch (Exception ee) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
 		}
 	}
 
 	@Override
 	public final String[] getWriterFormatNames() {
-		if (writerFormatNames == null) {
-			String[] iio = ImageIO.getWriterFormatNames();
-			String[] jai = null;
-			writerFormatNames = mixTogetherOrdered(iio, jai);
-		}
-		return writerFormatNames;
+		return imageIOCoder.getWriterFormatNames();
 	}
 
 	@Override
 	public final String[] getReaderFormatNames() {
-		if (readerFormatNames == null) {
-			String[] iio = ImageIO.getReaderFormatNames();
-			String[] jai = null;
-			readerFormatNames = mixTogetherOrdered(iio, jai);
-		}
-		return readerFormatNames;
+		return imageIOCoder.getReaderFormatNames();
 	}
 
-	public static final String[] mixTogetherOrdered(String[] names1, String[] names2) {
+	public static final String[] mixTogetherOrderedx(String[] names1, String[] names2) {
 		Set<String> set = new HashSet<String>();
 
 		if (names1 != null) for (int i = 0; i < names1.length; i++) {
@@ -264,22 +254,22 @@ class JRECoder extends Coder {
 
 	@Override
 	public String getFormat(Resource res) throws IOException {
-		throw new IOException("not supported");
+		return imageIOCoder.getFormat(res);
 	}
 
 	@Override
 	public String getFormat(byte[] bytes) throws IOException {
-		throw new IOException("not supported");
+		return imageIOCoder.getFormat(bytes);
 	}
 
 	@Override
 	public String getFormat(Resource res, String defaultValue) {
-		return defaultValue;
+		return imageIOCoder.getFormat(res, defaultValue);
 	}
 
 	@Override
 	public String getFormat(byte[] bytes, String defaultValue) {
-		return defaultValue;
+		return imageIOCoder.getFormat(bytes, defaultValue);
 	}
 
 	public void writeOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {

@@ -21,6 +21,9 @@ package org.lucee.extension.image.coder;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.lucee.extension.image.Image;
 
@@ -35,6 +38,8 @@ class MultiCoder extends Coder {
 
 	private String[] writerFormatNames;
 	private String[] readerFormatNames;
+	private static final String tokenw = "MultiCoderTokenWrite";
+	private static final String tokenr = "MultiCoderTokenRead";
 
 	public MultiCoder(Coder[] coders) {
 		this.coders = coders;
@@ -156,13 +161,21 @@ class MultiCoder extends Coder {
 	@Override
 	public final String[] getWriterFormatNames() {
 		if (writerFormatNames == null) {
-			if (coders.length == 1) writerFormatNames = coders[0].getWriterFormatNames();
-			else {
-				String[] tmp = writerFormatNames = coders[0].getWriterFormatNames();
-				for (int i = 1; i < coders.length; i++) {
-					tmp = JRECoder.mixTogetherOrdered(tmp, coders[i].getWriterFormatNames());
+			synchronized (tokenw) {
+				if (writerFormatNames == null) {
+					Set<String> set = new HashSet<>();
+					for (Coder c: coders) {
+						try {
+							for (String n: c.getWriterFormatNames()) {
+								set.add(n);
+							}
+						}
+						catch (Exception e) {
+						}
+					}
+					writerFormatNames = set.toArray(new String[set.size()]);
+					Arrays.sort(writerFormatNames);
 				}
-				writerFormatNames = tmp;
 			}
 		}
 		return writerFormatNames;
@@ -171,13 +184,21 @@ class MultiCoder extends Coder {
 	@Override
 	public final String[] getReaderFormatNames() {
 		if (readerFormatNames == null) {
-			if (coders.length == 1) readerFormatNames = coders[0].getReaderFormatNames();
-			else {
-				String[] tmp = readerFormatNames = coders[0].getReaderFormatNames();
-				for (int i = 1; i < coders.length; i++) {
-					tmp = JRECoder.mixTogetherOrdered(tmp, coders[i].getReaderFormatNames());
+			synchronized (tokenr) {
+				if (readerFormatNames == null) {
+					Set<String> set = new HashSet<>();
+					for (Coder c: coders) {
+						try {
+							for (String n: c.getReaderFormatNames()) {
+								set.add(n);
+							}
+						}
+						catch (Exception e) {
+						}
+					}
+					readerFormatNames = set.toArray(new String[set.size()]);
+					Arrays.sort(readerFormatNames);
 				}
-				readerFormatNames = tmp;
 			}
 		}
 		return readerFormatNames;

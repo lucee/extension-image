@@ -18,35 +18,41 @@
  **/
 package org.lucee.extension.image.functions;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+
+import org.lucee.extension.image.ImageUtil;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-import org.lucee.extension.image.ImageUtil;
-
 public class GetReadableImageFormats extends FunctionSupport {
 
-	public static String call(PageContext pc) {
-		return format(ImageUtil.getReaderFormatNames());
-		
+	public static String call(PageContext pc) throws PageException {
+		try {
+			return format(ImageUtil.getReaderFormatNames());
+		}
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
+
 	}
 
 	public static String format(String[] formats) {
-		HashSet set=new HashSet();
-		for(int i=0;i<formats.length;i++) {
+		HashSet set = new HashSet();
+		for (int i = 0; i < formats.length; i++) {
 			set.add(formats[i].toUpperCase());
 		}
-		formats=(String[]) set.toArray(new String[set.size()]);
+		formats = (String[]) set.toArray(new String[set.size()]);
 		Arrays.sort(formats);
 		return CFMLEngineFactory.getInstance().getListUtil().toList(formats, ",").toUpperCase();
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==0) return call(pc);
+		if (args.length == 0) return call(pc);
 		throw exp.createFunctionException(pc, "GetReadableImageFormats", 0, 0, args.length);
 	}
 }
