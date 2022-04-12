@@ -132,12 +132,16 @@ class JRECoder extends Coder {
 		catch (Exception e) {
 		}
 
+		InputStream is = null;
 		try {
-			BufferedImage bi = JAIUtil.read(res);
+			BufferedImage bi = JAIUtil.read(is = res.getInputStream(), format);
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
+		finally {
+			Util.closeEL(is);
 		}
 		return null;
 	}
