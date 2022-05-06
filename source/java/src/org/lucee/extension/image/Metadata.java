@@ -101,10 +101,18 @@ public class Metadata {
 				Item item;
 				Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
 				final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-				for (IImageMetadataItem i: jpegMetadata.getExif().getItems()) {
-					item = (Item) i;
-					if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
-						return cast.toIntValue(CommonUtil.unwrap(item.getText()), ORIENTATION_UNDEFINED);
+				if (jpegMetadata != null) {
+					TiffImageMetadata exif = jpegMetadata.getExif();
+					if (exif != null) {
+						List<? extends IImageMetadataItem> items = exif.getItems();
+						if (items != null && items.size() > 0) {
+							for (IImageMetadataItem i: items) {
+								item = (Item) i;
+								if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
+									return cast.toIntValue(CommonUtil.unwrap(item.getText()), ORIENTATION_UNDEFINED);
+								}
+							}
+						}
 					}
 				}
 			}
