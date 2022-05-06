@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/javax.el-api-3.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/javax.servlet-api-3.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/jsp-api-2.2.jar"/>
+	<classpathentry kind="lib" path="libs/lucee.jar"/>
+	<classpathentry kind="lib" path="libs/metadata.extractor-2.8.1.0002L.jar"/>
+	<classpathentry kind="lib" path="libs/org.apache.commons.commons-codec-1.15.0.jar"/>
+	<classpathentry kind="lib" path="libs/org.apache.commons.image-1.0.0.R1534292.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.commons.sanselan-0.97.0.incubator.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.imgscalr-4.2.0.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.jmagick-6.2.4.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.common-image-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.common-io-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.common-lang-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-bmp-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-core-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-icns-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-ico-3.0.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-jpeg-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-metadata-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-psd-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-tiff-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-webp-3.8.2.jar"/>
+	<classpathentry kind="lib" path="libs/sun.jai.codec-1.1.2.0003L.jar"/>
+	<classpathentry kind="lib" path="libs/sun.jai.core-1.2.1.0003L.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
