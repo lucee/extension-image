@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="libs/javax.el-api-3.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/javax.servlet-api-3.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/jsp-api-2.2.jar"/>
+	<classpathentry kind="lib" path="libs/metadata.extractor-2.8.1.0002L.jar"/>
+	<classpathentry kind="lib" path="libs/sun.jai.codec-1.1.2.0003L.jar"/>
+	<classpathentry kind="lib" path="libs/sun.jai.core-1.2.1.0003L.jar"/>
+	<classpathentry kind="lib" path="libs/org.apache.commons.image-1.0.0.R1534292.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.imgscalr-4.2.0.jar"/>
+	<classpathentry kind="lib" path="libs/lucee.jar"/>
+	<classpathentry kind="lib" path="/Users/mic/Projects/Extensions/Image/jdeli.jar"/>
+	<classpathentry kind="lib" path="libs/org.apache.commons.commons-codec-1.15.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java 11">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="libs/org.lucee.commons.sanselan-0.97.0.incubator.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
