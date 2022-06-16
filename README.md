@@ -12,4 +12,4 @@ Issues: https://luceeserver.atlassian.net/issues/?jql=labels%20%3D%20%22Image%22
 
 On a headless Linux server, you will get a `java.lang.reflect.InvocationTargetException` error if you don't have fonts installed
 
-Please refer to [LDEV-2619 various image functions crash on headless linux when font packages aren't installed7](https://luceeserver.atlassian.net/browse/LDEV-2619) for solution
+Please refer to [LDEV-2619 various image functions crash on headless linux when font packages aren't installed](https://luceeserver.atlassian.net/browse/LDEV-2619) for solution
