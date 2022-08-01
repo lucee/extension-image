@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function beforeAll() {
 		variables.path = getDirectoryFromPath(getCurrenttemplatepath()) & "LDEV3931";
-		if(!directoryExists(path)) directoryCreate(path)
+		if (!directoryExists(path)) directoryCreate(path)
 		variables.file = "#path#\test.txt";
 	}
 	function run( testResults , testBox ) {
