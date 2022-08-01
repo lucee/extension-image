@@ -1,4 +1,5 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
+
 	function beforeAll() {
 		variables.path = getDirectoryFromPath(getCurrenttemplatepath()) & "LDEV3931";
 		if (!directoryExists(path)) directoryCreate(path)
@@ -29,4 +30,5 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			javaIoFile.deleteOnExit();
 		} 
 	}
+	
 } 
