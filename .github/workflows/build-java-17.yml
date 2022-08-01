@@ -57,5 +57,5 @@ jobs:
         luceeVersion: ${{ env.luceeVersion }}
         extensionDir: ${{ github.workspace }}/dist
       env:
-        testFilter: image
+        testLabels: image
         testAdditional: ${{ github.workspace }}/tests
