@@ -4,6 +4,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		if (!directoryExists(path)) directoryCreate(path)
 		variables.file = "#path#\test.txt";
 	}
+	
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-3931", function() {	
 			it( title="checking file locking issue in isImageFile()", body=function( currentSpec ) {
