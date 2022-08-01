@@ -42,6 +42,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import lucee.loader.util.Util;
 //Imports for JP2
 //import javax.media.jai.RenderedOp;
 //import com.sun.media.imageio.plugins.jpeg2000.J2KImageReadParam;
@@ -87,10 +88,16 @@ public class Img {
 
 	public Img(java.io.File file) {
 		if (!file.exists()) throw new IllegalArgumentException("Input file not found.");
+		FileInputStream fis = null;
 		try {
-			createBufferedImage(new FileInputStream(file));
+			fis = new FileInputStream(file);
+			createBufferedImage(fis);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
+		finally {
+			Util.closeEL((java.io.InputStream) fis);
+		}
 	}
 
 	public Img(java.io.InputStream InputStream) {
