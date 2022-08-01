@@ -58,3 +58,4 @@ jobs:
         extensionDir: ${{ github.workspace }}/dist
       env:
         testFilter: image
+        testAdditional: ${{ github.workspace }}/tests
