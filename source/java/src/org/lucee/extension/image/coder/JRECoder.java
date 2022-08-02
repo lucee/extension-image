@@ -109,7 +109,7 @@ class JRECoder extends Coder {
 		}
 
 		try {
-			BufferedImage bi = JAIUtil.read(res);
+			BufferedImage bi = JAIUtil.read(is = res.getInputStream(), format);
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
@@ -119,6 +119,9 @@ class JRECoder extends Coder {
 				if (bi != null) return bi;
 			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
+		finally {
+			Util.closeEL(is);
 		}
 		return null;
 	}
