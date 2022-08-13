@@ -970,7 +970,7 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
 		<keywords>image,filter</keywords>
-		<description></description>
+		<description>Executes a filter on the given image</description>
 		<argument>
 			<name>image</name>
 			<alias>name</alias>
