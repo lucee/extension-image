@@ -88,16 +88,10 @@ public class Img {
 
 	public Img(java.io.File file) {
 		if (!file.exists()) throw new IllegalArgumentException("Input file not found.");
-		FileInputStream fis = null;
 		try {
-			fis = new FileInputStream(file);
-			createBufferedImage(fis);
+			createBufferedImage(new FileInputStream(file));
 		}
-		catch (Exception e) {
-		}
-		finally {
-			Util.closeEL((java.io.InputStream) fis);
-		}
+		catch (Exception e) {}
 	}
 
 	public Img(java.io.InputStream InputStream) {
@@ -588,10 +582,12 @@ public class Img {
 				stream.close();
 			}
 
-			input.close();
 		}
 		catch (Exception e) {
 			// e.printStackTrace();
+		}
+		finally {
+			Util.closeEL(input);
 		}
 	}
 

@@ -109,7 +109,7 @@ class JRECoder extends Coder {
 		}
 
 		try {
-			BufferedImage bi = JAIUtil.read(is = res.getInputStream(), format);
+			BufferedImage bi = JAIUtil.read(is = res.getInputStream(), format); // TODO use JAIUtil.read(Resource); with   the locking issue on that method
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
@@ -120,7 +120,7 @@ class JRECoder extends Coder {
 			}
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
-		finally {
+		finally { // this finally block should be removed when the reverting back to use JAIUtil.read(Resource);
 			Util.closeEL(is);
 		}
 		return null;
