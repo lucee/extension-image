@@ -339,15 +339,14 @@ class JRECoder extends Coder {
 				bi = ensureOpaque(bi);
 			}
 
-			Img img = new Img(bi);
-			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			if (barr != null) {
-				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
-				return;
-			}
-			else {
+			try {
 				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-				return;
+			}
+			catch (IOException ioe) {
+				Img img = new Img(bi);
+				byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+				if (barr == null) throw ioe;
+				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
 			}
 		}
 		catch (Exception e) {
