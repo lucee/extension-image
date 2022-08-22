@@ -1001,6 +1001,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			if (!overwrite) throw new IOException("can't overwrite existing image");
 		}
 		PageException pe = null;
+
 		// try to write with ImageIO
 		OutputStream os = null;
 		ImageOutputStream ios = null;
@@ -1051,15 +1052,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				bi = ensureOpaque(bi);
 			}
 
-			Img img = new Img(bi);
-			byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			if (barr != null) {
-				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
-				return;
-			}
-			else {
+			try {
 				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-				return;
+			}
+			catch (IOException ioe) {
+				Img img = new Img(bi);
+				byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+				if (barr == null) throw ioe;
+				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
 			}
 		}
 		catch (Exception e) {
@@ -1804,18 +1804,20 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			CFMLEngineFactory.getInstance().getIOUtil().closeSilent(ios);
 		}
 
-		Img img = new Img(getBufferedImage());
-		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-		if (barr != null) return barr;
-
+		Exception ex = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			JAIUtil.write(getBufferedImage(), baos, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
 			return baos.toByteArray();
 		}
 		catch (Exception e) {
-			throw eng().getCastUtil().toPageException(e);
+			ex = e;
 		}
+
+		Img img = new Img(getBufferedImage());
+		byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+		if (barr == null) throw eng().getCastUtil().toPageException(ex);
+		return barr;
 	}
 
 	public void setColor(Color color) throws PageException {
