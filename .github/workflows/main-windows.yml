@@ -1,17 +1,16 @@
 # This workflow will build a Java project with Ant
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
 
-name: Java CI
+name: Java CI Win
 
-on: [push, pull_request,workflow_dispatch] 
+on: [workflow_dispatch]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
       luceeVersion: light-6.0.0.241-SNAPSHOT
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
