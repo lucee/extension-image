@@ -1,16 +1,16 @@
 # This workflow will build a Java project with Ant
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
 
-name: Java CI
+name: Java CI- Lucee 5.3
 
-on: [push, pull_request,workflow_dispatch]
+on: [workflow_dispatch]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
-      luceeVersion: light-6.0.0.241-SNAPSHOT
+      luceeVersion: 5.3.10.63-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v2
@@ -43,6 +43,7 @@ jobs:
       with:
         repository: lucee/lucee
         path: lucee
+        ref: 5.3
     - name: Run Lucee Test Suite (testFilter="image")
       uses: lucee/script-runner@main
       with:
@@ -53,3 +54,4 @@ jobs:
       env:
         testLabels: image
         testAdditional: ${{ github.workspace }}/tests
+        extensions: 8D7FB0DF-08BB-1589-FE3975678F07DB17,37C61C0A-5D7E-4256-8572639BE0CF5838 # the compress and esapi extensions are required to run tests lucee with lucee-light
