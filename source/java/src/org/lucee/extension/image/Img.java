@@ -19,7 +19,6 @@ import java.awt.image.Kernel;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,6 +40,9 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 //Imports for JP2
 //import javax.media.jai.RenderedOp;
@@ -79,27 +81,32 @@ public class Img {
 	// **************************************************************************
 	// ** Constructor
 	// **************************************************************************
-	/** Creates a new instance of this class using an existing image */
+	/**
+	 * Creates a new instance of this class using an existing image
+	 * 
+	 * @throws IOException
+	 */
 
-	public Img(String PathToImageFile) {
+	public Img(String PathToImageFile) throws IOException {
 		this(new java.io.File(PathToImageFile));
 	}
 
-	public Img(java.io.File file) {
-		if (!file.exists()) throw new IllegalArgumentException("Input file not found.");
+	public Img(java.io.File file) throws IOException {
+		if (!file.exists()) throw new IOException("Input file [" + file + "] not found.");
+		createBufferedImage(file);
+	}
+
+	public Img(java.io.InputStream is, boolean closeStream) throws IOException {
 		try {
-			createBufferedImage(new FileInputStream(file));
+			createBufferedImage(is);
 		}
-		catch (Exception e) {
+		finally {
+			if (closeStream) Util.closeEL(is);
 		}
 	}
 
-	public Img(java.io.InputStream InputStream) {
-		createBufferedImage(InputStream);
-	}
-
-	public Img(byte[] byteArray) {
-		this(new ByteArrayInputStream(byteArray));
+	public Img(byte[] byteArray) throws IOException {
+		this(new ByteArrayInputStream(byteArray), true);
 	}
 
 	public Img(int width, int height) {
@@ -538,40 +545,41 @@ public class Img {
 		addImage(in.getBufferedImage(), x, y, expand);
 	}
 
-	// **************************************************************************
-	// ** createBufferedImage
-	// **************************************************************************
-	/** Used to create a BufferedImage from a InputStream */
+	private void createBufferedImage(Object input) throws IOException {
 
-	private void createBufferedImage(java.io.InputStream input) {
+		javax.imageio.stream.ImageInputStream stream = ImageIO.createImageInputStream(input);
+		Exception ex = null;
+
 		try {
-			// bufferedImage = ImageIO.read(input);
-
-			javax.imageio.stream.ImageInputStream stream = ImageIO.createImageInputStream(input);
-
-			Iterator iter = ImageIO.getImageReaders(stream);
-			if (!iter.hasNext()) {
-				return;
+			Iterator<ImageReader> it = ImageIO.getImageReaders(stream);
+			ImageReader reader = null;
+			while (it.hasNext()) {
+				try {
+					reader = it.next();
+					ImageReadParam param = reader.getDefaultReadParam();
+					reader.setInput(stream, true, true);
+					bufferedImage = reader.read(0, param);
+					metadata = reader.getImageMetadata(0);
+					break;
+				}
+				catch (Exception e) {
+					ex = e;
+				}
+				finally {
+					if (reader != null) reader.dispose();
+				}
 			}
-
-			ImageReader reader = (ImageReader) iter.next();
-			ImageReadParam param = reader.getDefaultReadParam();
-			reader.setInput(stream, true, true);
-
-			try {
-				bufferedImage = reader.read(0, param);
-				metadata = reader.getImageMetadata(0);
-			}
-			finally {
-				reader.dispose();
-				stream.close();
-			}
-
-			input.close();
 		}
-		catch (Exception e) {
-			// e.printStackTrace();
+		finally {
+			if (stream != null) {
+				try {
+					stream.close();
+				}
+				catch (Exception e) {
+				}
+			}
 		}
+		if (bufferedImage == null && ex != null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(ex);
 	}
 
 	// **************************************************************************
