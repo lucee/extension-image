@@ -20,6 +20,8 @@ package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -28,23 +30,40 @@ public abstract class Coder {
 
 	private static Coder instance;
 
-	protected Coder() {}
+	protected Coder() {
+	}
 
 	public static Coder getInstance() {
 
 		if (instance == null) {
 			instance = new JRECoder();
+			List<Coder> coders = new ArrayList<>();
+			coders.add(instance);
 
-			// try to load Sanselan, does not load when lib not exist
+			// Sanselan
 			try {
-				SanselanCoder sanselan = new SanselanCoder();
-				instance = new DoubleCoder(instance, sanselan); // used JRE first because Sanselan has troubles with JPG (inverted colors)
+				SanselanCoder coder = new SanselanCoder();
+				coders.add(coder); // used JRE first because Sanselan has troubles with JPG (inverted colors)
 				// SystemOut.printDate("use JRE and Sanselan Image Coder ");
 			}
 			catch (Exception e) {
-				// SystemOut.printDate("use JRE Image Coder ");
+				e.printStackTrace();
+			}
+
+			// Seida
+			try {
+				SejdaWebpCoder coder = new SejdaWebpCoder();
+				coders.add(coder);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (coders.size() > 1) {
+				instance = new MultiCoder(coders);
 			}
 		}
+
 		return instance;
 	}
 

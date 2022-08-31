@@ -140,7 +140,7 @@ public class ImageUtil {
 		if (format != null) return format;
 
 		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt)) throw new IOException("cannot find Format of given image");// 31
-		throw new IOException("can't find Format (" + mt + ") of given image");
+		throw new IOException("can't find format for mimetype [" + mt + "]");
 	}
 
 	public static String getImageFormatFromMimeType(String mt, String defaultValue) {
@@ -221,6 +221,7 @@ public class ImageUtil {
 		if ("image/heic".equals(mt)) return "heic";
 		if ("image/heif-sequence".equals(mt)) return "heif";
 		if ("image/heic-sequence".equals(mt)) return "heic";
+		if ("image/webp".equals(mt)) return "webp";
 
 		// can not terminate this types exactly
 		// image/x-xbitmap

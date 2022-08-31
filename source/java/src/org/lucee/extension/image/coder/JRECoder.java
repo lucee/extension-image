@@ -162,7 +162,7 @@ class JRECoder extends Coder {
 		}
 
 		try {
-			BufferedImage bi = JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
+			BufferedImage bi = JAIUtil.read(new ByteArrayInputStream(bytes), "jpg".equalsIgnoreCase(format) ? "JPEG" : format);
 			if (bi != null) return bi;
 		}
 		catch (Exception e) {
