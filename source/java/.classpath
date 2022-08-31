@@ -18,5 +18,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/org.lucee.commons.sanselan-0.97.0.incubator.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.sejda-webp-0.1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
