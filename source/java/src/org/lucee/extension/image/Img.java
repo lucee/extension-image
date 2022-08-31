@@ -91,7 +91,7 @@ public class Img {
 	}
 
 	public Img(java.io.File file) throws IOException {
-		if (!file.exists()) throw new IOException("Input file not found.");
+		if (!file.exists()) throw new IOException("Input file [" + file + "] not found.");
 		createBufferedImage(file);
 	}
 
