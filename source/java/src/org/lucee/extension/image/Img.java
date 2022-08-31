@@ -19,7 +19,6 @@ import java.awt.image.Kernel;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,10 +41,11 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import lucee.loader.util.Util;
+import lucee.loader.engine.CFMLEngineFactory;
 //Imports for JP2
 //import javax.media.jai.RenderedOp;
 //import com.sun.media.imageio.plugins.jpeg2000.J2KImageReadParam;
+import lucee.loader.util.Util;
 
 //******************************************************************************
 //**  Image Utilities - By Peter Borissow
@@ -80,37 +80,36 @@ public class Img {
 	// **************************************************************************
 	// ** Constructor
 	// **************************************************************************
-	/** Creates a new instance of this class using an existing image */
+	/**
+	 * Creates a new instance of this class using an existing image
+	 * 
+	 * @throws IOException
+	 */
 
-	public Img(String PathToImageFile) {
+	public Img(String PathToImageFile) throws IOException {
 		this(new java.io.File(PathToImageFile));
 	}
 
-	public Img(java.io.File file) {
-		if (!file.exists()) throw new IllegalArgumentException("Input file not found.");
-		FileInputStream fis = null;
+	public Img(java.io.File file) throws IOException {
+		if (!file.exists()) throw new IOException("Input file not found.");
+		createBufferedImage(file);
+	}
+
+	public Img(java.io.InputStream is, boolean closeStream) throws IOException {
 		try {
-			fis = new FileInputStream(file);
-			createBufferedImage(fis);
-		}
-		catch (Exception e) {
+			createBufferedImage(is);
 		}
 		finally {
-			Util.closeEL((java.io.InputStream) fis);
+			if (closeStream) Util.closeEL(is);
 		}
 	}
 
-	public Img(java.io.InputStream InputStream) {
-		createBufferedImage(InputStream);
-	}
-
-	public Img(byte[] byteArray) {
-		this(new ByteArrayInputStream(byteArray));
+	public Img(byte[] bytes) throws IOException {
+		this(new ByteArrayInputStream(bytes), true);
 	}
 
 	public Img(int width, int height) {
 		this.bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
 		this.g2d = getGraphics();
 	}
 
@@ -562,37 +561,47 @@ public class Img {
 	// **************************************************************************
 	// ** createBufferedImage
 	// **************************************************************************
-	/** Used to create a BufferedImage from a InputStream */
+	/**
+	 * Used to create a BufferedImage from a InputStream
+	 * 
+	 * @throws IOException
+	 */
 
-	private void createBufferedImage(java.io.InputStream input) {
+	private void createBufferedImage(Object input) throws IOException {
+
+		javax.imageio.stream.ImageInputStream stream = ImageIO.createImageInputStream(input);
+		Exception ex = null;
+
 		try {
-			// bufferedImage = ImageIO.read(input);
-
-			javax.imageio.stream.ImageInputStream stream = ImageIO.createImageInputStream(input);
-
-			Iterator iter = ImageIO.getImageReaders(stream);
-			if (!iter.hasNext()) {
-				return;
+			Iterator<ImageReader> it = ImageIO.getImageReaders(stream);
+			ImageReader reader = null;
+			while (it.hasNext()) {
+				try {
+					reader = it.next();
+					ImageReadParam param = reader.getDefaultReadParam();
+					reader.setInput(stream, true, true);
+					bufferedImage = reader.read(0, param);
+					metadata = reader.getImageMetadata(0);
+					break;
+				}
+				catch (Exception e) {
+					ex = e;
+				}
+				finally {
+					if (reader != null) reader.dispose();
+				}
 			}
-
-			ImageReader reader = (ImageReader) iter.next();
-			ImageReadParam param = reader.getDefaultReadParam();
-			reader.setInput(stream, true, true);
-
-			try {
-				bufferedImage = reader.read(0, param);
-				metadata = reader.getImageMetadata(0);
-			}
-			finally {
-				reader.dispose();
-				stream.close();
-			}
-
-			input.close();
 		}
-		catch (Exception e) {
-			// e.printStackTrace();
+		finally {
+			if (stream != null) {
+				try {
+					stream.close();
+				}
+				catch (Exception e) {
+				}
+			}
 		}
+		if (bufferedImage == null && ex != null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(ex);
 	}
 
 	// **************************************************************************
@@ -1727,19 +1736,22 @@ public class Img {
 		try {
 			degDenominator = Double.parseDouble(deg[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		double minNumerator = Double.parseDouble(min[0]);
 		double minDenominator = 1D;
 		try {
 			minDenominator = Double.parseDouble(min[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		double secNumerator = Double.parseDouble(sec[0]);
 		double secDenominator = 1D;
 		try {
 			secDenominator = Double.parseDouble(sec[1]);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		double m = 0;
 		if (degDenominator != 0 || degNumerator != 0) {
@@ -1978,13 +1990,15 @@ public class Img {
 					int tagIdentifier = tagType | (directoryType << 8);
 
 					String str = "";
-					if (tagByteCount < 1 || tagByteCount > (data.length - offset)) {}
+					if (tagByteCount < 1 || tagByteCount > (data.length - offset)) {
+					}
 					else {
 						try {
 							str = new String(data, offset, tagByteCount, "UTF-8");
 							offset += tagByteCount;
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 					}
 					tags.put(tagIdentifier, str);
 				}
