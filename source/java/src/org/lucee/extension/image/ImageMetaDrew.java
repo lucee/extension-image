@@ -49,8 +49,19 @@ public class ImageMetaDrew {
 	 * @throws JpegProcessingException
 	 */
 	public static void addInfo(String format, Resource res, Struct info) {
-		if ("jpg".equalsIgnoreCase(format)) jpg(res, info);
-		else if ("tiff".equalsIgnoreCase(format)) tiff(res, info);
+		try {
+			if ("jpg".equalsIgnoreCase(format)) jpg(res, info);
+			else if ("tiff".equalsIgnoreCase(format)) tiff(res, info);
+		}
+		catch (Exception ex) {
+			try {
+				org.lucee.extension.image.Metadata.addExifInfoToStruct(res, info);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		// Metadata.addInfo(format,source,sctInfo);
 
 	}
 

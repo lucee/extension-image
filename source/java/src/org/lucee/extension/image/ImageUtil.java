@@ -18,17 +18,27 @@
  **/
 package org.lucee.extension.image;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.imaging.ImageFormat;
 import org.lucee.extension.image.coder.Coder;
+import org.lucee.extension.image.format.FormatExtract;
+import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -40,6 +50,16 @@ public class ImageUtil {
 
 	private static Coder _coder;
 
+	private static final boolean useSunCodec = getSunCodec();
+	private static Class JPEGCodec;
+	private static Class JPEGEncodeParam;
+
+	private static int counter = 0;
+
+	public static final int COLOR_TYPE_RGB = 1;
+	public static final int COLOR_TYPE_CMYK = 2;
+	public static final int COLOR_TYPE_YCCK = 3;
+
 	private static Coder getCoder() {
 		if (_coder == null) {
 			_coder = Coder.getInstance();
@@ -48,11 +68,15 @@ public class ImageUtil {
 	}
 
 	public static String[] getWriterFormatNames() throws IOException {
-		return getCoder().getWriterFormatNames();
+		Coder c = getCoder();
+		if (c instanceof FormatNames) return ((FormatNames) c).getWriterFormatNames();
+		return new String[] {};
 	}
 
 	public static String[] getReaderFormatNames() throws IOException {
-		return getCoder().getReaderFormatNames();
+		Coder c = getCoder();
+		if (c instanceof FormatNames) return ((FormatNames) c).getReaderFormatNames();
+		return new String[] {};
 	}
 
 	/**
@@ -90,7 +114,18 @@ public class ImageUtil {
 		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
 		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
 
-		getCoder().write(img, os, format, quality, closeStream, noMeta);
+		Resource tmp = createTempFile(format);
+		try {
+			getCoder().write(img, tmp, format, quality, noMeta);
+			eng().getIOUtil().copy(tmp.getInputStream(), os, true, closeStream);
+		}
+		finally {
+			if (!tmp.delete() && tmp instanceof File) ((File) tmp).deleteOnExit();
+		}
+	}
+
+	public static Resource createTempFile(String format) {
+		return eng().getResourceUtil().getTempDirectory().getRealResource("tmp" + id() + "." + format);
 	}
 
 	public static byte[] readBase64(String b64str, StringBuilder mimetype) throws IOException {
@@ -110,13 +145,19 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(Resource res) throws IOException {
-		String format = getCoder().getFormat(res, null);
-		if (!Util.isEmpty(format, true)) return format;
-
-		String mt = getMimeType(res, null);
-		if (!Util.isEmpty(mt)) {
-			format = getImageFormatFromMimeType(mt, null);
-			if (!Util.isEmpty(format)) return format;
+		long len = res.length();
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(res, null);
+			if (!Util.isEmpty(format, true)) return format;
+		}
+		// there is no need to check the mime type if the file is empty
+		if (len > 0) {
+			String mt = getMimeType(res, null);
+			if (!Util.isEmpty(mt)) {
+				String format = getImageFormatFromMimeType(mt, null);
+				if (!Util.isEmpty(format)) return format;
+			}
 		}
 		return getFormatFromExtension(res, null);
 	}
@@ -126,16 +167,20 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
-		String format = getCoder().getFormat(binary, null);
-		if (!Util.isEmpty(format, true)) return format;
-
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(binary, null);
+			if (!Util.isEmpty(format, true)) return format;
+		}
 		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""));
 	}
 
 	public static String getFormat(byte[] binary, String defaultValue) {
-		String format = getCoder().getFormat(binary, null);
-		if (!Util.isEmpty(format, true)) return format;
-
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(binary, null);
+			if (!Util.isEmpty(format, true)) return format;
+		}
 		return getImageFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
 	}
 
@@ -145,6 +190,8 @@ public class ImageUtil {
 		if ("jpg".equalsIgnoreCase(ext)) return "jpg";
 		if ("jpe".equalsIgnoreCase(ext)) return "jpg";
 		if ("jpeg".equalsIgnoreCase(ext)) return "jpg";
+		if ("icns".equalsIgnoreCase(ext)) return "icns";
+		if ("ico".equalsIgnoreCase(ext)) return "ico";
 		if ("png".equalsIgnoreCase(ext)) return "png";
 		if ("tiff".equalsIgnoreCase(ext)) return "tiff";
 		if ("tif".equalsIgnoreCase(ext)) return "tiff";
@@ -170,7 +217,7 @@ public class ImageUtil {
 		if (format != null) return format;
 
 		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt)) throw new IOException("cannot find Format of given image");// 31
-		throw new IOException("can't find Format (" + mt + ") of given image");
+		throw new IOException("can't find Format for mime type [" + mt + "].");
 	}
 
 	public static String getImageFormatFromMimeType(String mt, String defaultValue) {
@@ -237,26 +284,26 @@ public class ImageUtil {
 
 		if ("image/ico".equals(mt)) return "ico";
 		if ("image/x-icon".equals(mt)) return "ico";
+		if ("image/vnd.microsoft.icon".equals(mt)) return "ico";
 		if ("application/ico".equals(mt)) return "ico";
 		if ("application/x-ico".equals(mt)) return "ico";
+		if ("application/vnd.microsoft.icon".equals(mt)) return "ico";
 
 		if ("image/photoshop".equals(mt)) return "psd";
 		if ("image/x-photoshop".equals(mt)) return "psd";
 		if ("image/psd".equals(mt)) return "psd";
 		if ("application/photoshop".equals(mt)) return "psd";
 		if ("application/psd".equals(mt)) return "psd";
+		if ("image/vnd.adobe.photoshop".equals(mt)) return "psd";
+		if ("application/vnd.adobe.photoshop".equals(mt)) return "psd";
 		if ("zz-application/zz-winassoc-psd".equals(mt)) return "psd";
 
 		if ("image/heif".equals(mt)) return "heif";
 		if ("image/heic".equals(mt)) return "heic";
 		if ("image/heif-sequence".equals(mt)) return "heif";
 		if ("image/heic-sequence".equals(mt)) return "heic";
+		if ("image/webp".equals(mt)) return "webp";
 
-		// can not terminate this types exactly
-		// image/x-xbitmap
-		// application/x-win-bitmap
-		// image/x-win-bitmap
-		// application/octet-stream
 		return defaultValue;
 	}
 
@@ -319,26 +366,225 @@ public class ImageUtil {
 		return "bmp".equalsIgnoreCase(format);
 	}
 
-	public static ImageFormat toFormat(String format, ImageFormat defaultValue) {
-		if (Util.isEmpty(format, true)) return defaultValue;
-		format = format.toLowerCase().trim();
+	private static CFMLEngine eng() {
+		return CFMLEngineFactory.getInstance();
+	}
 
-		// equals?
-		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
-			if (imgFor.equals(format)) return imgFor;
+	public static BufferedImage resize(BufferedImage input, int width, int height, boolean maintainRatio) {
+
+		// long startTime = getStartTime();
+
+		int outputWidth = width;
+		int outputHeight = height;
+
+		int w = input.getWidth();
+		int h = input.getHeight();
+
+		if (maintainRatio) {
+
+			double ratio = 0;
+
+			if (w > h) {
+				ratio = (double) width / (double) w;
+			}
+			else {
+				ratio = (double) height / (double) h;
+			}
+
+			double dw = w * ratio;
+			double dh = h * ratio;
+
+			outputWidth = (int) Math.round(dw);
+			outputHeight = (int) Math.round(dh);
+
+			if (outputWidth > w || outputHeight > h) {
+				outputWidth = w;
+				outputHeight = h;
+			}
 		}
-		// ext match
-		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
-			if (imgFor.getExtension().equalsIgnoreCase(format)) return imgFor;
+
+		// Resize the image (create new buffered image)
+		java.awt.Image outputImage = input.getScaledInstance(outputWidth, outputHeight, BufferedImage.SCALE_AREA_AVERAGING);
+		BufferedImage bi = new BufferedImage(outputWidth, outputHeight, getImageType(input));
+		Graphics2D g2d = bi.createGraphics();
+		g2d.drawImage(outputImage, 0, 0, null);
+		g2d.dispose();
+		return bi;
+	}
+
+	private static int getImageType(BufferedImage bufferedImage) {
+		int imageType = bufferedImage.getType();
+		if (imageType <= 0 || imageType == 12) {
+			imageType = BufferedImage.TYPE_INT_ARGB;
 		}
-		// name match
-		for (ImageFormat imgFor: ImageFormat.getAllFormats()) {
-			if (imgFor.getName().equalsIgnoreCase(format)) return imgFor;
+		return imageType;
+	}
+
+	// **************************************************************************
+	// ** getByteArray
+	// **************************************************************************
+	/** Returns the image as a byte array. */
+
+	public static byte[] getByteArray(BufferedImage bi, String format, float quality) {
+		byte[] rgb = null;
+
+		format = format.toLowerCase();
+		if (format.startsWith("image/")) {
+			format = format.substring(format.indexOf("/") + 1);
 		}
+
+		try {
+			if (isJPEG(format)) {
+				rgb = getJPEGByteArray(bi, quality);
+			}
+			else {
+				ByteArrayOutputStream bas = new ByteArrayOutputStream();
+				ImageIO.write(bi, format.toLowerCase(), bas);
+				rgb = bas.toByteArray();
+			}
+		}
+		catch (Exception e) {
+		}
+		return rgb;
+	}
+
+	// **************************************************************************
+	// ** getJPEGByteArray
+	// **************************************************************************
+	/** Returns a JPEG compressed byte array. */
+
+	private static byte[] getJPEGByteArray(BufferedImage bufferedImage, float outputQuality) throws IOException {
+		if (outputQuality >= 0f && outputQuality <= 1.2f) {
+			ByteArrayOutputStream bas = new ByteArrayOutputStream();
+			BufferedImage bi = bufferedImage;
+			int t = bufferedImage.getTransparency();
+
+			if (t == BufferedImage.TRANSLUCENT) {
+				bi = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+				Graphics2D biContext = bi.createGraphics();
+				biContext.drawImage(bufferedImage, 0, 0, null);
+			}
+
+			// First we will try to compress the image using the com.sun.image.codec.jpeg
+			// package. These classes are marked as deprecated in JDK 1.7 and several
+			// users have reported problems with this method. Instead, we are
+			// supposed to use the JPEGImageWriteParam class. However, I have not
+			// been able to adequatly test the compression quality or find an
+			// anology to the setHorizontalSubsampling and setVerticalSubsampling
+			// methods. Therefore, we will attempt to compress the image using the
+			// com.sun.image.codec.jpeg package. If the compression fails, we will
+			// use the JPEGImageWriteParam.
+			if (useSunCodec) {
+
+				try {
+
+					// For Java 1.7 users, we will try to invoke the Sun JPEG Codec using reflection
+					Object encoder = JPEGCodec.getMethod("createJPEGEncoder", java.io.OutputStream.class).invoke(JPEGCodec, bas);
+					Object params = JPEGCodec.getMethod("getDefaultJPEGEncodeParam", BufferedImage.class).invoke(JPEGCodec, bi);
+					params.getClass().getMethod("setQuality", float.class, boolean.class).invoke(params, outputQuality, true);
+					params.getClass().getMethod("setHorizontalSubsampling", int.class, int.class).invoke(params, 0, 2);
+					params.getClass().getMethod("setVerticalSubsampling", int.class, int.class).invoke(params, 0, 2);
+
+					// Here's the original compression code without reflection
+					/*
+					 * JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(bas); JPEGEncodeParam params =
+					 * JPEGCodec.getDefaultJPEGEncodeParam(bi); params.setQuality(outputQuality, true); //true
+					 * params.setHorizontalSubsampling(0,2); params.setVerticalSubsampling(0,2);
+					 * params.setMarkerData(...); encoder.encode(bi, params);
+					 */
+
+					encoder.getClass().getMethod("encode", BufferedImage.class, JPEGEncodeParam).invoke(encoder, bi, params);
+				}
+				catch (Exception e) {
+					bas.reset();
+				}
+			}
+
+			// If the com.sun.image.codec.jpeg package is not found or if the
+			// compression failed, we will use the JPEGImageWriteParam class.
+			if (bas.size() == 0) {
+
+				if (outputQuality > 1f) outputQuality = 1f;
+
+				ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+				JPEGImageWriteParam params = (JPEGImageWriteParam) writer.getDefaultWriteParam();
+				params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+				params.setCompressionQuality(outputQuality);
+				writer.setOutput(ImageIO.createImageOutputStream(bas));
+				writer.write(null, new IIOImage(bi, null, null), params);
+
+			}
+
+			bas.flush();
+			return bas.toByteArray();
+		}
+		else {
+			return getByteArray(bufferedImage, "jpeg", 1f);
+		}
+	}
+
+	private static boolean getSunCodec() {
+		try {
+			JPEGCodec = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
+			JPEGEncodeParam = Class.forName("com.sun.image.codec.jpeg.JPEGEncodeParam");
+			return true;
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static Object toColorType(Integer colorType, String defaultValue) {
+		if (COLOR_TYPE_CMYK == colorType) return "CMYK";
+		if (COLOR_TYPE_RGB == colorType) return "RGB";
+		if (COLOR_TYPE_YCCK == colorType) return "YCCK";
 		return defaultValue;
 	}
 
-	private static CFMLEngine eng() {
-		return CFMLEngineFactory.getInstance();
+	public static BufferedImage toABGR(BufferedImage src) {
+		if (src.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+			BufferedImage bff = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+			int h = src.getHeight();
+			int w = src.getWidth();
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					int argb = src.getRGB(x, y);
+					bff.setRGB(x, y, argb & 0xFF000000); // same color alpha 100%
+				}
+			}
+			return bff;
+		}
+		return src;
+	}
+
+	public static BufferedImage fromABGR2BGR(BufferedImage src) {
+		// bufferedImage is your image.
+		if (src.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+			int h = src.getHeight();
+			int w = src.getWidth();
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					int argb = src.getRGB(x, y);
+					if ((argb & 0x00FFFFFF) == 0x00FFFFFF) { // if the pixel is transparent
+						src.setRGB(x, y, 0xFFFFFFFF); // white color.
+					}
+				}
+			}
+		}
+		return src;
+	}
+
+	final public static BufferedImage convertColorspace(BufferedImage image, int newType) {
+
+		BufferedImage raw_image = image;
+		image = new BufferedImage(raw_image.getWidth(), raw_image.getHeight(), newType);
+		ColorConvertOp xformOp = new ColorConvertOp(null);
+		xformOp.filter(raw_image, image);
+
+		return image;
+	}
+
+	public static synchronized String id() {
+		return (++counter) + "x" + System.currentTimeMillis();
 	}
 }

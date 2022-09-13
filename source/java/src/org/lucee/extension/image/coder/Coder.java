@@ -20,9 +20,6 @@ package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.lucee.extension.image.Image;
 
@@ -42,44 +39,37 @@ public abstract class Coder {
 	public static Coder getInstance() {
 
 		if (instance == null) {
-			List<Coder> listCoders = new ArrayList<>();
 			Config config = CFMLEngineFactory.getInstance().getThreadConfig();
 			Log log = config == null ? null : config.getLog("application");
 
-			// JDeli
-			try {
-				JDeliCoder jdeliCoder = new JDeliCoder();
-				if (jdeliCoder.supported()) {
-					listCoders.add(jdeliCoder);
-					if (log != null) log.info("image", "use JDeli Image Decoder");
-					// System.out.println("use JDeli Image Coder ");
-				}
-			}
-			catch (Exception e) {
-				if (log != null) log.error("image", e);
-			}
+			MultiCoder mc = new MultiCoder();
 
-			// JRE
-			JRECoder jreCoder = new JRECoder();
-			listCoders.add(jreCoder);
-			if (log != null) log.info("image", "use JRE Image En/Decoder");
+			add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
+			add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
+			add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
+			add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
+			add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
+			add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
+			add(mc, "org.lucee.extension.image.coder.JAICoder", log);
 
-			// Sanselan/Commons Imaging - used last because Sanselan has troubles with JPG (inverted colors)
-			try {
-				SanselanCoder sanselanCoder = new SanselanCoder();
-				if (sanselanCoder.supported()) {
-					listCoders.add(sanselanCoder);
-					if (log != null) log.info("image", "use Sanselan Image En/Decoder");
-					// System.out.println("use Sanselan Image Coder ");
-				}
-			}
-			catch (Exception e) {
-				if (log != null) log.error("image", e);
-			}
-			if (listCoders.size() < 2) instance = jreCoder;
-			else instance = new MultiCoder(listCoders.toArray(new Coder[listCoders.size()]));
+			instance = mc;
 		}
 		return instance;
+	}
+
+	private static void add(MultiCoder mc, String className, Log log) {
+		try {
+			Coder coder = (Coder) mc.getClass().getClassLoader().loadClass(className).newInstance();
+
+			if (coder.supported()) {
+				mc.add(coder);
+				if (log != null) log.info("image", "use JDeli Image En/Decoder");
+			}
+		}
+		catch (Exception e) {
+			if (log != null) log.error("image", e);
+			// else e.printStackTrace();
+		}
 	}
 
 	/**
@@ -100,22 +90,19 @@ public abstract class Coder {
 	 */
 	public abstract BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException;
 
-	public abstract String[] getWriterFormatNames() throws IOException;
-
-	public abstract String[] getReaderFormatNames() throws IOException;
-
 	public abstract boolean supported();
-
-	public abstract String getFormat(Resource res) throws IOException;
-
-	public abstract String getFormat(Resource res, String defaultValue);
-
-	public abstract String getFormat(byte[] bytes) throws IOException;
-
-	public abstract String getFormat(byte[] bytes, String defaultValue);
 
 	public abstract void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException;
 
-	public abstract void write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException;
+	public static Log log() {
+		// FUTURE PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
+		// FUTURE if(pc!=null)pc.getLog("application");
+		Config config = CFMLEngineFactory.getInstance().getThreadConfig();
+		if (config != null) return config.getLog("application");
+		return null;
+	}
+
+	// public abstract void write(Image img, OutputStream os, String format, float quality, boolean
+	// closeStream, boolean noMeta) throws IOException;
 
 }

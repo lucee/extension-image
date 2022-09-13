@@ -59,7 +59,7 @@ public class ImageWrite extends FunctionSupport implements Function {
 		// MUST beide boolschen argumente checken
 		if (res == null) return null;
 		try {
-			image.writeOut(res, overwrite, (float) quality, noMeta);
+			image.writeOut(res, null, overwrite, (float) quality, noMeta);
 		}
 		catch (IOException e) {
 			throw eng.getCastUtil().toPageException(e);

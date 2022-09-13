@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.util.HashSet;
 
 import org.lucee.extension.image.ImageUtil;
+import org.lucee.extension.image.coder.Coder;
+import org.lucee.extension.image.coder.MultiCoder;
+import org.lucee.extension.image.format.FormatNames;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -30,31 +33,49 @@ import lucee.runtime.type.Struct;
 
 public class ImageFormats extends FunctionSupport {
 
-	public static Struct call(PageContext pc) throws PageException {
-		Struct sct = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-		try {
-			sct.set("decoder", toArray(ImageUtil.getReaderFormatNames()));
-			sct.set("encoder", toArray(ImageUtil.getWriterFormatNames()));
-		}
-		catch (IOException e) {
-			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
-		}
+	private static final long serialVersionUID = -1031545954737979021L;
 
+	public static Struct call(PageContext pc) throws PageException {
+		return call(pc, false);
+	}
+
+	public static Struct call(PageContext pc, boolean detailed) throws PageException {
+		Struct sct = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
+		Coder coder = Coder.getInstance();
+		if (detailed && coder instanceof MultiCoder) {
+			sct.set("decoder", ((MultiCoder) coder).getReaderFormatNamesByGroup());
+			sct.set("encoder", ((MultiCoder) coder).getWriterFormatNamesByGroup());
+		}
+		else {
+			try {
+				if (coder instanceof FormatNames) {
+					sct.set("decoder", toArray(((FormatNames) coder).getReaderFormatNames()));
+					sct.set("encoder", toArray(((FormatNames) coder).getWriterFormatNames()));
+				}
+				else {
+					sct.set("decoder", toArray(ImageUtil.getReaderFormatNames()));
+					sct.set("encoder", toArray(ImageUtil.getWriterFormatNames()));
+				}
+			}
+			catch (IOException e) {
+				throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+			}
+		}
 		return sct;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 0) return call(pc);
-		throw exp.createFunctionException(pc, "ImageFormats", 0, 0, args.length);
+		if (args.length == 1) return call(pc, CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(args[0]));
+		throw exp.createFunctionException(pc, "ImageFormats", 0, 1, args.length);
 	}
 
 	private static Object toArray(String[] arr) {
-		HashSet set = new HashSet();
+		HashSet<String> set = new HashSet<>();
 		for (int i = 0; i < arr.length; i++) {
 			set.add(arr[i].toUpperCase());
 		}
-
 		return set.toArray(new String[set.size()]);
 	}
 }

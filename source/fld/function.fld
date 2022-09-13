@@ -1283,6 +1283,12 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFormats</class>
 		<keywords>image</keywords>
 		<description>return all available readers and writers</description>
+		<argument>
+			<name>detailed</name>
+			<type>boolean</type>
+			<required>No</required>
+			<description>Give more details on format, which coder does supply them.</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -1305,6 +1311,25 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<member-type>image</member-type>
 		<keywords>image</keywords>
 		<description>Returns a structure that contains information about the image, such as height, width, color model, size, and filename.</description>
+		<argument>
+			<name>image</name>
+			<alias>name</alias>
+			<type>any</type>
+			<required>Yes</required>
+			<description>The image on which this operation is performed.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	<!-- ImageCoderInfo -->
+	<function>
+		<name>ImageCoderInfo</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCoderInfo</class>
+		<member-name>coderInfo</member-name>
+		<member-type>image</member-type>
+		<keywords>image</keywords>
+		<description>Gives detailed information about all coder used by the image extension.</description>
 		<argument>
 			<name>image</name>
 			<alias>name</alias>

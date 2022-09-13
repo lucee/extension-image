@@ -8,13 +8,15 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
+import org.lucee.extension.image.format.FormatExtract;
+import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
-public class JDeliCoder extends Coder {
+public class JDeliCoder extends Coder implements FormatNames, FormatExtract {
 
 	private static final Class<?>[] ARGS_EMPTY = new Class<?>[] {};
 	private static final Class<?>[] ARGS_IS = new Class<?>[] { InputStream.class };
@@ -36,6 +38,7 @@ public class JDeliCoder extends Coder {
 			throw re;
 		}
 		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(t);
 		}
@@ -54,17 +57,25 @@ public class JDeliCoder extends Coder {
 			throw re;
 		}
 		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(t);
 		}
 	}
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		write(img, destination.getOutputStream(), format, quality, true, noMeta);
+		if (Util.isEmpty(format)) {
+			format = getFormat(destination);
+			if (Util.isEmpty(format)) format = img.getFormat();
+		}
+		_write(img, destination.getOutputStream(), format, quality, true, noMeta);
 	}
 
-	@Override
-	public void write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
+	private void _write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
+		if (Util.isEmpty(format)) {
+			format = img.getFormat();
+		}
+
 		boolean isJpeg = ImageUtil.isJPEG(format);
 		// System.out.println("JDeli.write");
 		try {
@@ -87,6 +98,7 @@ public class JDeliCoder extends Coder {
 
 		}
 		catch (Throwable e) {
+			if (e instanceof ThreadDeath) throw (ThreadDeath) e;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 		finally {
@@ -96,13 +108,16 @@ public class JDeliCoder extends Coder {
 
 	@Override
 	public String getFormat(Resource res) throws IOException {
-		// System.out.println("Jdeli.getFormat");
+		if (res.length() == 0) {
+			String format = ImageUtil.getFormatFromExtension(res, null);
+			if (Util.isEmpty(format)) throw new IOException("not format for extension [" + CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res) + "] found");
+			return format;
+		}
 		return getFormatName(res);
 	}
 
 	@Override
 	public String getFormat(byte[] bytes) throws IOException {
-		// System.out.println("Jdeli.getFormat");
 		return getFormatName(bytes);
 	}
 
@@ -209,6 +224,7 @@ public class JDeliCoder extends Coder {
 			throw re;
 		}
 		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(t);
 		}
 	}
@@ -227,6 +243,7 @@ public class JDeliCoder extends Coder {
 			throw re;
 		}
 		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(t);
 		}
 	}
@@ -239,6 +256,7 @@ public class JDeliCoder extends Coder {
 			throw re;
 		}
 		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(t);
 		}
 	}

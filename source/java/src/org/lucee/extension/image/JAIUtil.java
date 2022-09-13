@@ -20,8 +20,6 @@ package org.lucee.extension.image;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,31 +37,12 @@ import org.lucee.extension.image.util.IDGenerator;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.util.Util;
 
 public class JAIUtil {
 
 	private static Method getAsBufferedImage;
 	private static Method create1;
 	private static Method create3;
-	// private static String[] readFormats = new String[] { "tiff", "pnm", "fpx" };
-	// private static String[] writeFormats = new String[] { "tiff", "pnm" };
-
-	/*
-	 * public static boolean isSupportedWriteFormat(String format) { return
-	 * "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format); }
-	 */
-
-	/*
-	 * public static boolean isSupportedReadFormat(String format) { return
-	 * "tiff".equalsIgnoreCase(format) || "pnm".equalsIgnoreCase(format) ||
-	 * "fpx".equalsIgnoreCase(format); }
-	 */
-
-	// public static String[] getSupportedReadFormat() { return readFormats; }
-	/*
-	 * public static String[] getSupportedWriteFormat() { return writeFormats; }
-	 */
 
 	public static boolean isJAISupported() {
 		return true;
@@ -87,6 +66,9 @@ public class JAIUtil {
 	}
 
 	public static BufferedImage read(InputStream is, String format) throws IOException {
+
+		if ("jpg".equalsIgnoreCase(format)) format = "JPEG";
+
 		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		try {
@@ -125,27 +107,6 @@ public class JAIUtil {
 			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
 			create("filestore", img, tmp.getAbsolutePath(), format);
 			eng.getIOUtil().copy(tmp.getInputStream(), os, true, false);
-		}
-		finally {
-			if (tmp != null) {
-				tmp.delete();
-			}
-		}
-	}
-
-	public static void writee(BufferedImage img, OutputStream os, String format) throws IOException {
-		File tmp = null;
-		// CFMLEngine eng = CFMLEngineFactory.getInstance();
-		try {
-			// tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
-			tmp = new File(File.createTempFile("wkw", "qtq").getParentFile(), IDGenerator.intId() + "." + format);
-			// JAI.create("filestore", img, tmp.getAbsolutePath(), format);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			// ImageIO.write(img, "jpeg", baos);
-			Img _img = new Img(img);
-			byte[] barr = _img.getByteArray(format);
-			// create("filestore", img, tmp.getAbsolutePath(), format);
-			Util.copy(new ByteArrayInputStream(barr), os, true, true);
 		}
 		finally {
 			if (tmp != null) {

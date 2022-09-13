@@ -1,15 +1,16 @@
 Manifest-Version: 1.0
-Export-Package: org.lucee.extension.image,org.lucee.extension.image.functions,org.lucee.extension.image.tag
 Bundle-ManifestVersion: 2
-Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
- org.apache.commons.image;bundle-version=1.0.0.R1534292,
+Export-Package: org.lucee.extension.image,org.lucee.extension.image.functions,org.lucee.extension.image.tag
+Require-Bundle: org.apache.commons.commons-imaging;bundle-version=1.0.0.alpha3,
+ org.apache.commons.commons-codec;bundle-version=1.15.0,
  metadata.extractor;bundle-version=2.8.1.0002L,
  sun.jai.codec;bundle-version=1.1.2.0003L,
  sun.jai.core;bundle-version=1.2.1.0003L,
  org.lucee.imgscalr;bundle-version=4.2.0,
- org.lucee.twelvemonkeys.common-lang;bundle-version=3.8.2,org.lucee.twelvemonkeys.common-io;bundle-version=3.8.2,org.lucee.jmagick;bundle-version=6.2.4
- ,org.lucee.twelvemonkeys.common-image;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-core;bundle-version=3.8.2
- ,org.lucee.twelvemonkeys.imageio-metadata;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-ico;bundle-version=3.0.2
- ,org.lucee.twelvemonkeys.imageio-icns;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-psd;bundle-version=3.8.2
- ,org.lucee.twelvemonkeys.imageio-tiff;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-bmp;bundle-version=3.8.2
- ,org.lucee.twelvemonkeys.imageio-jpeg;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-webp;bundle-version=3.8.2
+ org.lucee.twelvemonkeys.common-lang;bundle-version=3.8.2,org.lucee.twelvemonkeys.common-io;bundle-version=3.8.2,
+ org.lucee.jmagick;bundle-version=6.2.4,org.lucee.twelvemonkeys.common-image;bundle-version=3.8.2,
+ org.lucee.twelvemonkeys.imageio-core;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-metadata;bundle-version=3.8.2,
+ org.lucee.twelvemonkeys.imageio-ico;bundle-version=3.0.2,org.lucee.twelvemonkeys.imageio-icns;bundle-version=3.8.2,
+ org.lucee.twelvemonkeys.imageio-psd;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-tiff;bundle-version=3.8.2,
+ org.lucee.twelvemonkeys.imageio-bmp;bundle-version=3.8.2,org.lucee.twelvemonkeys.imageio-jpeg;bundle-version=3.8.2,
+ org.lucee.twelvemonkeys.imageio-webp;bundle-version=3.8.2

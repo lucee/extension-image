@@ -5,77 +5,31 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Iterator;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
-import javax.imageio.spi.IIORegistry;
-import javax.imageio.spi.ImageReaderSpi;
-import javax.imageio.spi.ImageWriterSpi;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
 import org.lucee.extension.image.Image;
+import org.lucee.extension.image.ImageUtil;
+import org.lucee.extension.image.format.FormatExtract;
+import org.lucee.extension.image.format.FormatNames;
 
-import com.twelvemonkeys.imageio.plugins.bmp.BMPImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.bmp.BMPImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.bmp.CURImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.bmp.ICOImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.bmp.ICOImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.icns.ICNSImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.icns.ICNSImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.psd.PSDImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.psd.PSDImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.tiff.TIFFImageReaderSpi;
-import com.twelvemonkeys.imageio.plugins.tiff.TIFFImageWriterSpi;
-import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
-
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
 
-class ImageIOCoder extends Coder {
-
-	private static final String token = "ImageIOCoderToken";
-	private static boolean isInit;
+class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 
 	protected ImageIOCoder() {
 		super();
-		if (!isInit) {
-			synchronized (token) {
-				// TODO instead of init flag, check if it exist
-				if (!isInit) {
-					if (supported()) {
-						IIORegistry registry = IIORegistry.getDefaultInstance();
-						registry.registerServiceProvider(new WebPImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new BMPImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new CURImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new ICNSImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new ICOImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new PSDImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new WebPImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new JPEGImageReaderSpi(), ImageReaderSpi.class);
-						registry.registerServiceProvider(new TIFFImageReaderSpi(), ImageReaderSpi.class);
-
-						registry.registerServiceProvider(new BMPImageWriterSpi(), ImageWriterSpi.class);
-						registry.registerServiceProvider(new ICOImageWriterSpi(), ImageWriterSpi.class);
-						registry.registerServiceProvider(new ICNSImageWriterSpi(), ImageWriterSpi.class);
-						registry.registerServiceProvider(new JPEGImageWriterSpi(), ImageWriterSpi.class);
-						registry.registerServiceProvider(new PSDImageWriterSpi(), ImageWriterSpi.class);
-						registry.registerServiceProvider(new TIFFImageWriterSpi(), ImageWriterSpi.class);
-
-						// registry.registerServiceProviders(ServiceRegistry.lookupProviders(ImageWriterSpi.class));
-						System.out.println("Registered image readers: " + Arrays.asList(ImageIO.getReaderMIMETypes()));
-						System.out.println("Registered image writers: " + Arrays.asList(ImageIO.getWriterMIMETypes()));
-					}
-					isInit = true;
-				}
-			}
-		}
 	}
 
 	@Override
@@ -97,29 +51,56 @@ class ImageIOCoder extends Coder {
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		write(img, destination.getOutputStream(), format, quality, noMeta, noMeta);
-	}
-
-	@Override
-	public void write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
-		if (Util.isEmpty(format)) format = img.getFormat();
+		if (Util.isEmpty(format)) {
+			format = getFormat(destination);
+			if (Util.isEmpty(format)) format = img.getFormat();
+		}
 
 		ImageOutputStream ios = null;
+		OutputStream os = null;
+
+		if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+			try {
+				os = destination.getOutputStream();
+				ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+				ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+				jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+				jpgWriteParam.setCompressionQuality(quality);
+
+				ios = ImageIO.createImageOutputStream(os);
+				jpgWriter.setOutput(ios);
+				IIOImage outputImage = new IIOImage(img.getBufferedImage(), null, null);
+				jpgWriter.write(null, outputImage, jpgWriteParam);
+				jpgWriter.dispose();
+				return;
+			}
+			catch (Exception e) {
+				os = null;
+				Log log = Coder.log();
+				if (log != null) log.error("image", e);
+				// else e.printStackTrace();
+			}
+			finally {
+				os.flush();
+				ios.close();
+				Util.closeEL(os);
+			}
+		}
+
 		try {
+			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
 			ImageIO.write(img.getBufferedImage(), format, ios);
+
 		}
 		catch (PageException pe) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
 		}
 		finally {
 			os.flush();
-			if (closeStream) {
-				ios.close();
-				Util.closeEL(os);
-			}
+			ios.close();
+			Util.closeEL(os);
 		}
-
 	}
 
 	@Override
@@ -136,17 +117,29 @@ class ImageIOCoder extends Coder {
 
 	@Override
 	public String getFormat(Resource res) throws IOException {
-		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null));
+		long len = res.length();
+		if (len > 0) {
+			return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null));
+		}
+		else {
+			String format = ImageUtil.getFormatFromExtension(res, null);
+			if (!Util.isEmpty(format)) return format;
+		}
+		throw new IOException("cannot guess format from an empty file");
+	}
+
+	@Override
+	public String getFormat(Resource res, String defaultValue) {
+		long len = res.length();
+		if (len > 0) {
+			return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null), defaultValue);
+		}
+		return defaultValue;
 	}
 
 	@Override
 	public String getFormat(byte[] bytes) throws IOException {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null));
-	}
-
-	@Override
-	public String getFormat(Resource res, String defaultValue) {
-		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null), defaultValue);
 	}
 
 	@Override

@@ -437,7 +437,7 @@ public final class Image extends TagImpl {
 		required("source", source);
 		required("destination", destination);
 
-		source.writeOut(destination, overwrite, quality, nometadata);
+		source.writeOut(destination, null, overwrite, quality, nometadata);
 	}
 
 	// Write an image to the browser

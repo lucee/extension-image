@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -50,14 +49,14 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.apache.commons.imaging.ImageFormat;
-import org.apache.commons.imaging.Imaging;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
-import org.lucee.extension.image.Img;
-import org.lucee.extension.image.JAIUtil;
 import org.lucee.extension.image.PSDReader;
-import org.lucee.extension.image.jpg.JpegReader;
+import org.lucee.extension.image.format.FormatNames;
+import org.lucee.extension.image.gif.GifDecoder;
+import org.lucee.extension.image.gif.GifEncoder;
+import org.lucee.extension.image.jpg.decoder.JPEGDecoder;
+import org.lucee.extension.image.jpg.encoder.JPEGEncoder;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -67,14 +66,15 @@ import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-class JRECoder extends Coder {
+class LuceeCoder extends Coder implements FormatNames {
+
+	private String[] writerFormatNames = new String[] { "GIF", "JPEG" };
+	private String[] readerFormatNames = new String[] { "GIF", "PSD", "JPEG" };
 
 	private CFMLEngine enc;
-	private ImageIOCoder imageIOCoder;
 
-	protected JRECoder() {
+	protected LuceeCoder() {
 		super();
-		imageIOCoder = new ImageIOCoder();
 	}
 
 	/**
@@ -101,8 +101,8 @@ class JRECoder extends Coder {
 				Util.closeEL(is);
 			}
 		}
-		else if ("jpg".equalsIgnoreCase(format)) {
-			JpegReader reader = new JpegReader();
+		else if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+			JPEGDecoder reader = new JPEGDecoder();
 			try {
 				if (res instanceof File) {
 					BufferedImage bi = reader.readImage((File) res, jpegColorType);
@@ -124,26 +124,24 @@ class JRECoder extends Coder {
 			catch (Exception e) {
 			}
 		}
+		else if ("gif".equalsIgnoreCase(format)) {
 
-		try {
-			BufferedImage bi = imageIOCoder.read(res, format, jpegColorType);
-			if (bi != null) return bi;
-		}
-		catch (Exception e) {
+			GifDecoder decoder = new GifDecoder();
+			InputStream is = null;
+			try {
+				is = res.getInputStream();
+				BufferedImage bi = decoder.read(is);
+				if (bi != null) return bi;
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
+			finally {
+				Util.closeEL(is);
+			}
 		}
 
-		InputStream is = null;
-		try {
-			BufferedImage bi = JAIUtil.read(is = res.getInputStream(), format);
-			if (bi != null) return bi;
-		}
-		catch (Exception e) {
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
-		}
-		finally {
-			Util.closeEL(is);
-		}
-		return null;
+		throw new IOException("there is no decoder for format [" + format + "] in this coder");
 	}
 
 	/**
@@ -164,79 +162,67 @@ class JRECoder extends Coder {
 			BufferedImage bi = reader.getImage();
 			if (bi != null) return bi;
 		}
-		else if ("jpg".equalsIgnoreCase(format)) {
-			JpegReader reader = new JpegReader();
+		else if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+			JPEGDecoder decoder = new JPEGDecoder();
 			try {
-				BufferedImage bi = reader.readImage(bytes, jpegColorType);
+				BufferedImage bi = decoder.readImage(bytes, jpegColorType);
 				if (bi != null) return bi;
 			}
 			catch (Exception e) {
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 			}
 		}
+		else if ("gif".equalsIgnoreCase(format)) {
+			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 
-		try {
-			BufferedImage bi = imageIOCoder.read(bytes, format, jpegColorType);
-			if (bi != null) return bi;
+			GifDecoder decoder = new GifDecoder();
+			try {
+				BufferedImage bi = decoder.read(bais);
+				if (bi != null) return bi;
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			}
 		}
-		catch (Exception e) {
-		}
-
-		try {
-			BufferedImage bi = JAIUtil.read(new ByteArrayInputStream(bytes), format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			if (bi != null) return bi;
-		}
-		catch (Exception e) {
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
-		}
-		return null;
+		throw new IOException("there is no decoder for format [" + format + "] in this coder");
 	}
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		// System.out.println("JRE.write");
-		try {
-			writeOut(img, destination, format, noMeta, quality, noMeta);
-		}
-		catch (Exception e) {
-
+		if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
+			OutputStream os = null;
 			try {
-				imageIOCoder.write(img, destination, format, quality, noMeta);
-			}
-			catch (Exception ee) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
-			}
+				if (quality < 0 || quality > 1) quality = 1;
 
+				os = destination.getOutputStream();
+				new JPEGEncoder(img.getBufferedImage(), (int) (quality * 100), os).compress();
+				return;
+			}
+			catch (PageException pe) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
+			}
+			finally {
+				Util.closeEL(os);
+			}
 		}
-	}
-
-	@Override
-	public void write(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
-		// System.out.println("JRE.write");
-		try {
-			writeOut(img, os, format, quality, closeStream, noMeta);
-		}
-		catch (Exception e) {
+		if ("gif".equalsIgnoreCase(format)) {
+			OutputStream os = null;
 			try {
-				imageIOCoder.write(img, os, format, quality, closeStream, noMeta);
+				os = destination.getOutputStream();
+				new GifEncoder(img.getBufferedImage()).write(os);
+				return;
 			}
-			catch (Exception ee) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+			catch (Exception pe) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
+			}
+			finally {
+				Util.closeEL(os);
 			}
 		}
+		throw new IOException("there is no encoder for format [" + format + "] in this coder");
 	}
 
-	@Override
-	public final String[] getWriterFormatNames() {
-		return imageIOCoder.getWriterFormatNames();
-	}
-
-	@Override
-	public final String[] getReaderFormatNames() {
-		return imageIOCoder.getReaderFormatNames();
-	}
-
-	public static final String[] mixTogetherOrderedx(String[] names1, String[] names2) {
+	public static final String[] mixTogetherOrderedxxx(String[] names1, String[] names2) {
 		Set<String> set = new HashSet<String>();
 
 		if (names1 != null) for (int i = 0; i < names1.length; i++) {
@@ -256,38 +242,18 @@ class JRECoder extends Coder {
 		return true;
 	}
 
-	@Override
-	public String getFormat(Resource res) throws IOException {
-		return imageIOCoder.getFormat(res);
-	}
-
-	@Override
-	public String getFormat(byte[] bytes) throws IOException {
-		return imageIOCoder.getFormat(bytes);
-	}
-
-	@Override
-	public String getFormat(Resource res, String defaultValue) {
-		return imageIOCoder.getFormat(res, defaultValue);
-	}
-
-	@Override
-	public String getFormat(byte[] bytes, String defaultValue) {
-		return imageIOCoder.getFormat(bytes, defaultValue);
-	}
-
-	public void writeOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
+	public void intresstingwriteOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
 
 		ImageOutputStream ios = ImageIO.createImageOutputStream(os);
 		try {
-			_writeOut(img, ios, format, quality, noMeta);
+			intressting_writeOut(img, ios, format, quality, noMeta);
 		}
 		finally {
 			eng().getIOUtil().closeSilent(ios);
 		}
 	}
 
-	public void writeOut(Image img2, Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
+	public void intresstingwriteOut(Image img2, Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		PageException pe = null;
 		// try to write with ImageIO
 		OutputStream os = null;
@@ -295,7 +261,7 @@ class JRECoder extends Coder {
 		try {
 			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
-			_writeOut(img2, ios, format, quality, noMeta);
+			intressting_writeOut(img2, ios, format, quality, noMeta);
 			return;
 		}
 		catch (IIOException iioe) {
@@ -308,12 +274,12 @@ class JRECoder extends Coder {
 				File tmp = new File(Util.getTempDirectory(), "tmp-" + System.currentTimeMillis() + ".png");
 				FileOutputStream fos = new FileOutputStream(tmp);
 				try {
-					writeOut(img2, fos, "png", 1f, true, noMeta);
+					intresstingwriteOut(img2, fos, "png", 1f, true, noMeta);
 					os = destination.getOutputStream();
 					ios = ImageIO.createImageOutputStream(os);
 					PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
 					Image img = Image.createImage(pc, tmp, false, false, false, format);
-					_writeOut(img, ios, format, quality, false);
+					intressting_writeOut(img, ios, format, quality, false);
 					return;
 				}
 				catch (Exception e) {
@@ -332,48 +298,10 @@ class JRECoder extends Coder {
 			eng().getIOUtil().closeSilent(os);
 		}
 
-		// try it with JAI
-		try {
-			BufferedImage bi = img2.getBufferedImage();
-			if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-				bi = ensureOpaque(bi);
-			}
-
-			try {
-				JAIUtil.write(bi, destination, format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-			}
-			catch (IOException ioe) {
-				Img img = new Img(bi);
-				byte[] barr = img.getByteArray(format.equalsIgnoreCase("jpg") ? "JPEG" : format);
-				if (barr == null) throw ioe;
-				eng().getIOUtil().copy(new ByteArrayInputStream(barr), destination, true);
-			}
-		}
-		catch (Exception e) {
-			pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
-		}
-
-		// let's give it a last try by converting first to a different format
-		if (!ImageUtil.isBMP(format)) {
-			try {
-				final byte[] bytes = Imaging.writeImageToBytes(img2.getBufferedImage(), ImageFormat.IMAGE_FORMAT_BMP, new HashMap<>());
-				Image _img = new Image(bytes, "bmp");
-				os = destination.getOutputStream();
-				ios = ImageIO.createImageOutputStream(os);
-				_writeOut(_img, ios, format, quality, false);
-				return;
-			}
-			catch (Exception e) {
-			}
-			finally {
-				ImageUtil.closeEL(ios);
-				eng().getIOUtil().closeSilent(os);
-			}
-		}
 		if (pe != null) throw pe;
 	}
 
-	private void _writeOut(Image img, ImageOutputStream ios, final String format, float quality, boolean noMeta) throws IOException, PageException {
+	private void intressting_writeOut(Image img, ImageOutputStream ios, final String format, float quality, boolean noMeta) throws IOException, PageException {
 		boolean isJpeg = format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg");
 		BufferedImage bi = img.getBufferedImage();
 
@@ -487,6 +415,16 @@ class JRECoder extends Coder {
 	private CFMLEngine eng() {
 		if (enc == null) enc = CFMLEngineFactory.getInstance();
 		return enc;
+	}
+
+	@Override
+	public String[] getWriterFormatNames() throws IOException {
+		return writerFormatNames;
+	}
+
+	@Override
+	public String[] getReaderFormatNames() throws IOException {
+		return readerFormatNames;
 	}
 
 }

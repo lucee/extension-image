@@ -76,9 +76,9 @@ import javax.swing.ImageIcon;
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.ImageWriteException;
 import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.IImageMetadata;
-import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
-import org.apache.commons.imaging.common.ImageMetadata.Item;
+import org.apache.commons.imaging.common.GenericImageMetadata.GenericImageMetadataItem;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.common.ImageMetadata.ImageMetadataItem;
 import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
@@ -89,7 +89,6 @@ import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
-import org.lucee.extension.image.jpg.JpegReader;
 import org.lucee.extension.image.util.ArrayUtil;
 import org.lucee.extension.image.util.CommonUtil;
 import org.lucee.extension.image.util.CommonUtil.Coll;
@@ -342,7 +341,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
 		sctInfo.setEL("source", source == null ? "" : source.getAbsolutePath());
 		if (jpegColorType != null && jpegColorType.toInteger() > 0) {
-			sctInfo.setEL("jpeg_color_type", JpegReader.toColorType(jpegColorType.toInteger(), ""));
+			sctInfo.setEL("jpeg_color_type", ImageUtil.toColorType(jpegColorType.toInteger(), ""));
 		}
 		// sct.setEL("mime_type",getMimeType());
 
@@ -375,9 +374,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
 		getMetaData(sctInfo, null);
-
-		// Metadata.addInfo(format,source,sctInfo);
-		Metadata.addExifInfo(format, source, sctInfo);
 
 		this.sctInfo = sctInfo;
 		return sctInfo;
@@ -432,7 +428,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Struct getIPTCMetadata() throws PageException {
-		IImageMetadata md;
+		ImageMetadata md;
 		Struct rtn = eng().getCreationUtil().createStruct();
 		try {
 			if (source instanceof File) md = Imaging.getMetadata((File) source);
@@ -448,16 +444,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			JpegImageMetadata jmd = (JpegImageMetadata) md;
 			JpegPhotoshopMetadata jpmd = jmd.getPhotoshop(); // selects IPTC metadata
 			if (jpmd == null) return rtn;
-			Iterator<? extends IImageMetadataItem> it = jpmd.getItems().iterator();
-			IImageMetadataItem item;
-			Item i = null;
+			Iterator<? extends ImageMetadataItem> it = jpmd.getItems().iterator();
+			ImageMetadataItem item;
+			GenericImageMetadataItem i = null;
 			Collection.Key k;
 			Object v;
 			Array arr;
 			while (it.hasNext()) {
 				item = it.next();
-				if (item instanceof Item) {
-					i = (Item) item;
+				if (item instanceof GenericImageMetadataItem) {
+					i = (GenericImageMetadataItem) item;
 					k = eng().getCreationUtil().createKey(i.getKeyword());
 					v = rtn.get(k, null);
 					if (v != null) {
@@ -974,27 +970,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return new String(eng().getCastUtil().toBase64(imageBytes));
 	}
 
-	public void writeOut(Resource destination, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
-		String format = ImageUtil.getFormatFromExtension(destination, null);
-		
-		String ext = eng().getResourceUtil().getExtension(destination, null);
-		if (ext == null) throw new IOException("destination [ " + destination + " ] must be contain a extension");
+	public void writeOut(Resource destination, String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 
-		if (format == null && destination != null) {
-			format = ImageUtil.getFormat(destination);
-		}
+		if (format == null && destination != null) format = ImageUtil.getFormat(destination);
 
-		if (format == null) throw new IOException("Unsupported image file type [ " + ext + " ]");
-
-		if (!destination.getParentResource().exists()) throw new IOException("destination folder [ " + destination.getParentResource() + " ] doesn't exist");
-
-		writeOut(destination, format, overwrite, quality, noMeta);
-	}
-
-	public void writeOut(Resource destination, final String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
 		if (destination == null) {
 			if (source != null) destination = source;
 			else throw new IOException("missing destination file");
+		}
+		if (!destination.getParentResource().exists()) {
+			throw new IOException("destination folder [ " + destination.getParentResource() + " ] doesn't exist");
 		}
 
 		if (destination.exists()) {
@@ -1094,7 +1079,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void resize(int scale, String interpolation, double blurFactor) throws PageException {
-		if (blurFactor < 0D || blurFactor > 10D) throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
+		if (blurFactor < 0D || blurFactor > 10D)
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
 
 		BufferedImage bi = image();
 		float width = bi.getWidth() / 100F * scale;
@@ -1106,7 +1092,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public void resize(String strWidth, String strHeight, String interpolation, double blurFactor) throws PageException {
 		if (eng().getStringUtil().isEmpty(strWidth, true) && eng().getStringUtil().isEmpty(strHeight, true))
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("you have to define width or height");
-		if (blurFactor < 0D || blurFactor > 10D) throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
+		if (blurFactor < 0D || blurFactor > 10D)
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
 		BufferedImage bi = image();
 		float height = resizeDimesion("height", strHeight, bi.getHeight());
 		float width = resizeDimesion("width", strWidth, bi.getWidth());
@@ -1154,9 +1141,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		if (interpolation == IP_AUTOMATIC && blurFactor == 1) {
 			try {
-				Img img = new Img(bi);
-				img.resize(width, height);
-				image(img.getBufferedImage());
+				image(ImageUtil.resize(bi, width, height, false));
 				return;
 			}
 			catch (Exception e) {
@@ -1203,9 +1188,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
 		try {
-			IImageMetadata metadata;
+			ImageMetadata metadata;
 			if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
-			else metadata = Metadata.getMetadata((byte[]) input);
+			else metadata = Imaging.getMetadata((byte[]) input);
 
 			int ori = Metadata.getOrientation(metadata);
 			if (ori > 0) {
@@ -1221,7 +1206,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 	}
 
-	private void changeOrientation(IImageMetadata metadata, int orientation) throws PageException {
+	private void changeOrientation(ImageMetadata metadata, int orientation) throws PageException {
 		if (orientation == Metadata.ORIENTATION_ROTATE_90) {
 			rotateClockwise90();
 			return;
@@ -1295,7 +1280,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		image(dest);
 	}
 
-	public void changeExifMetadata(IImageMetadata metadata, final Resource dst) throws IOException, ImageReadException, ImageWriteException {
+	public void changeExifMetadata(ImageMetadata metadata, final Resource dst) throws IOException, ImageReadException, ImageWriteException {
 		OutputStream os = null;
 		boolean canThrow = false;
 		try {

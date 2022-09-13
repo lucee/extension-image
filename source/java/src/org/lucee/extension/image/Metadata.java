@@ -16,6 +16,8 @@
  */
 package org.lucee.extension.image;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -23,12 +25,11 @@ import java.util.List;
 
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.IImageMetadata;
-import org.apache.commons.imaging.common.IImageMetadata.IImageMetadataItem;
-import org.apache.commons.imaging.common.ImageMetadata.Item;
+import org.apache.commons.imaging.common.GenericImageMetadata.GenericImageMetadataItem;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.common.ImageMetadata.ImageMetadataItem;
 import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
-import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.GpsTagConstants;
@@ -39,10 +40,8 @@ import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
-import lucee.runtime.config.Config;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.util.Cast;
 
 public class Metadata {
 
@@ -58,91 +57,21 @@ public class Metadata {
 	public static final int ORIENTATION_TRANSVERSE = 7;
 	public static final int ORIENTATION_ROTATE_270 = 8; // rotate 270 to right it
 
-	public static void addExifInfo(String format, final Resource res, Struct info) {
-		InputStream is = null;
-		try {
-			is = res.getInputStream();
-			fillExif(format, is, info);
-		}
-		catch (Exception e) {
-		}
-		finally {
-			Util.closeEL(is);
-		}
-	}
+	public static void addExifInfoToStruct(final Resource res, Struct info) throws ImageReadException, IOException {
+		if (res == null) return;
 
-	public static IImageMetadata getMetadata(Resource res) throws ImageReadException, IOException {
-		InputStream is = null;
-		try {
-			return Imaging.getMetadata(is = res.getInputStream(), res.getName());
+		ImageMetadata md;
+		if (res instanceof File) {
+			md = Imaging.getMetadata((File) res);
 		}
-		finally {
-			Util.closeEL(is);
+		else {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
+			md = Imaging.getMetadata((File) res);
 		}
-	}
-
-	public static IImageMetadata getMetadata(InputStream is, String format, boolean closeStream) throws ImageReadException, IOException {
-		try {
-			return Imaging.getMetadata(is, "test." + format);
-		}
-		finally {
-			if (closeStream) Util.closeEL(is);
-		}
-	}
-
-	public static IImageMetadata getMetadata(byte[] barr) throws ImageReadException, IOException {
-		return Imaging.getMetadata(barr);
-
-	}
-
-	public static int getOrientation(IImageMetadata metadata) {
-		if (metadata instanceof JpegImageMetadata) {
-			try {
-				Item item;
-				Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
-				final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-				TiffImageMetadata tim = jpegMetadata.getExif();
-				if (tim != null) {
-					List<? extends IImageMetadataItem> items = tim.getItems();
-					if (items != null) {
-						for (IImageMetadataItem i: items) {
-							item = (Item) i;
-							if ("ORIENTATION".equalsIgnoreCase(item.getKeyword())) {
-								return cast.toIntValue(CommonUtil.unwrap(item.getText()), ORIENTATION_UNDEFINED);
-							}
-						}
-					}
-				}
-			}
-			catch (Exception e) {
-				Config config = CFMLEngineFactory.getInstance().getThreadConfig();
-				if (config != null) config.getLog("application").error("image", e);
-			}
-		}
-		return ORIENTATION_UNDEFINED;
-	}
-
-	/*
-	 * public static void removeOrientation(IImageMetadata metadata) throws ImageReadException,
-	 * IOException, ImageWriteException { // get all metadata stored in EXIF format (ie. from JPEG or
-	 * TIFF). if (metadata instanceof JpegImageMetadata) { final JpegImageMetadata jpegMetadata =
-	 * (JpegImageMetadata) metadata;
-	 * 
-	 * final TiffImageMetadata exif = jpegMetadata.getExif(); TiffOutputSet outputSet =
-	 * exif.getOutputSet(); if (null == outputSet) return;
-	 * 
-	 * outputSet.removeField(new TagInfoShort("Orientation", 0x112, 1,
-	 * TiffDirectoryType.TIFF_DIRECTORY_ROOT));
-	 * 
-	 * } }
-	 */
-
-	private static void fillExif(String format, InputStream is, Struct info) throws ImageReadException, IOException {
-		// get all metadata stored in EXIF format (ie. from JPEG or TIFF).
-		IImageMetadata metadata = Imaging.getMetadata(is, "test." + format);
-		if (metadata == null) return;
-		if (metadata instanceof JpegImageMetadata) {
-			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+		if (md == null) return;
+		if (md instanceof JpegImageMetadata) {
+			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) md;
 
 			// EXIF
 			if (jpegMetadata != null) {
@@ -161,80 +90,38 @@ public class Metadata {
 		}
 	}
 
-	public static void addInfo(String format, final Resource res, Struct info) {
+	public static ImageMetadata getMetadata(Resource res) throws ImageReadException, IOException {
+		if (res instanceof File) {
+			return Imaging.getMetadata((File) res);
+		}
+
 		InputStream is = null;
 		try {
-			is = res.getInputStream();
-			fill(format, is, info);
-		}
-		catch (Exception e) {
+			return Imaging.getMetadata(is = res.getInputStream(), res.getName());
 		}
 		finally {
 			Util.closeEL(is);
 		}
 	}
 
-	private static void fill(String format, InputStream is, Struct info) throws ImageReadException, IOException {
-		// get all metadata stored in EXIF format (ie. from JPEG or TIFF).
-		IImageMetadata metadata = Imaging.getMetadata(is, "test." + format);
-		if (metadata == null) return;
-
-		CFMLEngine eng = CFMLEngineFactory.getInstance();
-
-		if (metadata instanceof JpegImageMetadata) {
-			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-
-			try {
-				set(jpegMetadata.getItems(), info, null);
-			}
-			catch (Exception e) {
-			}
-			try {
-				set(metadata.getItems(), info, null);
-			}
-			catch (Exception e) {
-			}
-
-			// Photoshop
-			if (metadata instanceof JpegImageMetadata) {
-				JpegPhotoshopMetadata photoshop = ((JpegImageMetadata) metadata).getPhotoshop();
-				if (photoshop != null) {
-					try {
-
-						List<? extends IImageMetadataItem> list = photoshop.getItems();
-						if (list != null && !list.isEmpty()) {
-							Struct ps = eng.getCreationUtil().createStruct();
-							info.setEL("photoshop", ps);
-							try {
-								set(list, ps, null);
-							}
-							catch (Exception e) {
-							}
-						}
-					}
-					catch (Exception e) {
-					}
-				}
-			}
-
-			// EXIF
-			if (jpegMetadata != null) {
-				Struct exif = eng.getCreationUtil().createStruct();
-				info.setEL("exif", exif);
+	public static int getOrientation(ImageMetadata metadata) {
+		if (metadata == null) return ORIENTATION_UNDEFINED;
+		List<? extends ImageMetadataItem> items = metadata.getItems();
+		GenericImageMetadataItem gimdi = null;
+		for (ImageMetadataItem item: items) {
+			if (!(item instanceof GenericImageMetadataItem)) continue;
+			gimdi = ((GenericImageMetadataItem) item);
+			if ("ORIENTATION".equalsIgnoreCase(gimdi.getKeyword())) {
 				try {
-					set(jpegMetadata.getExif().getItems(), exif, null);
+					return CFMLEngineFactory.getInstance().getCastUtil().toIntValue(CommonUtil.unwrap(gimdi.getText()));
 				}
 				catch (Exception e) {
+					return ORIENTATION_UNDEFINED;
 				}
-			}
-			// GPS
-			try {
-				gps(jpegMetadata, info);
-			}
-			catch (Exception e) {
 			}
 
 		}
+		return ORIENTATION_UNDEFINED;
 	}
 
 	private static void gps(JpegImageMetadata jpegMetadata, Struct info) throws ImageReadException {
@@ -317,11 +204,11 @@ public class Metadata {
 		return value;
 	}
 
-	private static void set(List<? extends IImageMetadataItem> items, Struct data1, Struct data2) {
-		Iterator<? extends IImageMetadataItem> it = items.iterator();
-		Item item;
+	private static void set(List<? extends ImageMetadataItem> items, Struct data1, Struct data2) {
+		Iterator<? extends ImageMetadataItem> it = items.iterator();
+		GenericImageMetadataItem item;
 		while (it.hasNext()) {
-			item = (Item) it.next();
+			item = (GenericImageMetadataItem) it.next();
 			data1.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
 			if (data2 != null) {
 				data2.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));

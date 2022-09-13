@@ -1,4 +1,4 @@
-package org.lucee.extension.image.jpg;
+package org.lucee.extension.image.jpg.decoder;
 
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
@@ -30,7 +30,7 @@ import org.lucee.extension.image.util.CommonUtil;
 
 import lucee.commons.lang.types.RefInteger;
 
-public class JpegReader {
+public class JPEGDecoder {
 
 	public static final int COLOR_TYPE_RGB = 1;
 	public static final int COLOR_TYPE_CMYK = 2;
@@ -39,12 +39,7 @@ public class JpegReader {
 	private int colorType = COLOR_TYPE_RGB;
 	private boolean hasAdobeMarker = false;
 
-	public int getColorType() {
-		return colorType;
-	}
-
-	public boolean hasAdobeMarker() {
-		return hasAdobeMarker;
+	public JPEGDecoder() {
 	}
 
 	public BufferedImage readImage(File file, RefInteger colorType) throws IOException, ImageReadException {
@@ -55,7 +50,7 @@ public class JpegReader {
 		return _readImage(null, bytes, colorType);
 	}
 
-	public BufferedImage _readImage(File file, byte[] bytes, RefInteger ct) throws IOException, ImageReadException {
+	private BufferedImage _readImage(File file, byte[] bytes, RefInteger ct) throws IOException, ImageReadException {
 		colorType = COLOR_TYPE_RGB;
 		if (ct != null) ct.setValue(COLOR_TYPE_RGB);
 		hasAdobeMarker = false;
@@ -103,16 +98,17 @@ public class JpegReader {
 		List<Segment> segments = parser.readSegments(byteSource, new int[] { 0xffee }, true);
 		if (segments != null && segments.size() >= 1) {
 			GenericSegment app14Segment = (GenericSegment) segments.get(0);
-			byte[] data = app14Segment.bytes;
+			byte[] data = app14Segment.getSegmentData();
 			if (data.length >= 12 && data[0] == 'A' && data[1] == 'd' && data[2] == 'o' && data[3] == 'b' && data[4] == 'e') {
 				hasAdobeMarker = true;
-				int transform = app14Segment.bytes[11] & 0xff;
+				byte[] bytes = app14Segment.getSegmentData();
+				int transform = bytes[11] & 0xff;
 				if (transform == 2) colorType = COLOR_TYPE_YCCK;
 			}
 		}
 	}
 
-	public static void convertYcckToCmyk(WritableRaster raster) {
+	private static void convertYcckToCmyk(WritableRaster raster) {
 		int height = raster.getHeight();
 		int width = raster.getWidth();
 		int stride = width * 4;
@@ -158,8 +154,8 @@ public class JpegReader {
 		}
 	}
 
-	public static BufferedImage convertCmykToRgb(Raster cmykRaster, ICC_Profile cmykProfile) throws IOException {
-		if (cmykProfile == null) cmykProfile = ICC_Profile.getInstance(JpegReader.class.getResourceAsStream("isocoated-v2-300-eci.icc"));
+	private static BufferedImage convertCmykToRgb(Raster cmykRaster, ICC_Profile cmykProfile) throws IOException {
+		if (cmykProfile == null) cmykProfile = ICC_Profile.getInstance(JPEGDecoder.class.getResourceAsStream("isocoated-v2-300-eci.icc"));
 		if (cmykProfile.getProfileClass() != ICC_Profile.CLASS_DISPLAY) {
 			byte[] profileData = cmykProfile.getData();
 
@@ -178,17 +174,11 @@ public class JpegReader {
 		return rgbImage;
 	}
 
-	static void intToBigEndian(int value, byte[] array, int index) {
+	private static void intToBigEndian(int value, byte[] array, int index) {
 		array[index] = (byte) (value >> 24);
 		array[index + 1] = (byte) (value >> 16);
 		array[index + 2] = (byte) (value >> 8);
 		array[index + 3] = (byte) (value);
 	}
 
-	public static Object toColorType(Integer colorType, String defaultValue) {
-		if (COLOR_TYPE_CMYK == colorType) return "CMYK";
-		if (COLOR_TYPE_RGB == colorType) return "RGB";
-		if (COLOR_TYPE_YCCK == colorType) return "YCCK";
-		return defaultValue;
-	}
 }
