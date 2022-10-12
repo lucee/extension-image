@@ -155,10 +155,9 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageFilterColorMap -->
 	<function>
 		<name>ImageFilterColorMap</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterColorMap</class>
 		<member-name>filterColorMap</member-name>
 		<member-type>image</member-type>
-		<keywords>image</keywords>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterColorMap</class>
 		<keywords>image</keywords>
 		<description>These are passed to the function ImageFilters (see ImageFilter documentation) which convert gray values to colors.</description>
 		<argument>
@@ -325,11 +324,11 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageCrop -->
 	<function>
 		<name>ImageCrop</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
 		<member-name>crop</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
+		<keywords>image</keywords>		
 		<description>Crops a image to a specified rectangular area.</description>
 		<argument>
 			<name>image</name>
@@ -369,11 +368,11 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageDrawArc -->
 	<function>
 		<name>ImageDrawArc</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawArc</class>
 		<member-name>drawArc</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawArc</class>
+		<keywords>image</keywords>		
 		<description>Draws a circular or elliptical arc.</description>
 		<argument>
 			<name>image</name>
@@ -433,11 +432,11 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageDrawBeveledRect -->
 	<function>
 		<name>ImageDrawBeveledRect</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
 		<member-name>drawBeveledRect</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
+		<keywords>image</keywords>		
 		<description>Draws a rectangle with beveled edges.</description>
 		<argument>
 			<name>image</name>
@@ -493,11 +492,11 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageDrawCubicCurve -->
 	<function>
 		<name>ImageDrawCubicCurve</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
 		<member-name>drawCubicCurve</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
 		<keywords>image</keywords>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
 		<description>Draws a cubic curve.</description>
 		<argument>
 			<name>image</name>
@@ -606,10 +605,10 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageDrawLines -->
 	<function>
 		<name>ImageDrawLines</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLines</class>
 		<member-name>drawDrawLines</member-name>
 		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLines</class>
+		<member-chaining>true</member-chaining>		
 		<keywords>image</keywords>
 		<description>Draws a sequence of connected lines defined by arrays of x and y coordinates.</description>
 		<argument>
@@ -912,10 +911,10 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageDrawText -->
 	<function>
 		<name>ImageDrawText</name>
+		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawText</class>
 		<member-name>drawText</member-name>
 		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawText</class>
+		<member-chaining>true</member-chaining>		
 		<keywords>image</keywords>
 		<description>Draws a text string on a image with the baseline of the first character positioned at (x,y) in the image.</description>
 		<argument>
@@ -1094,9 +1093,9 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 	<!-- ImageGetBlob -->
 	<function>
 		<name>ImageGetBlob</name>
-		<member-name>getBlob</member-name>
-		<member-type>image</member-type>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetBlob</class>
+		<member-name>getBlob</member-name>
+		<member-type>image</member-type>		
 		<keywords>image</keywords>
 		<description>Retrieves the bytes of the underlying image. The bytes are in the same image format as the source image.</description>
 		<argument>
