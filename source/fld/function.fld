@@ -8,8 +8,6 @@
 	<description>
 		Image functions
 	</description>
-
-	<!-- GetReadableImageFormats -->
 	<function>
 		<name>GetReadableImageFormats</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.GetReadableImageFormats</class>
@@ -19,8 +17,6 @@
 			<type>string</type>
 		</return>
 	</function>
-
-	<!-- GetWriteableImageFormats -->
 	<function>
 		<name>GetWriteableImageFormats</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.GetWriteableImageFormats</class>
@@ -30,8 +26,6 @@
 			<type>string</type>
 		</return>
 	</function>
-
-	<!-- ImageAddBorder -->
 	<function>
 		<name>ImageAddBorder</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageAddBorder</class>
@@ -79,7 +73,6 @@ Only valid if the borderType is not specified or if borderType = "constant".</de
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageBlur -->
 	<function>
 		<name>ImageBlur</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageBlur</class>
@@ -107,7 +100,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageClearRect -->
 	<function>
 		<name>ImageClearRect</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageClearRect</class>
@@ -151,7 +143,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageFilterColorMap -->
 	<function>
 		<name>ImageFilterColorMap</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterColorMap</class>
@@ -164,9 +155,9 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>string</type>
 			<required>Yes</required>
 			<description>type of the color map, possible values are:
-			- spectrum: A colormap with the colors of the spectrum
-			- linear: A colormap which interpolates linearly between two colors
-			- grayscale: A grayscale colormap. Black is 0, white is 1</description>
+			- spectrum (colors of the spectrum)
+			- linear (interpolates linearly between two colors)
+			- grayscale (black is 0, white is 1)</description>
 		</argument>
 		<argument>
 			<name>lineColor1</name>
@@ -186,18 +177,13 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-
-
-	<!-- ImageFilterKernel -->
 	<function>
 		<name>ImageFilterKernel</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterKernel</class>
 		<keywords>image</keywords>
-		<description>These are passed to the function ImageFilters (see ImageFilter documentation).
+		<description>These are passed to the function ImageFilters.
 		The ImageFilterKernel function defines a matrix that describes how a specified pixel and its surrounding pixels affect the value computed for the pixel's position in the output image of a filtering operation.
-		The X origin and Y origin indicate the kernel matrix element that corresponds to the pixel position for which an output value is being computed.
-
-		</description>
+		The X origin and Y origin indicate the kernel matrix element that corresponds to the pixel position for which an output value is being computed.</description>
 		<argument>
 			<name>width</name>
 			<type>number</type>
@@ -220,7 +206,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageFilterWarpGrid -->
 	<function>
 		<name>ImageFilterWarpGrid</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterWarpGrid</class>
@@ -254,7 +239,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageFilterCurves -->
 	<function>
 		<name>ImageFilterCurves</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterCurves</class>
@@ -264,7 +248,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageCopy -->
 	<function>
 		<name>ImageCopy</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCopy</class>
@@ -321,7 +304,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageCrop -->
 	<function>
 		<name>ImageCrop</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
@@ -365,7 +347,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawArc -->
 	<function>
 		<name>ImageDrawArc</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawArc</class>
@@ -429,7 +410,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawBeveledRect -->
 	<function>
 		<name>ImageDrawBeveledRect</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
@@ -489,7 +469,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawCubicCurve -->
 	<function>
 		<name>ImageDrawCubicCurve</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
@@ -557,8 +536,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-
-	<!-- ImageDrawLine -->
 	<function>
 		<name>ImageDrawLine</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLine</class>
@@ -602,7 +579,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawLines -->
 	<function>
 		<name>ImageDrawLines</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLines</class>
@@ -650,7 +626,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawOval -->
 	<function>
 		<name>ImageDrawOval</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawOval</class>
@@ -702,7 +677,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawPoint -->
 	<function>
 		<name>ImageDrawPoint</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawPoint</class>
@@ -734,7 +708,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawQuadraticCurve -->
 	<function>
 		<name>ImageDrawQuadraticCurve</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawQuadraticCurve</class>
@@ -790,7 +763,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawRect -->
 	<function>
 		<name>ImageDrawRect</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawRect</class>
@@ -842,7 +814,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawRoundRect -->
 	<function>
 		<name>ImageDrawRoundRect</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawRoundRect</class>
@@ -908,7 +879,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageDrawText -->
 	<function>
 		<name>ImageDrawText</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawText</class>
@@ -958,9 +928,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-
-
-	<!-- ImageFilter -->
 	<function>
 		<name>ImageFilter</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilter</class>
@@ -992,9 +959,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-
-
-	<!-- ImageFlip -->
 	<function>
 		<name>ImageFlip</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFlip</class>
@@ -1026,8 +990,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-
-	<!-- ImageCaptcha -->
 	<function>
 		<name>ImageCaptcha</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCaptcha</class>
@@ -1088,9 +1050,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-
-
-	<!-- ImageGetBlob -->
 	<function>
 		<name>ImageGetBlob</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetBlob</class>
@@ -1109,7 +1068,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageGetBufferedImage -->
 	<function>
 		<name>ImageGetBufferedImage</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetBufferedImage</class>
@@ -1128,7 +1086,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageGetIptcMetadata -->
 	<function>
 		<name>ImageGetIptcMetadata</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIptcMetadata</class>
@@ -1147,7 +1104,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- ImageGetEXIFMetadata -->
 	<function>
 		<name>ImageGetEXIFMetadata</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetEXIFMetadata</class>
@@ -1166,7 +1122,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- ImageGetEXIFTag -->
 	<function>
 		<name>ImageGetEXIFTag</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetEXIFTag</class>
@@ -1191,7 +1146,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageGetHeight -->
 	<function>
 		<name>ImageGetHeight</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetHeight</class>
@@ -1210,7 +1164,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>number</type>
 		</return>
 	</function>
-	<!-- ImageGetWidth -->
 	<function>
 		<name>ImageGetWidth</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetWidth</class>
@@ -1230,7 +1183,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>number</type>
 		</return>
 	</function>
-	<!-- ImageGetIPTCTag -->
 	<function>
 		<name>ImageGetIPTCTag</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIPTCTag</class>
@@ -1256,7 +1208,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageGrayscale -->
 	<function>
 		<name>ImageGrayscale</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGrayscale</class>
@@ -1276,7 +1227,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageFormats -->
 	<function>
 		<name>ImageFormats</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFormats</class>
@@ -1286,7 +1236,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- ImageFonts -->
 	<function>
 		<name>ImageFonts</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFonts</class>
@@ -1296,7 +1245,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>array</type>
 		</return>
 	</function>
-	<!-- ImageInfo -->
 	<function>
 		<name>ImageInfo</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageInfo</class>
@@ -1315,7 +1263,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- ImageNegative -->
 	<function>
 		<name>ImageNegative</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNegative</class>
@@ -1335,7 +1282,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageNew -->
 	<function>
 		<name>ImageNew</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNew</class>
@@ -1382,7 +1328,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageOverlay -->
 	<function>
 		<name>ImageOverlay</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageOverlay</class>
@@ -1407,7 +1352,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImagePaste -->
 	<function>
 		<name>ImagePaste</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImagePaste</class>
@@ -1444,7 +1388,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageReadBase64 -->
 	<function>
 		<name>ImageReadBase64</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageReadBase64</class>
@@ -1461,7 +1404,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageRead -->
 	<function>
 		<name>ImageRead</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRead</class>
@@ -1477,7 +1419,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>any</type>
 		</return>
 	</function>
-	<!-- ImageResize -->
 	<function>
 		<name>ImageResize</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageResize</class>
@@ -1542,7 +1483,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageRotate -->
 	<function>
 		<name>ImageRotate</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRotate</class>
@@ -1593,7 +1533,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageRotateDrawingAxis -->
 	<function>
 		<name>ImageRotateDrawingAxis</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRotateDrawingAxis</class>
@@ -1631,7 +1570,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageScaleToFit -->
 	<function>
 		<name>ImageScaleToFit</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageScaleToFit</class>
@@ -1695,7 +1633,6 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageWrite -->
 	<function>
 		<name>ImageWrite</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWrite</class>
@@ -1745,7 +1682,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageWriteBase64 -->
 	<function>
 		<name>ImageWriteBase64</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWriteBase64</class>
@@ -1784,9 +1720,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>string</type>
 		</return>
 	</function>
-
-
-	<!-- ImageWriteToBrowser -->
 	<function>
 		<name>ImageWriteToBrowser</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWriteToBrowser</class>
@@ -1805,8 +1738,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-
-	<!-- ImageSetAntialiasing -->
 	<function>
 		<name>ImageSetAntialiasing</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetAntialiasing</class>
@@ -1835,7 +1766,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSetBackgroundColor -->
 	<function>
 		<name>ImageSetBackgroundColor</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetBackgroundColor</class>
@@ -1865,7 +1795,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSetDrawingAlpha -->
 	<function>
 		<name>ImageSetDrawingAlpha</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingAlpha</class>
@@ -1891,7 +1820,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSetDrawingColor -->
 	<function>
 		<name>ImageSetDrawingColor</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingColor</class>
@@ -1921,7 +1849,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSetDrawingStroke -->
 	<function>
 		<name>ImageSetDrawingStroke</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingStroke</class>
@@ -1953,7 +1880,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSetDrawingTransparency -->
 	<function>
 		<name>ImageSetDrawingTransparency</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingTransparency</class>
@@ -1980,7 +1906,6 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageSharpen -->
 	<function>
 		<name>ImageSharpen</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSharpen</class>
@@ -2011,7 +1936,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageShear -->
 	<function>
 		<name>ImageShear</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShear</class>
@@ -2056,7 +1980,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageShearDrawingAxis -->
 	<function>
 		<name>ImageShearDrawingAxis</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShearDrawingAxis</class>
@@ -2088,7 +2011,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageTranslate -->
 	<function>
 		<name>ImageTranslate</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslate</class>
@@ -2130,7 +2052,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageTranslateDrawingAxis -->
 	<function>
 		<name>ImageTranslateDrawingAxis</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslateDrawingAxis</class>
@@ -2163,7 +2084,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-	<!-- ImageXORDrawingMode -->
 	<function>
 		<name>ImageXORDrawingMode</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageXORDrawingMode</class>
@@ -2193,9 +2113,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-
-
-	<!-- IsImage -->
 	<function>
 		<name>IsImage</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.IsImage</class>
@@ -2212,7 +2129,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>boolean</type>
 		</return>
 	</function>
-	<!-- IsImageFile -->
 	<function>
 		<name>IsImageFile</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.IsImageFile</class>
@@ -2229,9 +2145,6 @@ The value determines whether the image is blurred or sharpened:
 			<type>boolean</type>
 		</return>
 	</function>
-
-
-	<!-- ImageDrawImage -->
 	<function>
 		<name>ImageDrawImage</name>
 		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawImage</class>
@@ -2270,6 +2183,4 @@ The value determines whether the image is blurred or sharpened:
 			<type>void</type>
 		</return>
 	</function>
-
-
 </func-lib>
