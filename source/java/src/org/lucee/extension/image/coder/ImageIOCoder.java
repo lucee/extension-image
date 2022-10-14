@@ -81,8 +81,17 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 				// else e.printStackTrace();
 			}
 			finally {
-				os.flush();
-				ios.close();
+				try {
+					if (os != null) os.flush();
+				}
+				catch (IOException ioe) {
+				}
+				try {
+					if (ios != null) ios.close();
+				}
+				catch (IOException ioe) {
+				}
+
 				Util.closeEL(os);
 			}
 		}

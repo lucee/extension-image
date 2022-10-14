@@ -100,13 +100,13 @@ public class JAIUtil {
 		}
 	}
 
-	public static void write(BufferedImage img, OutputStream os, String format) throws IOException {
+	public static void write(BufferedImage img, OutputStream os, String format, boolean closeStream) throws IOException {
 		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		try {
 			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "." + format);
 			create("filestore", img, tmp.getAbsolutePath(), format);
-			eng.getIOUtil().copy(tmp.getInputStream(), os, true, false);
+			eng.getIOUtil().copy(tmp.getInputStream(), os, true, closeStream);
 		}
 		finally {
 			if (tmp != null) {
