@@ -277,7 +277,7 @@ public final class Image extends TagImpl {
 	public int doStartTag() throws JspException {
 		try {
 			if (this.oSource != null) {
-				if (isbase64) this.source = new org.lucee.extension.image.Image(eng.getCastUtil().toString(oSource));
+				if (isbase64) this.source = org.lucee.extension.image.Image.getInstance(pageContext, eng.getCastUtil().toString(oSource), null);
 				else this.source = org.lucee.extension.image.Image.createImage(pageContext, oSource, false, false, true, null);
 			}
 

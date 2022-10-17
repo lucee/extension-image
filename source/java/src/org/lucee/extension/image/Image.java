@@ -103,6 +103,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -224,11 +225,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	}
 
-	public Image(String b64str) throws IOException, ImageReadException, PageException {
-		this(b64str, null);
+	public static Image getInstance(PageContext pc, String str, String format) throws IOException, ImageReadException, PageException {
+
+		if (str.length() < 4000) {
+			if (pc == null) pc = CFMLEngineFactory.getInstance().getThreadPageContext();
+			Resource res = eng().getResourceUtil().toResourceNotExisting(pc, str);
+			if (res.isFile()) {
+				Config c = (pc == null) ? CFMLEngineFactory.getInstance().getThreadConfig() : pc.getConfig();
+				c.getSecurityManager().checkFileLocation(res);
+				return new Image(res, format);
+			}
+		}
+		return new Image(str, format);
+
 	}
 
-	public Image(String b64str, String format) throws IOException, ImageReadException, PageException {
+	private Image(String b64str, String format) throws IOException, ImageReadException, PageException {
 
 		// load binary from base64 string and get format
 		StringBuilder mimetype = new StringBuilder();
@@ -1520,7 +1532,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				if (o != null) return toImage(pc, o, false);
 			}
 			try {
-				return new Image(str);
+				return Image.getInstance(pc, str, null);
 			}
 			catch (Exception e) {
 

@@ -27,9 +27,11 @@ import lucee.runtime.ext.function.Function;
 
 public class ImageReadBase64 extends FunctionSupport implements Function {
 
+	private static final long serialVersionUID = -5085866652116211122L;
+
 	public static Object call(PageContext pc, String source) throws PageException {
 		try {
-			return new Image(source);
+			return Image.getInstance(pc, source, null);
 		}
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
