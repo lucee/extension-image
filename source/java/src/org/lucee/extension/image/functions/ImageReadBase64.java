@@ -29,7 +29,7 @@ public class ImageReadBase64 extends FunctionSupport implements Function {
 
 	public static Object call(PageContext pc, String source) throws PageException {
 		try {
-			return new Image(source);
+			return Image.getInstance(pc, source, null);
 		}
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
