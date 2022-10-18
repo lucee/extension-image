@@ -184,6 +184,14 @@ public class ImageUtil {
 		return getImageFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
 	}
 
+	public static String toFormat(String format) {
+		if (format == null) return format;
+		if ("jpg".equalsIgnoreCase(format)) return "jpeg";
+		if ("jpe".equalsIgnoreCase(format)) return "jpeg";
+		if ("tif".equalsIgnoreCase(format)) return "tiff";
+		return format.trim();
+	}
+
 	public static String getFormatFromExtension(Resource res, String defaultValue) {
 		String ext = CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res, null);
 		if ("gif".equalsIgnoreCase(ext)) return "gif";
@@ -308,6 +316,7 @@ public class ImageUtil {
 	}
 
 	public static String getMimeTypeFromFormat(String mt) throws IOException {
+		mt = mt.toLowerCase();
 		if ("gif".equals(mt)) return "image/gif";
 		if ("jpeg".equals(mt)) return "image/jpg";
 		if ("jpg".equals(mt)) return "image/jpg";

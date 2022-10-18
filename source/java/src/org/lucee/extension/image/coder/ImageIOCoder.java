@@ -78,7 +78,7 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 				os = null;
 				Log log = Coder.log();
 				if (log != null) log.error("image", e);
-				// else e.printStackTrace();
+				else e.printStackTrace();
 			}
 			finally {
 				try {
@@ -100,7 +100,6 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 			os = destination.getOutputStream();
 			ios = ImageIO.createImageOutputStream(os);
 			ImageIO.write(img.getBufferedImage(), format, ios);
-
 		}
 		catch (PageException pe) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
@@ -110,6 +109,9 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 			ios.close();
 			Util.closeEL(os);
 		}
+
+		if (destination.length() == 0) throw new IOException("could not encode to format [" + format + "]");
+
 	}
 
 	@Override

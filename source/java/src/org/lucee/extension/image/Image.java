@@ -976,7 +976,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			if (source != null) destination = source;
 			else throw new IOException("missing destination file");
 		}
-
+		format = ImageUtil.toFormat(format);
 		String content = getBase64String(format);
 		if (inHTMLFormat) content = "data:image/" + format + ";base64," + content;
 		eng().getIOUtil().write(destination, content, false, (Charset) null);
@@ -984,8 +984,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public String getBase64String(String format) throws PageException {
-		byte[] imageBytes = getImageBytes(format);
-		return new String(eng().getCastUtil().toBase64(imageBytes));
+		return new String(eng().getCastUtil().toBase64(getImageBytes(ImageUtil.toFormat(format))));
 	}
 
 	public void writeOut(Resource destination, String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
