@@ -387,6 +387,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		getMetaData(sctInfo, null);
 
+		try {
+			Metadata.addExifInfoToStruct(source, sctInfo);
+		}
+		catch (Exception e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 		this.sctInfo = sctInfo;
 		return sctInfo;
 	}

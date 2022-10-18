@@ -73,10 +73,17 @@ public class Metadata {
 		if (md instanceof JpegImageMetadata) {
 			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) md;
 
+			/*
+			 * List<? extends ImageMetadataItem> dirs = jpegMetadata.getExif().getDirectories(); for
+			 * (ImageMetadataItem imdi: dirs) { print.e(imdi.getClass().getName()); print.e(imdi.toString()); }
+			 */
+
 			// EXIF
 			if (jpegMetadata != null) {
+				Struct exif = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
+				info.setEL("exif", exif);
 				try {
-					set(jpegMetadata.getExif().getItems(), info, null);
+					set(jpegMetadata.getExif().getItems(), info, exif);
 				}
 				catch (Exception e) {
 				}
