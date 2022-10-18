@@ -66,7 +66,6 @@ public class JAIUtil {
 	}
 
 	public static BufferedImage read(InputStream is, String format) throws IOException {
-
 		if ("jpg".equalsIgnoreCase(format)) format = "JPEG";
 
 		Resource tmp = null;
@@ -135,18 +134,19 @@ public class JAIUtil {
 		}
 	}
 
-	private static BufferedImage getAsBufferedImage(Object im) throws IOException {
+	private synchronized static BufferedImage getAsBufferedImage(Object im) throws IOException {
 		// RenderedOp.getAsBufferedImage();
 		PrintStream err = System.err;
-
 		try {
-
+			System.setErr(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			return (BufferedImage) getAsBufferedImage().invoke(im, new Object[0]);
 		}
 		catch (Exception e) {
 			throw toIOException(e);
 		}
-
+		finally {
+			System.setErr(err);
+		}
 	}
 
 	private static Method getAsBufferedImage() throws IOException {

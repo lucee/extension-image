@@ -16,7 +16,6 @@
  */
 package org.lucee.extension.image;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,9 +64,10 @@ public class Metadata {
 			md = Imaging.getMetadata((File) res);
 		}
 		else {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
-			md = Imaging.getMetadata((File) res);
+			// ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			// CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
+			// md = Imaging.getMetadata(baos.toByteArray());
+			md = Imaging.getMetadata(res.getInputStream(), res.getName());
 		}
 		if (md == null) return;
 		if (md instanceof JpegImageMetadata) {
@@ -101,7 +101,6 @@ public class Metadata {
 		if (res instanceof File) {
 			return Imaging.getMetadata((File) res);
 		}
-
 		InputStream is = null;
 		try {
 			return Imaging.getMetadata(is = res.getInputStream(), res.getName());

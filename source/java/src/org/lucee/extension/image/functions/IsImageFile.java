@@ -18,21 +18,21 @@
  **/
 package org.lucee.extension.image.functions;
 
+import org.lucee.extension.image.Image;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.BIF;
-
-import org.lucee.extension.image.Image;
 
 public class IsImageFile extends FunctionSupport {
+
+	private static final long serialVersionUID = 1186036618547256526L;
 
 	public static boolean call(PageContext pc, String path) {
 		try {
 			new Image(CFMLEngineFactory.getInstance().getResourceUtil().toResourceExisting(pc, path));
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			return false;
 		}
 		return true;
@@ -40,7 +40,7 @@ public class IsImageFile extends FunctionSupport {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1) return call(pc, cast.toString(args[0]));
+		if (args.length == 1) return call(pc, cast.toString(args[0]));
 		throw exp.createFunctionException(pc, "IsImageFile", 1, 1, args.length);
 	}
 }
