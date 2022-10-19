@@ -104,7 +104,7 @@ public class ImageUtil {
 	public static void writeOut(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
 		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
 		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
-		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format defintion");
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("could not find a format for [" + destination + "]");
 
 		getCoder().write(img, destination, format, quality, noMeta);
 	}
@@ -149,14 +149,18 @@ public class ImageUtil {
 		Coder c = getCoder();
 		if (c instanceof FormatExtract) {
 			String format = ((FormatExtract) c).getFormat(res, null);
-			if (!Util.isEmpty(format, true)) return format;
+			if (!Util.isEmpty(format, true)) {
+				return format;
+			}
 		}
 		// there is no need to check the mime type if the file is empty
 		if (len > 0) {
 			String mt = getMimeType(res, null);
 			if (!Util.isEmpty(mt)) {
 				String format = getImageFormatFromMimeType(mt, null);
-				if (!Util.isEmpty(format)) return format;
+				if (!Util.isEmpty(format)) {
+					return format;
+				}
 			}
 		}
 		return getFormatFromExtension(res, null);
@@ -196,6 +200,8 @@ public class ImageUtil {
 		String ext = CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res, null);
 		if ("gif".equalsIgnoreCase(ext)) return "gif";
 		if ("jpg".equalsIgnoreCase(ext)) return "jpg";
+		if ("jpg2000".equalsIgnoreCase(ext)) return "jpeg2000";
+		if ("jpeg2000".equalsIgnoreCase(ext)) return "jpeg2000";
 		if ("jpe".equalsIgnoreCase(ext)) return "jpg";
 		if ("jpeg".equalsIgnoreCase(ext)) return "jpg";
 		if ("icns".equalsIgnoreCase(ext)) return "icns";
