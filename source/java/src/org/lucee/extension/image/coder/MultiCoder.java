@@ -30,6 +30,7 @@ import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
+import org.lucee.extension.image.util.MultiException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -70,7 +71,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			format = ImageUtil.getFormat(res);
 		}
 
-		Throwable exception = null;
+		MultiException me = null;
 		BufferedImage bi = null;
 		Struct data = null;
 		long start = 0;
@@ -97,11 +98,12 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 				if (detail != null) {
 					data.setEL("exception", toCatchBlock(t));
 				}
-				exception = t;
+				if (me == null) me = new MultiException(t);
+				else me.initCause(t);
 			}
 		}
 		if (bi != null) return bi;
-		if (exception != null && detail == null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(exception);
+		if (me != null && detail == null) throw toIOException(me);
 		return null;
 	}
 
@@ -123,7 +125,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			format = ImageUtil.getFormat(bytes);
 		}
 
-		Exception exception = null;
+		MultiException me = null;
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getReaderFormatNames(), format)) continue;
 			try {
@@ -132,10 +134,13 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 				if (bi != null) return bi;
 			}
 			catch (Exception e) {
-				exception = e;
+				if (me == null) me = new MultiException(e);
+				else me.initCause(e);
 			}
 		}
-		if (exception != null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(exception);
+		if (me != null) {
+			throw toIOException(me);
+		}
 		return null;
 
 	}
@@ -152,8 +157,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		Struct data = null;
 		long start = 0;
 		Resource tmp = null;
-		Throwable exception = null;
-		boolean success = false;
+		MultiException me = null;
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getWriterFormatNames(), format)) continue;
 			try {
@@ -170,26 +174,27 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 					data.set("time", System.currentTimeMillis() - start);
 				}
 				if (detail == null) return;
-				success = true;
 			}
 			catch (Throwable t) {
 				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 				if (detail != null) {
 					data.setEL("exception", toCatchBlock(t));
 				}
-				exception = t;
+				if (me == null) me = new MultiException(t);
+				else me.initCause(t);
 			}
 			finally {
 				if (tmp != null && !tmp.delete() && tmp instanceof File) ((File) tmp).deleteOnExit();
 				tmp = null;
 			}
 		}
-		if (exception != null && detail == null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(exception);
+		if (me != null && detail == null) throw toIOException(me);
+
 	}
 
 	@Override
 	public String getFormat(Resource res) throws IOException {
-		Exception exception = null;
+		MultiException me = null;
 		for (Coder coder: coders) {
 			if (!(coder instanceof FormatExtract)) continue;
 			try {
@@ -197,16 +202,17 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 				if (!Util.isEmpty(format)) return format;
 			}
 			catch (Exception e) {
-				exception = e;
+				if (me == null) me = new MultiException(e);
+				else me.initCause(e);
 			}
 		}
-		if (exception != null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(exception);
+		if (me != null) throw toIOException(me);
 		return null;
 	}
 
 	@Override
 	public String getFormat(byte[] bytes) throws IOException {
-		Exception exception = null;
+		MultiException me = null;
 		for (Coder coder: coders) {
 			if (!(coder instanceof FormatExtract)) continue;
 			try {
@@ -214,10 +220,11 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 				if (!Util.isEmpty(format)) return format;
 			}
 			catch (Exception e) {
-				exception = e;
+				if (me == null) me = new MultiException(e);
+				else me.initCause(e);
 			}
 		}
-		if (exception != null) throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(exception);
+		if (me != null) throw toIOException(me);
 		return null;
 	}
 
@@ -341,4 +348,8 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		return false;
 	}
 
+	private static IOException toIOException(MultiException me) {
+		if (me.size() == 1) return CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(me.getThrowable(0));
+		else return CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(me);
+	}
 }
