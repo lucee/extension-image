@@ -3,7 +3,6 @@ package org.lucee.extension.image.coder;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -109,15 +108,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 		}
 		OutputStream os = null;
 		try {
-			if (destination instanceof File) {
-				Imaging.writeImage(img.getBufferedImage(), (File) destination, imgFor);
-				return;
-			}
-
-			os = destination.getOutputStream();
-			final byte[] barr = Imaging.writeImageToBytes(img.getBufferedImage(), imgFor);
-			if (barr == null) throw new IOException("unable to convert image to a file with format [" + format + "]");
-			CFMLEngineFactory.getInstance().getIOUtil().copy(new ByteArrayInputStream(barr), os, true, false);
+			Imaging.writeImage(img.getBufferedImage(), os = destination.getOutputStream(), imgFor);
 		}
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
@@ -146,7 +137,8 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	public String getFormat(Resource res) throws IOException {
 		long len = res.length();
 		if (len > 0) {
-			if (res instanceof File) return Imaging.guessFormat((File) res).getName();
+			// TODO just copy x bytes
+			// if (res instanceof File) return Imaging.guessFormat((File) res).getName();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
 
