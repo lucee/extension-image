@@ -26,15 +26,18 @@ import lucee.loader.util.Util;
 
 class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	private final Map<String, ImageFormat> formats;
-	private final String[] formatNames;
+
+	private String[] readerFormatNames = sortAndMerge(
+			new String[] { "BMP", "GIF", "JPEG", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "PSD", "TIFF", "WBMP", "XBM", "XPM" });
+	private String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "TIFF", "WBMP", "XBM", "XPM" });
 
 	protected ApacheImagingCoder() {
 		super();
 		formats = new ConcurrentHashMap<>();
 		for (ImageFormat format: ImageFormats.values()) {
-			formats.put(format.getName().toLowerCase(), format);
+			formats.put(format.getName().toUpperCase(), format);
 		}
-		formatNames = formats.keySet().toArray(new String[0]);
+
 		Imaging.hasImageFileExtension("lucee.gif");// to make sure Sanselan exist when load this class
 	}
 
@@ -120,12 +123,12 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 	@Override
 	public String[] getWriterFormatNames() {
-		return formatNames;
+		return writerFormatNames;
 	}
 
 	@Override
 	public String[] getReaderFormatNames() {
-		return formatNames;
+		return readerFormatNames;
 	}
 
 	@Override
@@ -176,7 +179,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 	private ImageFormat toFormat(String format, ImageFormat defaultValue) {
 		if (Util.isEmpty(format, true)) return defaultValue;
-		format = format.toLowerCase().trim();
+		format = format.toUpperCase().trim();
 
 		ImageFormat f = formats.get(format);
 		if (f != null) return f;
@@ -192,7 +195,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 	private ImageFormat toFormat(String format) throws IOException {
 		if (Util.isEmpty(format, true)) throw new IOException("missing format defintion");
-		format = format.toLowerCase().trim();
+		format = format.toUpperCase().trim();
 
 		ImageFormat f = formats.get(format);
 		if (f != null) return f;
@@ -208,7 +211,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 	private ImageFormat toFormatByExtension(String ext) throws IOException {
 		if (Util.isEmpty(ext, true)) throw new IOException("missing extension defintion");
-		ext = ext.toLowerCase().trim();
+		ext = ext.toUpperCase().trim();
 
 		// equals?
 		for (ImageFormat imgFor: formats.values()) {

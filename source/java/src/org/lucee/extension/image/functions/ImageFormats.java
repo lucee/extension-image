@@ -19,7 +19,6 @@
 package org.lucee.extension.image.functions;
 
 import java.io.IOException;
-import java.util.HashSet;
 
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.coder.Coder;
@@ -29,7 +28,9 @@ import org.lucee.extension.image.format.FormatNames;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.util.Creation;
 
 public class ImageFormats extends FunctionSupport {
 
@@ -40,21 +41,26 @@ public class ImageFormats extends FunctionSupport {
 	}
 
 	public static Struct call(PageContext pc, boolean detailed) throws PageException {
+
+		Creation creator = CFMLEngineFactory.getInstance().getCreationUtil();
+		Key DEC = creator.createKey("decoder");
+		Key ENC = creator.createKey("encoder");
+
 		Struct sct = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
 		Coder coder = Coder.getInstance();
 		if (detailed && coder instanceof MultiCoder) {
-			sct.set("decoder", ((MultiCoder) coder).getReaderFormatNamesByGroup());
-			sct.set("encoder", ((MultiCoder) coder).getWriterFormatNamesByGroup());
+			sct.set(DEC, ((MultiCoder) coder).getReaderFormatNamesByGroup());
+			sct.set(ENC, ((MultiCoder) coder).getWriterFormatNamesByGroup());
 		}
 		else {
 			try {
 				if (coder instanceof FormatNames) {
-					sct.set("decoder", toArray(((FormatNames) coder).getReaderFormatNames()));
-					sct.set("encoder", toArray(((FormatNames) coder).getWriterFormatNames()));
+					sct.set(DEC, Coder.sortAndConvert(((FormatNames) coder).getReaderFormatNames()));
+					sct.set(ENC, Coder.sortAndConvert(((FormatNames) coder).getWriterFormatNames()));
 				}
 				else {
-					sct.set("decoder", toArray(ImageUtil.getReaderFormatNames()));
-					sct.set("encoder", toArray(ImageUtil.getWriterFormatNames()));
+					sct.set(DEC, Coder.sortAndConvert(ImageUtil.getReaderFormatNames()));
+					sct.set(ENC, Coder.sortAndConvert(ImageUtil.getWriterFormatNames()));
 				}
 			}
 			catch (IOException e) {
@@ -69,13 +75,5 @@ public class ImageFormats extends FunctionSupport {
 		if (args.length == 0) return call(pc);
 		if (args.length == 1) return call(pc, CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(args[0]));
 		throw exp.createFunctionException(pc, "ImageFormats", 0, 1, args.length);
-	}
-
-	private static Object toArray(String[] arr) {
-		HashSet<String> set = new HashSet<>();
-		for (int i = 0; i < arr.length; i++) {
-			set.add(arr[i].toUpperCase());
-		}
-		return set.toArray(new String[set.size()]);
 	}
 }

@@ -104,7 +104,7 @@ public class ImageUtil {
 	public static void writeOut(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
 		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
 		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
-		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format defintion");
 
 		getCoder().write(img, destination, format, quality, noMeta);
 	}
@@ -112,7 +112,7 @@ public class ImageUtil {
 	public static void writeOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
 		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
 		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
-		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format");
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format defintion");
 
 		Resource tmp = createTempFile(format);
 		try {

@@ -89,8 +89,8 @@ public class TwelveMonkeysCoder extends Coder implements FormatNames, FormatExtr
 			if (e.getValue().reader != null) readers.add(e.getKey());
 			if (e.getValue().writer != null) writers.add(e.getKey());
 		}
-		readerFormatNames = readers.toArray(new String[0]);
-		writerFormatNames = writers.toArray(new String[0]);
+		readerFormatNames = sortAndMerge(readers.toArray(new String[0]));
+		writerFormatNames = sortAndMerge(writers.toArray(new String[0]));
 	}
 
 	@Override
@@ -229,7 +229,7 @@ public class TwelveMonkeysCoder extends Coder implements FormatNames, FormatExtr
 
 		Codec[] arr;
 		if (!Util.isEmpty(format, true)) {
-			Codec codec = codecs.get(format.toLowerCase());
+			Codec codec = codecs.get(format.toUpperCase());
 			if (codec == null || codec.writer == null) throw new IOException("format [" + format + "] not supported for writing");
 			arr = new Codec[] { codec };
 		}
@@ -316,7 +316,7 @@ public class TwelveMonkeysCoder extends Coder implements FormatNames, FormatExtr
 		Codec[] arr;
 		if (!Util.isEmpty(format, true)) {
 
-			Codec codec = codecs.get(format.toLowerCase());
+			Codec codec = codecs.get(format.toUpperCase());
 			if (codec == null || codec.reader == null) throw new IOException("format [" + format + "] not supported for reading");
 			arr = new Codec[] { codec };
 		}
@@ -423,7 +423,7 @@ public class TwelveMonkeysCoder extends Coder implements FormatNames, FormatExtr
 				Class<? extends ImageWriter> writer) {
 			Codec codec = new Codec(formatNames, suffixes, mimeTypes, reader, writer);
 			for (String fn: formatNames) {
-				codecs.put(fn.toLowerCase(), codec);
+				codecs.put(fn.toUpperCase(), codec);
 			}
 		}
 

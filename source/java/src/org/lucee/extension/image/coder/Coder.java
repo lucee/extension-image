@@ -20,6 +20,10 @@ package org.lucee.extension.image.coder;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.lucee.extension.image.Image;
 
@@ -28,6 +32,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
+import lucee.runtime.type.Array;
 
 public abstract class Coder {
 
@@ -104,5 +109,33 @@ public abstract class Coder {
 
 	// public abstract void write(Image img, OutputStream os, String format, float quality, boolean
 	// closeStream, boolean noMeta) throws IOException;
+	public static String[] sortAndMerge(String[] names) {
+		List<String> list = new ArrayList<>();
+		for (String n: names) {
+			if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
+		}
+		String[] arr = list.toArray(new String[list.size()]);
+		Arrays.sort(arr);
+		return arr;
+	}
 
+	public static Array sortAndConvert(List<String> list) {
+		Collections.sort(list);
+
+		Array arr = CFMLEngineFactory.getInstance().getCreationUtil().createArray();
+		for (String str: list) {
+			arr.appendEL(str);
+		}
+		return arr;
+	}
+
+	public static Array sortAndConvert(String[] strArr) {
+		Arrays.sort(strArr);
+
+		Array arr = CFMLEngineFactory.getInstance().getCreationUtil().createArray();
+		for (String str: strArr) {
+			arr.appendEL(str);
+		}
+		return arr;
+	}
 }

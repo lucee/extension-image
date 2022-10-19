@@ -24,9 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
@@ -248,18 +246,18 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		if (writerFormatNames == null) {
 			synchronized (tokenw) {
 				if (writerFormatNames == null) {
-					Set<String> set = new HashSet<>();
+					List<String> list = new ArrayList<>();
 					for (Coder c: coders) {
 						if (!(c instanceof FormatNames)) continue;
 						try {
 							for (String n: ((FormatNames) c).getWriterFormatNames()) {
-								set.add(n);
+								if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
 							}
 						}
 						catch (Exception e) {
 						}
 					}
-					writerFormatNames = set.toArray(new String[set.size()]);
+					writerFormatNames = list.toArray(new String[list.size()]);
 					Arrays.sort(writerFormatNames);
 				}
 			}
@@ -272,18 +270,18 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		if (readerFormatNames == null) {
 			synchronized (tokenr) {
 				if (readerFormatNames == null) {
-					Set<String> set = new HashSet<>();
+					List<String> list = new ArrayList<>();
 					for (Coder c: coders) {
 						if (!(c instanceof FormatNames)) continue;
 						try {
 							for (String n: ((FormatNames) c).getReaderFormatNames()) {
-								set.add(n);
+								if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
 							}
 						}
 						catch (Exception e) {
 						}
 					}
-					readerFormatNames = set.toArray(new String[set.size()]);
+					readerFormatNames = list.toArray(new String[list.size()]);
 					Arrays.sort(readerFormatNames);
 				}
 			}
@@ -294,15 +292,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 	public final Struct getWriterFormatNamesByGroup() {
 		Creation cre = CFMLEngineFactory.getInstance().getCreationUtil();
 		Struct sct = cre.createStruct();
-		Array arr;
 		for (Coder c: coders) {
-			arr = cre.createArray();
-			sct.setEL(c.getClass().getName(), arr);
 			if (!(c instanceof FormatNames)) continue;
 			try {
+				List<String> list = new ArrayList<>();
 				for (String n: ((FormatNames) c).getWriterFormatNames()) {
-					arr.appendEL(n);
+					if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
 				}
+				sct.setEL(c.getClass().getName(), sortAndConvert(list));
 			}
 			catch (Exception e) {
 			}
@@ -313,18 +310,20 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 	public final Struct getReaderFormatNamesByGroup() {
 		Creation cre = CFMLEngineFactory.getInstance().getCreationUtil();
 		Struct sct = cre.createStruct();
-		Array arr;
 		for (Coder c: coders) {
-			arr = cre.createArray();
-			sct.setEL(c.getClass().getName(), arr);
 			if (!(c instanceof FormatNames)) continue;
 			try {
+				List<String> list = new ArrayList<>();
+				// filter out duplicates
 				for (String n: ((FormatNames) c).getReaderFormatNames()) {
-					arr.appendEL(n);
+					if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
 				}
+				sct.setEL(c.getClass().getName(), sortAndConvert(list));
+
 			}
 			catch (Exception e) {
 			}
+
 		}
 		return sct;
 	}

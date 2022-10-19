@@ -24,8 +24,9 @@ public class JDeliCoder extends Coder implements FormatNames, FormatExtract {
 	private static final Class<?>[] ARGS_BA = new Class<?>[] { byte[].class };
 	private static final Class<?>[] ARGS_WRITE = new Class<?>[] { BufferedImage.class, String.class, OutputStream.class };
 
-	private String[] writerFormatNames = new String[] { "BMP", "HEIC", "JPEG", "JPEG2000", "PNG", "TIFF", "WEBP" };
-	private String[] readerFormatNames = new String[] { "BMP", "DICOM", "EMF", "GIF", "HEIC", "ICO", "JPEG", "JPEG2000", "PDF", "PNG", "SGI", "PSD", "TIFF", "WEBP", "WMF" };
+	private String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "HEIC", "JPEG", "JPEG2000", "PNG", "TIFF", "WEBP" });
+	private String[] readerFormatNames = sortAndMerge(
+			new String[] { "BMP", "DICOM", "EMF", "GIF", "HEIC", "ICO", "JPEG", "JPEG2000", "PDF", "PNG", "SGI", "PSD", "TIFF", "WEBP", "WMF" });
 
 	@Override
 	public BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {

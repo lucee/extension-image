@@ -184,12 +184,12 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 
 	@Override
 	public final String[] getWriterFormatNames() {
-		return ImageIO.getWriterFormatNames();
+		return sortAndMerge(ImageIO.getWriterFormatNames());
 	}
 
 	@Override
 	public final String[] getReaderFormatNames() {
-		return ImageIO.getReaderFormatNames();
+		return sortAndMerge(ImageIO.getReaderFormatNames());
 	}
 
 }

@@ -68,8 +68,8 @@ import lucee.runtime.exp.PageException;
 
 class LuceeCoder extends Coder implements FormatNames {
 
-	private String[] writerFormatNames = new String[] { "GIF", "JPEG" };
-	private String[] readerFormatNames = new String[] { "GIF", "PSD", "JPEG" };
+	private String[] writerFormatNames = sortAndMerge(new String[] { "GIF", "JPEG" });
+	private String[] readerFormatNames = sortAndMerge(new String[] { "GIF", "PSD", "JPEG" });
 
 	private CFMLEngine enc;
 
@@ -226,10 +226,10 @@ class LuceeCoder extends Coder implements FormatNames {
 		Set<String> set = new HashSet<String>();
 
 		if (names1 != null) for (int i = 0; i < names1.length; i++) {
-			set.add(names1[i].toLowerCase());
+			set.add(names1[i].toUpperCase());
 		}
 		if (names2 != null) for (int i = 0; i < names2.length; i++) {
-			set.add(names2[i].toLowerCase());
+			set.add(names2[i].toUpperCase());
 		}
 
 		names1 = set.toArray(new String[set.size()]);
