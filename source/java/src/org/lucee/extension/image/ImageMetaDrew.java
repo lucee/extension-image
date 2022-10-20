@@ -30,10 +30,12 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.Tag;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
+import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
@@ -55,7 +57,10 @@ public class ImageMetaDrew {
 		}
 		catch (Exception ex) {
 			try {
-				org.lucee.extension.image.Metadata.addExifInfoToStruct(res, info);
+				Log log = null;
+				Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+				if (c != null) log = c.getLog("application");
+				org.lucee.extension.image.Metadata.addExifInfoToStruct(res, info, log);
 			}
 			catch (Exception e) {
 			}
