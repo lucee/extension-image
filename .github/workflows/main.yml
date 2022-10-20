@@ -38,11 +38,12 @@ jobs:
       with:
         name: image-lex
         path: dist/*.lex
-    - name: Checkout Lucee
+    - name: Checkout Lucee 5.3 for tests
       uses: actions/checkout@v2
       with:
         repository: lucee/lucee
         path: lucee
+        ref: 5.3
     - name: Run Lucee Test Suite (testFilter="image")
       uses: lucee/script-runner@main
       with:
