@@ -97,6 +97,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
@@ -388,7 +389,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		getMetaData(sctInfo, null);
 
 		try {
-			Metadata.addExifInfoToStruct(source, sctInfo);
+			Log log = null;
+			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+			if (c != null) log = c.getLog("application");
+			Metadata.addExifInfoToStruct(source, sctInfo, log);
 		}
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);

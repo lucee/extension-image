@@ -35,6 +35,7 @@ import org.apache.commons.imaging.formats.tiff.constants.GpsTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
 import org.lucee.extension.image.util.CommonUtil;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -56,44 +57,51 @@ public class Metadata {
 	public static final int ORIENTATION_TRANSVERSE = 7;
 	public static final int ORIENTATION_ROTATE_270 = 8; // rotate 270 to right it
 
-	public static void addExifInfoToStruct(final Resource res, Struct info) throws ImageReadException, IOException {
+	public static void addExifInfoToStruct(final Resource res, Struct info, Log log) throws ImageReadException, IOException {
 		if (res == null) return;
+		try {
+			ImageMetadata md;
+			if (res instanceof File) {
+				md = Imaging.getMetadata((File) res);
+			}
+			else {
+				// ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				// CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
+				// md = Imaging.getMetadata(baos.toByteArray());
+				md = Imaging.getMetadata(res.getInputStream(), res.getName());
+			}
+			if (md == null) return;
+			if (md instanceof JpegImageMetadata) {
+				final JpegImageMetadata jpegMetadata = (JpegImageMetadata) md;
 
-		ImageMetadata md;
-		if (res instanceof File) {
-			md = Imaging.getMetadata((File) res);
-		}
-		else {
-			// ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			// CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
-			// md = Imaging.getMetadata(baos.toByteArray());
-			md = Imaging.getMetadata(res.getInputStream(), res.getName());
-		}
-		if (md == null) return;
-		if (md instanceof JpegImageMetadata) {
-			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) md;
+				/*
+				 * List<? extends ImageMetadataItem> dirs = jpegMetadata.getExif().getDirectories(); for
+				 * (ImageMetadataItem imdi: dirs) { print.e(imdi.getClass().getName()); print.e(imdi.toString()); }
+				 */
 
-			/*
-			 * List<? extends ImageMetadataItem> dirs = jpegMetadata.getExif().getDirectories(); for
-			 * (ImageMetadataItem imdi: dirs) { print.e(imdi.getClass().getName()); print.e(imdi.toString()); }
-			 */
-
-			// EXIF
-			if (jpegMetadata != null) {
-				Struct exif = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-				info.setEL("exif", exif);
+				// EXIF
+				if (jpegMetadata != null) {
+					Struct exif = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
+					info.setEL("exif", exif);
+					try {
+						set(jpegMetadata.getExif().getItems(), info, exif);
+					}
+					catch (Exception e) {
+						if (log != null) log.error("imaging", e);
+					}
+				}
+				// GPS
 				try {
-					set(jpegMetadata.getExif().getItems(), info, exif);
+					gps(jpegMetadata, info);
 				}
 				catch (Exception e) {
+					if (log != null) log.error("imaging", e);
 				}
 			}
-			// GPS
-			try {
-				gps(jpegMetadata, info);
-			}
-			catch (Exception e) {
-			}
+		}
+		catch (Exception ex) {
+			if (log != null) log.error("imaging", ex);
+
 		}
 	}
 
