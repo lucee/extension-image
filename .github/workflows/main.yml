@@ -38,12 +38,11 @@ jobs:
       with:
         name: image-lex
         path: dist/*.lex
-    - name: Checkout Lucee 5.3 for tests
+    - name: Checkout Lucee
       uses: actions/checkout@v2
       with:
         repository: lucee/lucee
         path: lucee
-        ref: 5.3
     - name: Run Lucee Test Suite (testFilter="image")
       uses: lucee/script-runner@main
       with:
@@ -51,7 +50,6 @@ jobs:
         execute: /bootstrap-tests.cfm
         luceeVersion: ${{ env.luceeVersion }}
         extensionDir: ${{ github.workspace }}/dist
-        extensions: 8D7FB0DF-08BB-1589-FE3975678F07DB17,37C61C0A-5D7E-4256-8572639BE0CF5838 # the compress and esapi extensiona are required to run tests lucee with lucee-light / 5.3 tests
       env:
         testLabels: image
         testAdditional: ${{ github.workspace }}/tests
