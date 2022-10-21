@@ -27,9 +27,8 @@ import lucee.loader.util.Util;
 class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	private final Map<String, ImageFormat> formats;
 
-	private String[] readerFormatNames = sortAndMerge(
-			new String[] { "BMP", "GIF", "JPEG", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "PSD", "TIFF", "WBMP", "XBM", "XPM" });
-	private String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "TIFF", "WBMP", "XBM", "XPM" });
+	private String[] readerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "JPEG", "ICNS", "ICO", "PNM", "PGM", "PBM", "PPM", "PNG", "PSD", "TIFF", "WBMP", "XBM", "XPM" });
+	private String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "TIFF", "WBMP" });
 
 	protected ApacheImagingCoder() {
 		super();
@@ -145,7 +144,9 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
 
-			return Imaging.guessFormat(baos.toByteArray()).getName();
+			ImageFormat format = Imaging.guessFormat(baos.toByteArray());
+			if (format == null || format.equals(ImageFormats.UNKNOWN)) throw new IOException("not matching format found");
+			return format.getName();
 		}
 		else {
 			return toFormatByExtension(CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res)).getName();
@@ -154,7 +155,9 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 	@Override
 	public String getFormat(byte[] bytes) throws IOException {
-		return Imaging.guessFormat(bytes).getName();
+		ImageFormat format = Imaging.guessFormat(bytes);
+		if (format == null || format.equals(ImageFormats.UNKNOWN)) throw new IOException("not matching format found");
+		return format.getName();
 	}
 
 	@Override

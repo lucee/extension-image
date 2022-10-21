@@ -78,7 +78,6 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getReaderFormatNames(), format)) continue;
 			try {
-
 				if (detail != null) {
 					Creation cre = CFMLEngineFactory.getInstance().getCreationUtil();
 					data = cre.createStruct();
@@ -199,7 +198,9 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			if (!(coder instanceof FormatExtract)) continue;
 			try {
 				String format = ((FormatExtract) coder).getFormat(res);
-				if (!Util.isEmpty(format)) return format;
+				if (!Util.isEmpty(format)) {
+					return format;
+				}
 			}
 			catch (Exception e) {
 				if (me == null) me = new MultiException(e);
@@ -217,7 +218,9 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			if (!(coder instanceof FormatExtract)) continue;
 			try {
 				String format = ((FormatExtract) coder).getFormat(bytes);
-				if (!Util.isEmpty(format)) return format;
+				if (!Util.isEmpty(format)) {
+					return format;
+				}
 			}
 			catch (Exception e) {
 				if (me == null) me = new MultiException(e);
@@ -233,7 +236,9 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		for (Coder coder: coders) {
 			if (!(coder instanceof FormatExtract)) continue;
 			String format = ((FormatExtract) coder).getFormat(res, null);
-			if (!Util.isEmpty(format)) return format;
+			if (!Util.isEmpty(format)) {
+				return format;
+			}
 		}
 		return defaultValue;
 	}

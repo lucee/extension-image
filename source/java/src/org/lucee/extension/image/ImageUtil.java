@@ -198,6 +198,13 @@ public class ImageUtil {
 
 	public static String getFormatFromExtension(Resource res, String defaultValue) {
 		String ext = CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res, null);
+
+		if ("dicom".equalsIgnoreCase(ext)) return "dicom";
+		if ("emf".equalsIgnoreCase(ext)) return "emf";
+		if ("sgi".equalsIgnoreCase(ext)) return "sgi";
+		if ("".equalsIgnoreCase(ext)) return "";
+		if ("xbm".equalsIgnoreCase(ext)) return "xbm";
+		if ("xpm".equalsIgnoreCase(ext)) return "xpm";
 		if ("gif".equalsIgnoreCase(ext)) return "gif";
 		if ("jpg".equalsIgnoreCase(ext)) return "jpg";
 		if ("jpg2000".equalsIgnoreCase(ext)) return "jpeg2000";
@@ -206,21 +213,28 @@ public class ImageUtil {
 		if ("jpeg".equalsIgnoreCase(ext)) return "jpg";
 		if ("icns".equalsIgnoreCase(ext)) return "icns";
 		if ("ico".equalsIgnoreCase(ext)) return "ico";
-		if ("png".equalsIgnoreCase(ext)) return "png";
 		if ("tiff".equalsIgnoreCase(ext)) return "tiff";
 		if ("tif".equalsIgnoreCase(ext)) return "tiff";
 		if ("bmp".equalsIgnoreCase(ext)) return "bmp";
 		if ("bmp".equalsIgnoreCase(ext)) return "bmp";
 		if ("wbmp".equalsIgnoreCase(ext)) return "wbmp";
+		if ("wbp".equalsIgnoreCase(ext)) return "wbp";
+		if ("webp".equalsIgnoreCase(ext)) return "webp";
 		if ("ico".equalsIgnoreCase(ext)) return "bmp";
 		if ("wbmp".equalsIgnoreCase(ext)) return "wbmp";
+		if ("wmf".equalsIgnoreCase(ext)) return "wmf";
 		if ("psd".equalsIgnoreCase(ext)) return "psd";
 		if ("fpx".equalsIgnoreCase(ext)) return "fpx";
 
+		if ("pcx".equalsIgnoreCase(ext)) return "pcx";
+		if ("pdf".equalsIgnoreCase(ext)) return "pdf";
 		if ("pnm".equalsIgnoreCase(ext)) return "pnm";
+		if ("png".equalsIgnoreCase(ext)) return "png";
 		if ("pgm".equalsIgnoreCase(ext)) return "pgm";
 		if ("pbm".equalsIgnoreCase(ext)) return "pbm";
 		if ("ppm".equalsIgnoreCase(ext)) return "ppm";
+		if ("psb".equalsIgnoreCase(ext)) return "psb";
+		if ("psd".equalsIgnoreCase(ext)) return "psd";
 		if ("heic".equalsIgnoreCase(ext)) return "heic";
 		if ("heif".equalsIgnoreCase(ext)) return "heif";
 		return defaultValue;
