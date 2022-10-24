@@ -27,8 +27,9 @@ import lucee.loader.util.Util;
 class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	private final Map<String, ImageFormat> formats;
 
-	private String[] readerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "JPEG", "ICNS", "ICO", "PNM", "PGM", "PBM", "PPM", "PNG", "PSD", "TIFF", "WBMP", "XBM", "XPM" });
-	private String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "TIFF", "WBMP" });
+	private static String[] readerFormatNames = sortAndMerge(
+			new String[] { "BMP", "GIF", "JPEG", "ICNS", "ICO", "PNM", "PGM", "PBM", "PPM", "PNG", "PSD", "TIFF", "WBMP", "XBM", "XPM" });
+	private static String[] writerFormatNames = sortAndMerge(new String[] { "BMP", "GIF", "ICNS", "ICO", "PCX", "PNM", "PGM", "PBM", "PPM", "PNG", "TIFF", "WBMP" });
 
 	protected ApacheImagingCoder() {
 		super();
@@ -39,6 +40,25 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 
 		Imaging.hasImageFileExtension("lucee.gif");// to make sure Sanselan exist when load this class
 	}
+
+	/*
+	 * static { List<String> readers = new ArrayList<>(); List<String> writers = new ArrayList<>(); for
+	 * (ImageFormat format: ImageFormats.values()) { if (format.equals(ImageFormats.UNKNOWN)) continue;
+	 * 
+	 * byte[] bytes = Images.getImage(format.getName());
+	 * 
+	 * BufferedImage bi = null;
+	 * 
+	 * // test readers try { bi = Imaging.getBufferedImage(bytes);
+	 * readers.add(format.getName().toUpperCase()); } catch (Exception e) { }
+	 * 
+	 * // test writers if (bi == null) bi = new BufferedImage(4, 4, BufferedImage.TYPE_INT_ARGB); try {
+	 * Imaging.writeImageToBytes(bi, format); writers.add(format.getName().toUpperCase()); } catch
+	 * (Exception e) { }
+	 * 
+	 * } readerFormatNames = readers.toArray(new String[readers.size()]); writerFormatNames =
+	 * readers.toArray(new String[writers.size()]); }
+	 */
 
 	/**
 	 * translate a file resource to a buffered image

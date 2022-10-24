@@ -206,11 +206,11 @@ public class ImageUtil {
 		if ("xbm".equalsIgnoreCase(ext)) return "xbm";
 		if ("xpm".equalsIgnoreCase(ext)) return "xpm";
 		if ("gif".equalsIgnoreCase(ext)) return "gif";
-		if ("jpg".equalsIgnoreCase(ext)) return "jpg";
+		if ("jpg".equalsIgnoreCase(ext)) return "jpeg";
 		if ("jpg2000".equalsIgnoreCase(ext)) return "jpeg2000";
 		if ("jpeg2000".equalsIgnoreCase(ext)) return "jpeg2000";
-		if ("jpe".equalsIgnoreCase(ext)) return "jpg";
-		if ("jpeg".equalsIgnoreCase(ext)) return "jpg";
+		if ("jpe".equalsIgnoreCase(ext)) return "jpeg";
+		if ("jpeg".equalsIgnoreCase(ext)) return "jpeg";
 		if ("icns".equalsIgnoreCase(ext)) return "icns";
 		if ("ico".equalsIgnoreCase(ext)) return "ico";
 		if ("tiff".equalsIgnoreCase(ext)) return "tiff";
