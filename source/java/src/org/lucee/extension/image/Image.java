@@ -375,7 +375,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		Array arr = eng().getCreationUtil().createArray();
 		Double value;
 		for (int i = 0; i < bitspercomponent.length; i++) {
-			sct.setEL("bits_component_" + (i + 1), value = new Double(bitspercomponent[i]));
+			sct.setEL("bits_component_" + (i + 1), value = Double.valueOf(bitspercomponent[i]));
 			arr.appendEL(value);
 		}
 		sct.setEL("bits_component", arr);
