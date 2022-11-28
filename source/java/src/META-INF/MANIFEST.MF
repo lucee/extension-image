@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Export-Package: org.lucee.extension.image,org.lucee.extension.image.functions,org.lucee.extension.image.tag
 Require-Bundle: org.apache.commons.commons-imaging;bundle-version=1.0.0.alpha3,
  org.apache.commons.commons-codec;bundle-version=1.15.0,
- metadata.extractor;bundle-version=2.8.1.0002L,
+ org.lucee.metadata-extractor;bundle-version=2.18.0,
  sun.jai.codec;bundle-version=1.1.2.0003L,
  sun.jai.core;bundle-version=1.2.1.0003L,
  org.lucee.imgscalr;bundle-version=4.2.0,
