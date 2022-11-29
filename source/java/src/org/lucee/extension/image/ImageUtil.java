@@ -61,8 +61,8 @@ public class ImageUtil {
 	public static final int COLOR_TYPE_YCCK = 3;
 
 	private static Coder getCoder() {
-		if (_coder == null) {
-			_coder = Coder.getInstance();
+		if (true || _coder == null) {
+			_coder = Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
 		}
 		return _coder;
 	}

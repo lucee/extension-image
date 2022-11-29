@@ -24,13 +24,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.lucee.extension.image.Image;
+import org.lucee.extension.image.util.CommonUtil;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Array;
 
@@ -41,25 +44,30 @@ public abstract class Coder {
 	protected Coder() {
 	}
 
-	public static Coder getInstance() {
+	public static Coder getInstance(PageContext pc) {
 
-		if (instance == null) {
+		if (true || instance == null) {
 			Config config = CFMLEngineFactory.getInstance().getThreadConfig();
 			Log log = config == null ? null : config.getLog("application");
 
 			MultiCoder mc = new MultiCoder();
-
-			add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
-			add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
-			add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
-			add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
-			add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
-			add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
-			add(mc, "org.lucee.extension.image.coder.JAICoder", log);
+			Set<String> coders = CommonUtil.getCoders(pc);
+			if (coderAllowed(coders, "JDeli")) add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
+			if (coderAllowed(coders, "Aspose")) add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
+			if (coderAllowed(coders, "TwelveMonkeys")) add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
+			if (coderAllowed(coders, "ImageIO")) add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
+			if (coderAllowed(coders, "Lucee")) add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
+			if (coderAllowed(coders, "ApacheImaging")) add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
+			if (coderAllowed(coders, "JAI")) add(mc, "org.lucee.extension.image.coder.JAICoder", log);
 
 			instance = mc;
 		}
 		return instance;
+	}
+
+	private static boolean coderAllowed(Set<String> coders, String name) {
+		if (coders == null) return true;
+		return coders.contains(name.toLowerCase());
 	}
 
 	private static void add(MultiCoder mc, String className, Log log) {

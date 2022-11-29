@@ -3,8 +3,10 @@ package org.lucee.extension.image.util;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.imageio.stream.ImageInputStream;
 
@@ -16,6 +18,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
@@ -76,7 +79,8 @@ public class CommonUtil {
 					if (filter == null || filter.equals(n.getLocalName())) rtn.add(n);
 				}
 			}
-			catch (Exception t) {}
+			catch (Exception t) {
+			}
 		}
 		return rtn;
 	}
@@ -255,6 +259,39 @@ public class CommonUtil {
 		try {
 			iis.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
+	}
+
+	public static Set<String> getCoders(PageContext pc) {
+		Set<String> result = null;
+		try {
+			CFMLEngine eng = CFMLEngineFactory.getInstance();
+			if (pc == null) pc = eng.getThreadPageContext();
+			if (pc == null) return null;
+			BIF bif = eng.getClassUtil().loadBIF(pc, "lucee.runtime.functions.system.GetApplicationSettings");
+			Struct sct = (Struct) bif.invoke(pc, new Object[] { Boolean.TRUE });
+			Object o = sct.get("image", null);
+			if (o instanceof Struct) {
+				Struct image = (Struct) o;
+				// type
+				o = image.get("coder", null);
+				if (o == null) image.get("coders", null);
+
+				if (o != null && eng.getDecisionUtil().isCastableToArray(o)) {
+					String[] coders = eng.getListUtil().toStringArray(eng.getCastUtil().toArray(o));
+					for (String c: coders) {
+						if (Util.isEmpty(c, true)) continue;
+						if (result == null) result = new HashSet<>();
+						result.add(c.trim().toLowerCase());
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 }

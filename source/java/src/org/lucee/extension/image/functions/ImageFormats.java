@@ -47,7 +47,7 @@ public class ImageFormats extends FunctionSupport {
 		Key ENC = creator.createKey("encoder");
 
 		Struct sct = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-		Coder coder = Coder.getInstance();
+		Coder coder = Coder.getInstance(pc);
 		if (detailed && coder instanceof MultiCoder) {
 			sct.set(DEC, ((MultiCoder) coder).getReaderFormatNamesByGroup());
 			sct.set(ENC, ((MultiCoder) coder).getWriterFormatNamesByGroup());

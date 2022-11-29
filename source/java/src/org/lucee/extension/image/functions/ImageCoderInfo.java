@@ -22,7 +22,7 @@ public class ImageCoderInfo extends FunctionSupport implements Function {
 	private static final long serialVersionUID = 5401769192649626849L;
 
 	public static Struct call(PageContext pc, Object source) throws PageException {
-		MultiCoder mc = (MultiCoder) Coder.getInstance();
+		MultiCoder mc = (MultiCoder) Coder.getInstance(pc);
 		Resource src = CFMLEngineFactory.getInstance().getCastUtil().toResource(source);
 		Creation cre = CFMLEngineFactory.getInstance().getCreationUtil();
 		Struct data = cre.createStruct();
