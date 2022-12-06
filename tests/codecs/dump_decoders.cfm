@@ -9,4 +9,7 @@
         else
             systemOutput(chr(9) & "Decode Formats supported: " & formats.toJson(), true);
     }
+
+    systemOutput("GetReadableImageFormats(): " & GetReadableImageFormats().toJson(), true);
+    
 </cfscript>

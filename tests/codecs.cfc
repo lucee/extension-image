@@ -30,6 +30,19 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 					);
 					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
 				});
+
+				it( title="dump encoders ( #codec# )",
+					data={ codec=codec },
+					body=function( data ) {
+					// systemOutput("codec: " & data.codec, true);
+					local.result = _internalRequest(
+						template : "#createURI("codecs")#/dump_encoders.cfm",
+						url: {
+							codec: data.codec
+						}
+					);
+					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
+				});
 			});
 		}
 
@@ -65,6 +78,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			it( title="test imageWrite unsupported [webp]",
 				data={ codec=codec },
 				body=function( data ) {
+
+				if ( listfind( getWriteableImageFormats(), "webp") gt 0) {
+					return; // codec is installed
+				}
 				// systemOutput("codec: " & data.codec, true);
 				local.result = _internalRequest(
 					template : "#createURI("codecs")#/encode_unsupported.cfm",
