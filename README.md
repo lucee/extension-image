@@ -12,7 +12,7 @@ Issues: https://luceeserver.atlassian.net/issues/?jql=labels%20%3D%20%22Image%22
 
 - WEBP support is readonly, unless a commerical plugin is used
 
-Use `imageFormats(true]` (v2 only) to see which formats / codecs are loaded and available
+Dump opt `imageFormats(true)` (v2 only) to see which formats / codecs are loaded and available
 
 ## Twelve Monkeys
 
