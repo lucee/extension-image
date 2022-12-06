@@ -6,7 +6,16 @@
 	ImageDrawText(img, "format:[#format#]" ,10,50,style);
 	temp = getTempFile(dir, "test-codec-#url.codec#-", format);
 	fileDelete(temp);
-	ImageWrite(img, temp); // should throw if unsupported
-	if ( !fileExists(temp) )
-		echo("no image file produced, should have thrown an error");
-</cfscript>?
+	hasError="false";
+	try {
+		ImageWrite(img, temp); // should throw if unsupported
+	} catch( e ) {
+		hasError="true";
+	}
+
+	if ( !hasError )
+		echo("should have thrown an error");
+	//if ( !fileExists(temp) )
+	//	echo("no image file produced, should have thrown an error");
+	
+</cfscript>
