@@ -103,7 +103,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		}
 		if (bi != null) return bi;
 		if (me != null && detail == null) throw toIOException(me);
-		return null;
+
+		String mt = null;
+		String msg = "could not read the file [" + res + "],";
+		if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to read,";
+		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(res, null))) msg += "the mime-type [" + mt + "] is not supported to read,";
+		msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getReaderFormatNames(), ", ") + "]";
+
+		throw new IOException(msg);
 	}
 
 	private CatchBlock toCatchBlock(Throwable t) throws IOException {
@@ -123,12 +130,10 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		if (Util.isEmpty(format, true)) {
 			format = ImageUtil.getFormat(bytes);
 		}
-
 		MultiException me = null;
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getReaderFormatNames(), format)) continue;
 			try {
-				long start = System.currentTimeMillis();
 				BufferedImage bi = coder.read(bytes, format, jpegColorType);
 				if (bi != null) return bi;
 			}
@@ -140,13 +145,25 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		if (me != null) {
 			throw toIOException(me);
 		}
-		return null;
 
+		String mt = null;
+		String msg = "could not read the image object,";
+		if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to read,";
+		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(bytes, null))) msg += "the mime-type [" + mt + "] is not supported to read,";
+		msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getReaderFormatNames(), ", ") + "]";
+
+		throw new IOException(msg);
 	}
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		write(img, destination, format, quality, noMeta, null);
+		try {
+			write(img, destination, format, quality, noMeta, null);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	public void write(Image img, Resource destination, String format, final float quality, boolean noMeta, Array detail) throws IOException {
@@ -157,6 +174,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		long start = 0;
 		Resource tmp = null;
 		MultiException me = null;
+		boolean success = false;
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getWriterFormatNames(), format)) continue;
 			try {
@@ -169,6 +187,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 					destination = tmp = ImageUtil.createTempFile(format);
 				}
 				coder.write(img, destination, format, quality, noMeta);
+				success = true;
 				if (detail != null) {
 					data.set("time", System.currentTimeMillis() - start);
 				}
@@ -188,7 +207,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			}
 		}
 		if (me != null && detail == null) throw toIOException(me);
+		if (!success) {
 
+			String msg = "could not write the file [" + destination + "],";
+			if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to write,";
+			msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getWriterFormatNames(), ", ") + "]";
+
+			throw new IOException(msg);
+		}
 	}
 
 	@Override
@@ -228,7 +254,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			}
 		}
 		if (me != null) throw toIOException(me);
-		return null;
+		throw new IOException("throw could not detect the format for the given image object");
 	}
 
 	@Override

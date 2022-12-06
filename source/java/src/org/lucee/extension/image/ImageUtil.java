@@ -105,7 +105,6 @@ public class ImageUtil {
 		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
 		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
 		if (eng().getStringUtil().isEmpty(format)) throw new IOException("could not find a format for [" + destination + "]");
-
 		getCoder().write(img, destination, format, quality, noMeta);
 	}
 
@@ -166,8 +165,12 @@ public class ImageUtil {
 		return getFormatFromExtension(res, null);
 	}
 
-	private static String getMimeType(Resource res, String defaultValue) {
+	public static String getMimeType(Resource res, String defaultValue) {
 		return CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
+	}
+
+	public static String getMimeType(byte[] binary, String defaultValue) {
+		return CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, null);
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
