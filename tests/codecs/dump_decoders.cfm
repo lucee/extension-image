@@ -10,5 +10,5 @@
             systemOutput(chr(9) & "Decode Formats supported: " & formats.toJson(), true);
     }
 
-    systemOutput(chr(9) & "getReadableImageFormats(): " & getReadableImageFormats(), true);
+    systemOutput(chr(9) & "getReadableImageFormats: " & listToArray(getReadableImageFormats()).toJson(), true);
 </cfscript>

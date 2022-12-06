@@ -10,6 +10,5 @@
             systemOutput(chr(9) & "Encode Formats supported: " & formats.toJson(), true);
     }
 
-    systemOutput(chr(9) & "GetWriteableImageFormats(): " & GetWriteableImageFormats(), true);
-    
+    systemOutput(chr(9) & "getWriteableImageFormats: " & listToArray(getWriteableImageFormats()).toJson(), true);
 </cfscript>

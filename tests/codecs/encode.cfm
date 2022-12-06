@@ -10,6 +10,7 @@
         fileDelete( f );
     */
 
+    // skipped due to extra requirements for image size / params
     skipFormats = {
         "icns" :true,
         "bmp" : true,
@@ -21,13 +22,13 @@
     loop collection=#encoders# key="codec" item="formats" {
         systemOutput(codec, true);
         if ( len(formats) eq 0 )
-            systemOutput("no encoding formats supported", true);
+            systemOutput(chr(9) & "No encoding formats supported", true);
         else
             systemOutput(chr(9) & "Encoding Formats supported: " & formats.toJson(), true);
         loop array=#formats# item="format" {
             if (structKeyExists(skipFormats, format))
                 continue;
-            systemOutput(format, true);
+            //systemOutput(format, true);
 
             try {
                 img=imageNew("",256,256,"RGB","45aaf2");
@@ -35,7 +36,7 @@
                 ImageDrawText(img, "codec:[#url.codec#]" ,10,20,style);
                 ImageDrawText(img, "format:[#format#]" ,10,50,style);
                 temp = getTempFile(dir, "test-codec-#url.codec#-", format);
-                systemOutput(temp, true);
+                // systemOutput(temp, true);
                 fileDelete(temp);
                 ImageWrite(name=img, destination=temp, noMetaData=true);
                 if (!fileExists(temp))
