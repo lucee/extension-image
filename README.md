@@ -8,18 +8,24 @@ Docs: https://docs.lucee.org/categories/image.html
 
 Issues: https://luceeserver.atlassian.net/issues/?jql=labels%20%3D%20%22Image%22
 
+## Image Format Support
+
+- WEBP support is readonly, unless a commerical plugin is used
+
+Use `imageFormats(true]` (v2 only) to see which formats / codecs are loaded and available
+
 ## Twelve Monkeys
 
 Version 2.0 includes the [Twelve Monkeys](https://github.com/haraldk/TwelveMonkeys) ImageIO library
 
 ## Commercial Image Library support
 
-Version 2.0 supports the following commercial Image Libaries (.jars ) when available in the classpath (i.e /lib dir)
+Version 2.0 supports the following commercial Image Libaries (.jars ) when available in Lucee's classpath (i.e lucee's /lib dir)
 
 - [JDeli](https://www.idrsolutions.com/jdeli/) 
 - [Apose Imaging](https://products.aspose.com/imaging/java/) 
 
-JDeli for example provides support the for HEIC format
+JDeli for example provides support the for HEIC format and write support for WEBP
 
 ## Build and Test
 
