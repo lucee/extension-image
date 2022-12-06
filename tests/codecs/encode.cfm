@@ -25,9 +25,9 @@
         else
             systemOutput(chr(9) & "Encoding Formats supported: " & formats.toJson(), true);
         loop array=#formats# item="format" {
-            systemOutput(format, true);
             if (structKeyExists(skipFormats, format))
                 continue;
+            systemOutput(format, true);
 
             try {
                 img=imageNew("",256,256,"RGB","45aaf2");
