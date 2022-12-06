@@ -37,7 +37,7 @@
                 temp = getTempFile(dir, "test-codec-#url.codec#-", format);
                 systemOutput(temp, true);
                 fileDelete(temp);
-                ImageWrite(img, temp);
+                ImageWrite(name=img, destination=temp, noMetaData=true);
                 if (!fileExists(temp))
                     echo("error with codec [#codec#] with [#format#], "
                         & "no image file produced, should have thrown an error#chr(10)#");
