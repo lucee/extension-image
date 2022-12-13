@@ -106,8 +106,16 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 
 		String mt = null;
 		String msg = "could not read the file [" + res + "],";
-		if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to read,";
-		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(res, null))) msg += "the mime-type [" + mt + "] is not supported to read,";
+		if (!Util.isEmpty(format, true)) {
+			msg += "the format [" + format + "] is not supported to read,";
+			if (!Util.isEmpty(mt = ImageUtil.getMimeType(res, null))) {
+				msg += "the mime-type  of the file is [" + mt + "],";
+			}
+		}
+		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(res, null))) {
+			msg += "the mime-type [" + mt + "] is not supported to read,";
+		}
+
 		msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getReaderFormatNames(), ", ") + "]";
 
 		throw new IOException(msg);
@@ -148,8 +156,15 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 
 		String mt = null;
 		String msg = "could not read the image object,";
-		if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to read,";
-		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(bytes, null))) msg += "the mime-type [" + mt + "] is not supported to read,";
+		if (!Util.isEmpty(format, true)) {
+			msg += "the format [" + format + "] is not supported to read,";
+			if (!Util.isEmpty(mt = ImageUtil.getMimeType(bytes, null))) {
+				msg += "the mime-type of this image object is [" + mt + "],";
+			}
+		}
+		else if (!Util.isEmpty(mt = ImageUtil.getMimeType(bytes, null))) {
+			msg += "the mime-type [" + mt + "] is not supported to read,";
+		}
 		msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getReaderFormatNames(), ", ") + "]";
 
 		throw new IOException(msg);
@@ -210,7 +225,9 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		if (!success) {
 
 			String msg = "could not write the file [" + destination + "],";
-			if (!Util.isEmpty(format, true)) msg += "the format [" + format + "] is not supported to write,";
+			if (!Util.isEmpty(format, true)) {
+				msg += "the format [" + format + "] is not supported to write,";
+			}
 			msg += " supported formats are [" + CFMLEngineFactory.getInstance().getListUtil().toList(ImageUtil.getWriterFormatNames(), ", ") + "]";
 
 			throw new IOException(msg);
@@ -373,9 +390,12 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 
 	public boolean _supported(String[] formats, String format) {
 		if (formats == null || format == null) return true;
+		if ("JPG".equalsIgnoreCase(format)) format = "JPEG";
+		if ("JPE".equalsIgnoreCase(format)) format = "JPEG";
 		for (String f: formats) {
 			if (format.equalsIgnoreCase(f)) return true;
 		}
+
 		return false;
 	}
 

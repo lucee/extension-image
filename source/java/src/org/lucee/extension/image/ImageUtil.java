@@ -27,6 +27,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -67,10 +69,44 @@ public class ImageUtil {
 		return _coder;
 	}
 
+	public static String getOneWriterFormatName(String... preferences) throws IOException {
+		Set<String> pref = new HashSet<>();
+
+		for (String fn: preferences) {
+			pref.add(fn.toLowerCase().trim());
+		}
+
+		// first look for a preference
+		String[] formats = getWriterFormatNames();
+		if (formats == null || formats.length == 0) return null;
+		for (String fn: formats) {
+			if (pref.contains(fn.toLowerCase())) return fn;
+		}
+
+		return formats[0];
+	}
+
 	public static String[] getWriterFormatNames() throws IOException {
 		Coder c = getCoder();
 		if (c instanceof FormatNames) return ((FormatNames) c).getWriterFormatNames();
 		return new String[] {};
+	}
+
+	public static String getOneReaderFormatName(String... preferences) throws IOException {
+		Set<String> pref = new HashSet<>();
+
+		for (String fn: preferences) {
+			pref.add(fn.toLowerCase().trim());
+		}
+
+		// first look for a preference
+		String[] formats = getReaderFormatNames();
+		if (formats == null || formats.length == 0) return null;
+		for (String fn: formats) {
+			if (pref.contains(fn.toLowerCase())) return fn;
+		}
+
+		return formats[0];
 	}
 
 	public static String[] getReaderFormatNames() throws IOException {

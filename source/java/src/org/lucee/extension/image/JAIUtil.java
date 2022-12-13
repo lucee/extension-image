@@ -20,7 +20,6 @@ package org.lucee.extension.image;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -52,13 +51,10 @@ public class JAIUtil {
 		Resource tmp = null;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		try {
-			if (!(res instanceof File)) {
-				tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
-				eng.getIOUtil().copy(res, tmp);
-				res = tmp;
-			}
+			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
+			eng.getIOUtil().copy(res, tmp);
 			// Object im = JAI.create("fileload", res.getAbsolutePath());
-			return getAsBufferedImage(create("fileload", res.getAbsolutePath()));
+			return getAsBufferedImage(create("fileload", tmp.getAbsolutePath()));
 		}
 		finally {
 			if (tmp != null) tmp.delete();
@@ -85,17 +81,15 @@ public class JAIUtil {
 		Resource tmp = res;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		try {
-			if (!(res instanceof File)) {
-				tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
-			}
+			tmp = eng.getSystemUtil().getTempDirectory().getRealResource(IDGenerator.intId() + "-" + res.getName());
+
 			// JAI.create("filestore", img, tmp.getAbsolutePath(),format);
 			create("filestore", img, tmp.getAbsolutePath(), format);
+			eng.getIOUtil().copy(tmp, res);
+
 		}
 		finally {
-			if (tmp != res) {
-				eng.getIOUtil().copy(tmp, res);
-				tmp.delete();
-			}
+			if (tmp != null) tmp.delete();
 		}
 	}
 
@@ -108,9 +102,7 @@ public class JAIUtil {
 			eng.getIOUtil().copy(tmp.getInputStream(), os, true, closeStream);
 		}
 		finally {
-			if (tmp != null) {
-				tmp.delete();
-			}
+			if (tmp != null) tmp.delete();
 		}
 	}
 
@@ -207,6 +199,7 @@ public class JAIUtil {
 	 */
 	private static class DevNullOutputStream extends OutputStream implements Serializable {
 
+		private static final long serialVersionUID = 3170712166551346336L;
 		public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
 		public static final PrintStream DEV_NULL_PRINT_STREAM = new PrintStream(new DevNullOutputStream());
 

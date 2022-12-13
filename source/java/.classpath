@@ -10,7 +10,6 @@
 	<classpathentry kind="lib" path="libs/javax.servlet-api-3.1.0.jar"/>
 	<classpathentry kind="lib" path="libs/jsp-api-2.2.jar"/>
 	<classpathentry kind="lib" path="libs/lucee.jar"/>
-	<classpathentry kind="lib" path="libs/metadata.extractor-2.8.1.0002L.jar"/>
 	<classpathentry kind="lib" path="libs/org.apache.commons.commons-codec-1.15.0.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.imgscalr-4.2.0.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.jmagick-6.2.4.jar"/>
@@ -33,5 +32,8 @@
 	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-psd-3.9.3.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-tiff-3.9.3.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-webp-3.9.3.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.metadata-extractor-2.18.0.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.xmpcore-6.1.11.jar"/>
+	<classpathentry kind="lib" path="libs/org.lucee.gotson-webp-0.2.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

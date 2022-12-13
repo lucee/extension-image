@@ -183,6 +183,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
+	private final boolean fromNew;
 
 	static {
 		ImageIO.scanForPlugins();
@@ -200,6 +201,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (_image == null) throw new IOException("Unable to read binary image file");
 
 		checkOrientation(binary);
+		fromNew = false;
 	}
 
 	public Image(Resource res) throws IOException, ImageReadException, PageException {
@@ -215,6 +217,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
 
 		checkOrientation(res);
+		fromNew = false;
 
 	}
 
@@ -223,6 +226,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		this.format = null;
 		jpegColorType = null;
 		// TODO find out jpeg type
+		fromNew = false;
 
 	}
 
@@ -256,6 +260,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
 
 		checkOrientation(binary);
+		fromNew = false;
 	}
 
 	public Image(int width, int height, int imageType, Color canvasColor) throws PageException {
@@ -267,11 +272,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 		this.format = null;
 		jpegColorType = null;
+		fromNew = true;
 	}
 
 	public Image() {
 		this.format = null;
 		jpegColorType = null;
+		fromNew = true;
 
 	}
 
@@ -402,17 +409,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public IIOMetadata getMetaData(Struct parent, String format) {
-		if (Util.isEmpty(format)) format = Util.isEmpty(this.format) ? "jpeg" : this.format;
+		if (fromNew) return null;
 
 		InputStream is = null;
 		javax.imageio.stream.ImageInputStreamImpl iis = null;
 		try {
+			if (Util.isEmpty(format)) format = Util.isEmpty(this.format) ? ImageUtil.getOneWriterFormatName("png", "jpg", "jpeg") : this.format;
 
 			if (source instanceof File) {
 				iis = new FileImageInputStream((File) source);
 			}
-			else if (source == null) iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes("png", true)));
-			else iis = new MemoryCacheImageInputStream(is = source.getInputStream());
+			else if (source == null) {
+				iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes(format, true)));
+			}
+			else {
+				iis = new MemoryCacheImageInputStream(is = source.getInputStream());
+			}
 
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
 			if (readers.hasNext()) {
@@ -1847,9 +1859,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			DumpTable dt = ((DumpTable) dd);
 			dt.setTitle("Struct (Image)");
 			try {
-				dt.setComment("<img style=\"margin:5px\" src=\"data:image/png;base64," + getBase64String("png") + "\">");
+				String format = ImageUtil.getOneWriterFormatName("png", "jpeg");
+				dt.setComment("<img style=\"margin:5px\" src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + getBase64String(format) + "\">");
 			}
-			catch (PageException e) {
+			catch (Exception e) {
 			}
 
 		}
@@ -1859,7 +1872,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	@Override
 	public String castToString() throws PageException {
-		return "<img src=\"data:image/png;base64," + getBase64String("png") + "\">";
+		try {
+			String format = ImageUtil.getOneWriterFormatName("png", "jpeg");
+			return "<img src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + getBase64String(format) + "\">";
+		}
+
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 	}
 
 	@Override

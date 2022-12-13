@@ -5,12 +5,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
-
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.JAIUtil;
-import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
@@ -18,7 +15,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
 
-class JAICoder extends Coder implements FormatNames {
+class JAICoder extends Coder {
 
 	protected JAICoder() {
 
@@ -47,17 +44,6 @@ class JAICoder extends Coder implements FormatNames {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}
-
-	@Override
-	public final String[] getWriterFormatNames() {
-		return sortAndMerge(ImageIO.getWriterFormatNames());
-	}
-
-	@Override
-	public final String[] getReaderFormatNames() {
-		return sortAndMerge(ImageIO.getReaderFormatNames());
-	}
-
 	/*
 	 * public void write(Image img, OutputStream os, String format, float quality, boolean closeStream,
 	 * boolean noMeta) throws IOException { if (Util.isEmpty(format)) format = img.getFormat(); try {

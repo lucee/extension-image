@@ -53,6 +53,7 @@ public abstract class Coder {
 			MultiCoder mc = new MultiCoder();
 			Set<String> coders = CommonUtil.getCoders(pc);
 			if (coderAllowed(coders, "JDeli")) add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
+			if (coderAllowed(coders, "Gotson")) add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
 			if (coderAllowed(coders, "Aspose")) add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
 			if (coderAllowed(coders, "TwelveMonkeys")) add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
 			if (coderAllowed(coders, "ImageIO")) add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
@@ -120,7 +121,10 @@ public abstract class Coder {
 	public static String[] sortAndMerge(String[] names) {
 		List<String> list = new ArrayList<>();
 		for (String n: names) {
-			if (!list.contains(n.toUpperCase())) list.add(n.toUpperCase());
+			n = n.toUpperCase();
+			if ("JPG".equals(n)) n = "JPEG";
+			if ("JPE".equals(n)) n = "JPEG";
+			if (!list.contains(n)) list.add(n.toUpperCase());
 		}
 		String[] arr = list.toArray(new String[list.size()]);
 		Arrays.sort(arr);

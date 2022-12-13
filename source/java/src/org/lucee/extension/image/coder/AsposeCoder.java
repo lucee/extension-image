@@ -61,7 +61,7 @@ public class AsposeCoder extends Coder implements FormatNames, FormatExtract {
 						for (String f: formats.values()) {
 							tmp.add(f);
 						}
-						readerFormatNames = tmp.toArray(new String[0]);
+						readerFormatNames = sortAndMerge(tmp.toArray(new String[0]));
 
 						supported = Boolean.TRUE;
 					}
