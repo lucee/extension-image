@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,7 +34,6 @@ import javax.imageio.stream.ImageOutputStream;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
-import org.lucee.extension.image.util.print;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -73,9 +73,6 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		}
 		readerFormatNames = sortAndMerge(readers.toArray(new String[0]));
 		writerFormatNames = sortAndMerge(writers.toArray(new String[0]));
-
-		print.e(readerFormatNames);
-		print.e(writerFormatNames);
 	}
 
 	@Override
@@ -242,21 +239,18 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 					ImageWriteParam param = writer.getDefaultWriteParam();
 
-					// param.setCompressionQuality(quality);
-					// param.setCompressionMode(ImageWriteParam.MODE_COPY_FROM_METADATA);
+					if (("JPEG".equalsIgnoreCase(format) || "JPG".equalsIgnoreCase(format)) && quality <= 1) {
+						if (quality < 0) quality = 0;
+						param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+						param.setCompressionQuality(quality);
+					}
 					writer.setOutput(stream);
 					IIOMetadata meta = noMeta ? null : img.getMetaData(null, format);
 					try {
 						writer.write(meta, new IIOImage(img.getBufferedImage(), null, null), param);
 					}
 					catch (IIOException iioe) {
-						/*
-						 * print.e(iioe.getMessage()); if (iioe.getMessage().indexOf("Only TYPE_4BYTE_ABGR supported") !=
-						 * -1) { print.e("try again:" + img.getBufferedImage().getType());
-						 * 
-						 * writer.write(meta, new IIOImage(ImageUtil.convertColorspace(img.getBufferedImage(),
-						 * BufferedImage.TYPE_4BYTE_ABGR), null, null), param); } else
-						 */ throw iioe;
+						throw iioe;
 					}
 					return;
 				}
@@ -366,6 +360,127 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		return null;
 	}
 
+	protected static ImageReader getDelegateImageReader() {
+		try {
+			Iterator<ImageReader> it = ImageIO.getImageReadersByMIMEType("image/jpeg");
+			while (it.hasNext()) {
+				return it.next();
+			}
+		}
+		catch (Exception e) {
+
+		}
+		return new DelegateImageReader();
+	}
+
+	protected static ImageWriter getDelegateImageWriter() {
+		try {
+			Iterator<ImageWriter> it = ImageIO.getImageWritersByMIMEType("image/jpeg");
+			while (it.hasNext()) {
+				return it.next();
+			}
+		}
+		catch (Exception e) {
+
+		}
+		return new DelegateImageWriter();
+	}
+
+	private static class DelegateImageReader extends ImageReader {
+
+		protected DelegateImageReader() {
+			super(null);
+		}
+
+		@Override
+		public int getNumImages(boolean allowSearch) throws IOException {
+			throw notSupported();
+		}
+
+		@Override
+		public int getWidth(int imageIndex) throws IOException {
+			throw notSupported();
+		}
+
+		@Override
+		public int getHeight(int imageIndex) throws IOException {
+			throw notSupported();
+		}
+
+		@Override
+		public Iterator<ImageTypeSpecifier> getImageTypes(int imageIndex) throws IOException {
+			// TODO Auto-generated method stub
+			return new Iterator<ImageTypeSpecifier>() {
+
+				@Override
+				public boolean hasNext() {
+					return false;
+				}
+
+				@Override
+				public ImageTypeSpecifier next() {
+					return null;
+				}
+			};
+		}
+
+		@Override
+		public IIOMetadata getStreamMetadata() throws IOException {
+			throw notSupported();
+		}
+
+		@Override
+		public IIOMetadata getImageMetadata(int imageIndex) throws IOException {
+			throw notSupported();
+		}
+
+		@Override
+		public BufferedImage read(int imageIndex, ImageReadParam param) throws IOException {
+			throw notSupported();
+		}
+
+		private IOException notSupported() throws IOException {
+			return new IOException("not supported!");
+		}
+
+	}
+
+	private static class DelegateImageWriter extends ImageWriter {
+
+		protected DelegateImageWriter() {
+			super(null);
+		}
+
+		@Override
+		public IIOMetadata getDefaultStreamMetadata(ImageWriteParam param) {
+			return null;
+		}
+
+		@Override
+		public IIOMetadata getDefaultImageMetadata(ImageTypeSpecifier imageType, ImageWriteParam param) {
+			return null;
+		}
+
+		@Override
+		public IIOMetadata convertStreamMetadata(IIOMetadata inData, ImageWriteParam param) {
+			return null;
+		}
+
+		@Override
+		public IIOMetadata convertImageMetadata(IIOMetadata inData, ImageTypeSpecifier imageType, ImageWriteParam param) {
+			return null;
+		}
+
+		@Override
+		public void write(IIOMetadata streamMetadata, IIOImage image, ImageWriteParam param) throws IOException {
+			throw notSupported();
+		}
+
+		private IOException notSupported() throws IOException {
+			return new IOException("not supported!");
+		}
+	}
+
 	private static Class<? extends ImageReader> loadReader(ClassLoader cl, String className) throws IOException {
 
 		try {
@@ -413,9 +528,11 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		private final Class<? extends ImageWriter> _writer;
 		private final Class<? extends ImageReaderSpi> readerSpi;
 		private final Class<? extends ImageWriterSpi> writerSpi;
+		private final Class<?>[] readerConstructor;
+		private final Class<?>[] writerConstructor;
 
 		public Codec(String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReader> reader, Class<? extends ImageWriter> writer,
-				Class<? extends ImageReaderSpi> readerSpi, Class<? extends ImageWriterSpi> writerSpi) {
+				Class<? extends ImageReaderSpi> readerSpi, Class<? extends ImageWriterSpi> writerSpi, Class<?>[] readerConstructor, Class<?>[] writerConstructor) {
 			super();
 			this.formatNames = formatNames == null ? new String[0] : formatNames;
 			this.suffixes = suffixes == null ? new String[0] : suffixes;
@@ -424,11 +541,18 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 			this._writer = writer;
 			this.readerSpi = readerSpi;
 			this.writerSpi = writerSpi;
+			this.readerConstructor = readerConstructor;
+			this.writerConstructor = writerConstructor;
 		}
 
 		protected static void newInstance(Map<String, Codec> codecs, String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReader> reader,
 				Class<? extends ImageWriter> writer) {
-			Codec codec = new Codec(formatNames, suffixes, mimeTypes, reader, writer, null, null);
+			newInstance(codecs, formatNames, suffixes, mimeTypes, reader, writer, null, null);
+		}
+
+		protected static void newInstance(Map<String, Codec> codecs, String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReader> reader,
+				Class<? extends ImageWriter> writer, Class<?>[] readerConstructor, Class<?>[] writerConstructor) {
+			Codec codec = new Codec(formatNames, suffixes, mimeTypes, reader, writer, null, null, readerConstructor, writerConstructor);
 			for (String fn: formatNames) {
 				codecs.put(fn.toUpperCase(), codec);
 			}
@@ -436,7 +560,7 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 		protected static void newInstanceSpi(Map<String, Codec> codecs, String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReaderSpi> readerSpi,
 				Class<? extends ImageWriterSpi> writerSpi) {
-			Codec codec = new Codec(formatNames, suffixes, mimeTypes, null, null, readerSpi, writerSpi);
+			Codec codec = new Codec(formatNames, suffixes, mimeTypes, null, null, readerSpi, writerSpi, null, null);
 			for (String fn: formatNames) {
 				codecs.put(fn.toUpperCase(), codec);
 			}
@@ -537,23 +661,31 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		@Override
 		public ImageReader createReaderInstance(Object extension) throws IOException {
 			try {
-				boolean addThis = true;
+				// javax.imageio.spi.ImageReaderSpi
 				Constructor<? extends ImageReader> constr;
+				Class<?>[] constrArgs = codec.readerConstructor;
 				try {
-					constr = clazz.getDeclaredConstructor(READ_CONSTR1);
+
+					constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : READ_CONSTR1);
+					constr.setAccessible(true);
+					return constr.newInstance(this);
 
 				}
 				catch (NoSuchMethodException nsme) {
-					constr = clazz.getDeclaredConstructor(READ_CONSTR0);
-					addThis = false;
+					try {
+						constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : READ_CONSTR2);
+						constr.setAccessible(true);
+						return constr.newInstance(this, getDelegateImageReader());
+
+					}
+					catch (NoSuchMethodException nsme2) {
+						constr = clazz.getDeclaredConstructor(READ_CONSTR0);
+						constr.setAccessible(true);
+						return constr.newInstance();
+					}
 				}
-				constr.setAccessible(true);
-				if (addThis) return constr.newInstance(this);
-				return constr.newInstance();
 			}
 			catch (Exception e) {
-				print.e(e);
-
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 			}
 		}
@@ -703,24 +835,34 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 		@Override
 		public ImageWriter createWriterInstance(Object extension) throws IOException {
-			boolean addThis = true;
+
 			try {
 				Constructor<? extends ImageWriter> constr;
+				Class<?>[] constrArgs = codec.writerConstructor;
+
 				try {
-					constr = clazz.getDeclaredConstructor(WRITE_CONSTR1);
+					constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : WRITE_CONSTR1);
+					constr.setAccessible(true);
+					return constr.newInstance(constrArgs != null && constrArgs.length == 1 ? null : this);
 
 				}
 				catch (NoSuchMethodException nsme) {
-					constr = clazz.getDeclaredConstructor(WRITE_CONSTR0);
-					addThis = false;
-				}
+					nsme.printStackTrace();
+					try {
+						constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : WRITE_CONSTR2);
+						constr.setAccessible(true);
+						return constr.newInstance(constrArgs != null && constrArgs.length == 2 ? null : this, getDelegateImageWriter());
 
-				constr.setAccessible(true);
-				if (addThis) return constr.newInstance(this);
-				return constr.newInstance();
+					}
+					catch (NoSuchMethodException nsme2) {
+						nsme2.printStackTrace();
+						constr = clazz.getDeclaredConstructor(WRITE_CONSTR0);
+						constr.setAccessible(true);
+						return constr.newInstance();
+					}
+				}
 			}
 			catch (Exception e) {
-				print.e(e);
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 			}
 		}
@@ -855,4 +997,5 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		}
 
 	}
+
 }

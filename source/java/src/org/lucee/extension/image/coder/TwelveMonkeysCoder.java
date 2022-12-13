@@ -2,6 +2,7 @@ package org.lucee.extension.image.coder;
 
 import java.io.IOException;
 
+import javax.imageio.ImageWriter;
 import javax.imageio.spi.ImageWriterSpi;
 
 import org.lucee.extension.image.util.print;
@@ -12,6 +13,9 @@ import com.twelvemonkeys.imageio.plugins.bmp.ICOImageReader;
 import com.twelvemonkeys.imageio.plugins.bmp.ICOImageWriter;
 import com.twelvemonkeys.imageio.plugins.icns.ICNSImageReader;
 import com.twelvemonkeys.imageio.plugins.icns.ICNSImageWriter;
+import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReader;
+import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageWriter;
+import com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageWriterSpi;
 import com.twelvemonkeys.imageio.plugins.psd.PSDImageReaderSpi;
 import com.twelvemonkeys.imageio.plugins.psd.PSDImageWriterSpi;
 import com.twelvemonkeys.imageio.plugins.tiff.TIFFImageReaderSpi;
@@ -41,8 +45,8 @@ public class TwelveMonkeysCoder extends AImageIOInterface {
 		Codec.newInstance(codecs, new String[] { "ico", "ICO" }, new String[] { "ico" }, new String[] { "image/vnd.microsoft.icon", "image/x-icon", "image/ico" },
 				ICOImageReader.class, ICOImageWriter.class);
 
-		Codec.newInstance(codecs, new String[] { "JPEG", "jpeg" }, new String[] { "jpeg", "jpg", "jpe" }, new String[] { "image/jpeg" },
-				"com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageReader", "com.twelvemonkeys.imageio.plugins.jpeg.JPEGImageWriter");
+		Codec.newInstance(codecs, new String[] { "JPEG", "jpeg" }, new String[] { "jpeg", "jpg", "jpe" }, new String[] { "image/jpeg" }, JPEGImageReader.class,
+				JPEGImageWriter.class, null, new Class[] { JPEGImageWriterSpi.class, ImageWriter.class });
 
 		Codec.newInstanceSpi(codecs, new String[] { "psd", "PSD", "psb", "PSB" }, new String[] { "psd", "psb" },
 				new String[] { "image/vnd.adobe.photoshop", "application/vnd.adobe.photoshop", "image/x-psd", "application/x-photoshop", "image/x-photoshop" },
