@@ -176,7 +176,6 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			write(img, destination, format, quality, noMeta, null);
 		}
 		catch (IOException e) {
-			e.printStackTrace();
 			throw e;
 		}
 	}

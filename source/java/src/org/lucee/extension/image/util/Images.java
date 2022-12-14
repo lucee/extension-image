@@ -1,12 +1,13 @@
 package org.lucee.extension.image.util;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.lucee.extension.image.coder.Coder;
+
+import lucee.commons.io.log.Log;
 
 public class Images {
 
@@ -43,7 +44,9 @@ public class Images {
 				images.put(f.getName().trim().toLowerCase(), Base64.decodeBase64((String) f.get(null)));
 			}
 			catch (Exception e) {
-				e.printStackTrace();
+				Log log = Coder.log();
+				if (log != null) log.error("image", e);
+				else e.printStackTrace();
 			}
 		}
 		// print.e(images.keySet());
@@ -52,32 +55,4 @@ public class Images {
 	public static byte[] getImage(String format) {
 		return images.get(format.toLowerCase());
 	}
-
-	/*
-	 * File[] files = new File("/Users/mic/Test/test-cfconfig/webapps/ROOT/formats").listFiles();
-	 * 
-	 * for (File f: files) { int index = f.getName().lastIndexOf('.'); String name =
-	 * f.getName().substring(0, index); ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	 * Util.copy(new FileInputStream(f), baos, true, true); print.e("byte[] " + name + " = new ");
-	 * print.e(baos.toByteArray()); print.e(";"); } if (true) return;
-	 */
-	public static void main(String[] args) throws FileNotFoundException, IOException {
-		print.e(getImage("gif"));
-	}
-	/*
-	 * File f = new File("/Users/mic/Test/test-cfconfig/webapps/ROOT/formats/dcx.dcx"); int index =
-	 * f.getName().lastIndexOf('.'); String name = f.getName().substring(0, index);
-	 * ByteArrayOutputStream baos = new ByteArrayOutputStream(); Util.copy(new FileInputStream(f), baos,
-	 * true, true); print.e("public static byte[] " + name + " = new "); print.e(baos.toByteArray());
-	 * print.e(";");
-	 */
-
-	// byte to base64
-	/*
-	 * for (Map.Entry<String, byte[]> e: images.entrySet()) {
-	 * 
-	 * String b64 = Base64.encodeBase64String(e.getValue());
-	 * 
-	 * print.e("public static String " + e.getKey() + " = \"" + b64 + "\""); }
-	 */
 }

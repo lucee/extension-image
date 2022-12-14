@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.imageio.stream.ImageInputStream;
 
 import org.lucee.extension.image.Image;
+import org.lucee.extension.image.coder.Coder;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -33,6 +34,7 @@ public class CommonUtil {
 	private static final String _8220 = String.valueOf((char) 8220);
 
 	private static Map<Collection.Key, Coll> members;
+	private static BIF GetApplicationSettings;
 
 	public static String unwrap(String str) {
 		if (str == null) return "";
@@ -263,14 +265,16 @@ public class CommonUtil {
 		}
 	}
 
-	public static Set<String> getCoders(PageContext pc) {
+	public static Set<String> getCoders(StringBuilder sb, PageContext pc) {
 		Set<String> result = null;
 		try {
 			CFMLEngine eng = CFMLEngineFactory.getInstance();
 			if (pc == null) pc = eng.getThreadPageContext();
 			if (pc == null) return null;
-			BIF bif = eng.getClassUtil().loadBIF(pc, "lucee.runtime.functions.system.GetApplicationSettings");
-			Struct sct = (Struct) bif.invoke(pc, new Object[] { Boolean.TRUE });
+			if (GetApplicationSettings == null) {
+				GetApplicationSettings = eng.getClassUtil().loadBIF(pc, "lucee.runtime.functions.system.GetApplicationSettings");
+			}
+			Struct sct = (Struct) GetApplicationSettings.invoke(pc, new Object[] { Boolean.TRUE });
 			Object o = sct.get("image", null);
 			if (o instanceof Struct) {
 				Struct image = (Struct) o;
@@ -283,13 +287,14 @@ public class CommonUtil {
 					for (String c: coders) {
 						if (Util.isEmpty(c, true)) continue;
 						if (result == null) result = new HashSet<>();
-						result.add(c.trim().toLowerCase());
+						sb.append(c = c.trim().toLowerCase()).append(';');
+						result.add(c);
 					}
 				}
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			Coder.log(pc);
 		}
 
 		return result;

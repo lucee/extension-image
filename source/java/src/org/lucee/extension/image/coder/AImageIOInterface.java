@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -528,11 +529,13 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		private final Class<? extends ImageWriter> _writer;
 		private final Class<? extends ImageReaderSpi> readerSpi;
 		private final Class<? extends ImageWriterSpi> writerSpi;
-		private final Class<?>[] readerConstructor;
-		private final Class<?>[] writerConstructor;
+		private final Class<?>[] readerConstructorArgs;
+		private final Class<?>[] writerConstructorArgs;
+		public int writer = -1;
+		public int reader = -1;
 
 		public Codec(String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReader> reader, Class<? extends ImageWriter> writer,
-				Class<? extends ImageReaderSpi> readerSpi, Class<? extends ImageWriterSpi> writerSpi, Class<?>[] readerConstructor, Class<?>[] writerConstructor) {
+				Class<? extends ImageReaderSpi> readerSpi, Class<? extends ImageWriterSpi> writerSpi, Class<?>[] readerConstructorArgs, Class<?>[] writerConstructorArgs) {
 			super();
 			this.formatNames = formatNames == null ? new String[0] : formatNames;
 			this.suffixes = suffixes == null ? new String[0] : suffixes;
@@ -541,8 +544,8 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 			this._writer = writer;
 			this.readerSpi = readerSpi;
 			this.writerSpi = writerSpi;
-			this.readerConstructor = readerConstructor;
-			this.writerConstructor = writerConstructor;
+			this.readerConstructorArgs = readerConstructorArgs;
+			this.writerConstructorArgs = writerConstructorArgs;
 		}
 
 		protected static void newInstance(Map<String, Codec> codecs, String[] formatNames, String[] suffixes, String[] mimeTypes, Class<? extends ImageReader> reader,
@@ -661,33 +664,57 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		@Override
 		public ImageReader createReaderInstance(Object extension) throws IOException {
 			try {
+
 				// javax.imageio.spi.ImageReaderSpi
-				Constructor<? extends ImageReader> constr;
-				Class<?>[] constrArgs = codec.readerConstructor;
+				Class<?>[] constrArgs = codec.readerConstructorArgs;
+
+				if (codec.reader == 0) return createReaderInstance0(constrArgs);
+				if (codec.reader == 1) return createReaderInstance1(constrArgs);
+				if (codec.reader == 2) return createReaderInstance2(constrArgs);
+
+				ImageReader ir;
 				try {
-
-					constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : READ_CONSTR1);
-					constr.setAccessible(true);
-					return constr.newInstance(this);
-
+					ir = createReaderInstance1(constrArgs);
+					codec.reader = 1;
+					return ir;
 				}
 				catch (NoSuchMethodException nsme) {
 					try {
-						constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : READ_CONSTR2);
-						constr.setAccessible(true);
-						return constr.newInstance(this, getDelegateImageReader());
-
+						ir = createReaderInstance2(constrArgs);
+						codec.reader = 2;
+						return ir;
 					}
 					catch (NoSuchMethodException nsme2) {
-						constr = clazz.getDeclaredConstructor(READ_CONSTR0);
-						constr.setAccessible(true);
-						return constr.newInstance();
+						ir = createReaderInstance0(constrArgs);
+						codec.reader = 0;
+						return ir;
 					}
 				}
 			}
 			catch (Exception e) {
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 			}
+		}
+
+		public ImageReader createReaderInstance0(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageReader> constr = clazz.getDeclaredConstructor(READ_CONSTR0);
+			constr.setAccessible(true);
+			return constr.newInstance();
+		}
+
+		public ImageReader createReaderInstance1(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageReader> constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : READ_CONSTR1);
+			constr.setAccessible(true);
+			return constr.newInstance(this);
+		}
+
+		public ImageReader createReaderInstance2(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageReader> constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : READ_CONSTR2);
+			constr.setAccessible(true);
+			return constr.newInstance(this, getDelegateImageReader());
 		}
 
 		@Override
@@ -835,36 +862,57 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 		@Override
 		public ImageWriter createWriterInstance(Object extension) throws IOException {
-
 			try {
-				Constructor<? extends ImageWriter> constr;
-				Class<?>[] constrArgs = codec.writerConstructor;
+				Class<?>[] constrArgs = codec.writerConstructorArgs;
 
+				if (codec.writer == 0) return createWriterInstance0(constrArgs);
+				if (codec.writer == 1) return createWriterInstance1(constrArgs);
+				if (codec.writer == 2) return createWriterInstance2(constrArgs);
+
+				ImageWriter iw;
 				try {
-					constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : WRITE_CONSTR1);
-					constr.setAccessible(true);
-					return constr.newInstance(constrArgs != null && constrArgs.length == 1 ? null : this);
-
+					iw = createWriterInstance1(constrArgs);
+					codec.writer = 1;
+					return iw;
 				}
 				catch (NoSuchMethodException nsme) {
-					nsme.printStackTrace();
 					try {
-						constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : WRITE_CONSTR2);
-						constr.setAccessible(true);
-						return constr.newInstance(constrArgs != null && constrArgs.length == 2 ? null : this, getDelegateImageWriter());
+						iw = createWriterInstance2(constrArgs);
+						codec.writer = 2;
+						return iw;
 
 					}
 					catch (NoSuchMethodException nsme2) {
-						nsme2.printStackTrace();
-						constr = clazz.getDeclaredConstructor(WRITE_CONSTR0);
-						constr.setAccessible(true);
-						return constr.newInstance();
+						iw = createWriterInstance0(constrArgs);
+						codec.writer = 3;
+						return iw;
 					}
 				}
 			}
 			catch (Exception e) {
 				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 			}
+		}
+
+		private ImageWriter createWriterInstance0(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageWriter> constr = clazz.getDeclaredConstructor(WRITE_CONSTR0);
+			constr.setAccessible(true);
+			return constr.newInstance();
+		}
+
+		private ImageWriter createWriterInstance1(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageWriter> constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 1 ? constrArgs : WRITE_CONSTR1);
+			constr.setAccessible(true);
+			return constr.newInstance(constrArgs != null && constrArgs.length == 1 ? null : this);
+		}
+
+		private ImageWriter createWriterInstance2(Class<?>[] constrArgs)
+				throws IOException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Constructor<? extends ImageWriter> constr = clazz.getDeclaredConstructor(constrArgs != null && constrArgs.length == 2 ? constrArgs : WRITE_CONSTR2);
+			constr.setAccessible(true);
+			return constr.newInstance(constrArgs != null && constrArgs.length == 2 ? null : this, getDelegateImageWriter());
 		}
 
 		@Override

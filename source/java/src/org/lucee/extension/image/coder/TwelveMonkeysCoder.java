@@ -1,11 +1,7 @@
 package org.lucee.extension.image.coder;
 
-import java.io.IOException;
-
 import javax.imageio.ImageWriter;
 import javax.imageio.spi.ImageWriterSpi;
-
-import org.lucee.extension.image.util.print;
 
 import com.twelvemonkeys.imageio.plugins.bmp.BMPImageReaderSpi;
 import com.twelvemonkeys.imageio.plugins.bmp.BMPImageWriterSpi;
@@ -25,15 +21,6 @@ import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 public class TwelveMonkeysCoder extends AImageIOInterface {
 
 	public TwelveMonkeysCoder() {
-
-		try {
-			print.e(new WebPImageReaderSpi().createReaderInstance());
-		}
-		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		Codec.newInstanceSpi(codecs, new String[] { "bmp", "BMP" }, new String[] { "bmp", "rle" }, new String[] { "image/bmp", "image/x-bmp", "image/vnd.microsoft.bitmap" },
 				BMPImageReaderSpi.class, BMPImageWriterSpi.class);
 		// Codec.newInstance(codecs, new String[] { "bmp", "BMP" }, new String[] { "bmp", "rle" }, new

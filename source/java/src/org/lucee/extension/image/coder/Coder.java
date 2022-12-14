@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.util.CommonUtil;
@@ -32,6 +34,7 @@ import org.lucee.extension.image.util.CommonUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -39,19 +42,24 @@ import lucee.runtime.type.Array;
 
 public abstract class Coder {
 
-	private static Coder instance;
+	private static Map<Long, Coder> instances = new ConcurrentHashMap<>();
 
 	protected Coder() {
 	}
 
 	public static Coder getInstance(PageContext pc) {
 
-		if (true || instance == null) {
-			Config config = CFMLEngineFactory.getInstance().getThreadConfig();
-			Log log = config == null ? null : config.getLog("application");
+		CFMLEngine eng = CFMLEngineFactory.getInstance();
 
+		StringBuilder sb = new StringBuilder();
+		Set<String> coders = CommonUtil.getCoders(sb, pc);
+		long hash = eng.getStringUtil().create64BitHash(sb.toString());
+		Coder instance = instances.get(hash);
+
+		if (instance == null) {
+			Config config = eng.getThreadConfig();
+			Log log = config == null ? null : config.getLog("application");
 			MultiCoder mc = new MultiCoder();
-			Set<String> coders = CommonUtil.getCoders(pc);
 			if (coderAllowed(coders, "JDeli")) add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
 			if (coderAllowed(coders, "Gotson")) add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
 			if (coderAllowed(coders, "Aspose")) add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
@@ -60,8 +68,7 @@ public abstract class Coder {
 			if (coderAllowed(coders, "Lucee")) add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
 			if (coderAllowed(coders, "ApacheImaging")) add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
 			if (coderAllowed(coders, "JAI")) add(mc, "org.lucee.extension.image.coder.JAICoder", log);
-
-			instance = mc;
+			instances.put(hash, instance = mc);
 		}
 		return instance;
 	}
@@ -82,7 +89,6 @@ public abstract class Coder {
 		}
 		catch (Exception e) {
 			if (log != null) log.error("image", e);
-			// else e.printStackTrace();
 		}
 	}
 
@@ -109,9 +115,11 @@ public abstract class Coder {
 	public abstract void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException;
 
 	public static Log log() {
-		// FUTURE PageContext pc = CFMLEngineFactory.getInstance().getThreadPageContext();
-		// FUTURE if(pc!=null)pc.getLog("application");
-		Config config = CFMLEngineFactory.getInstance().getThreadConfig();
+		return log(null);
+	}
+
+	public static Log log(PageContext pc) {
+		Config config = pc != null ? pc.getConfig() : CFMLEngineFactory.getInstance().getThreadConfig();
 		if (config != null) return config.getLog("application");
 		return null;
 	}
