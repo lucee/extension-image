@@ -18,6 +18,34 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 					);
 					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
 				});
+
+				it( title="test isImageFile locking with invalid image ( #codec# ) ", 
+					data={ codec=codec },
+					body=function( data ) {
+					// systemOutput("codec: " & data.codec, true);
+					local.result = _internalRequest(
+						template : "#createURI("codecs")#/test_locking_isImageFile.cfm",
+						url: {
+							codec: data.codec
+						}
+					);
+					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent, codec );
+				});
+
+				it( title="test ImageRead locking with invalid image ( #codec# ) ", 
+					data={ codec=codec },
+					body=function( data ) {
+					// systemOutput("codec: " & data.codec, true);
+					local.result = _internalRequest(
+						template : "#createURI("codecs")#/test_locking_imageRead.cfm",
+						url: {
+							codec: data.codec
+						}
+					);
+					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent, codec );
+				});
+
+
 				it( title="dump decoders ( #codec# )",
 					data={ codec=codec },
 					body=function( data ) {
@@ -46,8 +74,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			});
 		}
 
-		describe("test write unsupported codec ", function(){
-			it( title="test imageWrite unsupported [TwelveMonkeys jpeg]",
+		describe("test write check per codec ", function(){
+			it( title="test imageWrite supported codec [TwelveMonkeys jpeg]",
 				data={ codec=codec },
 				body=function( data ) {
 				// systemOutput("codec: " & data.codec, true);
@@ -58,7 +86,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						format: "jpeg"
 					}
 				);
-				expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
+				// we now support jpeg
+				expect ( result.filecontent.trim() ).notToBeEmpty( result.filecontent );
 			});
 
 			it( title="test imageWrite unsupported [TwelveMonkeys webp]",
@@ -75,7 +104,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
 			});
 
-			it( title="test imageWrite unsupported [webp]",
+			it( title="test imageWrite unsupported [TwelveMonkeys heic]",
+				data={ codec=codec },
+				body=function( data ) {
+				// systemOutput("codec: " & data.codec, true);
+				local.result = _internalRequest(
+					template : "#createURI("codecs")#/encode_unsupported.cfm",
+					url: {
+						codec: "TwelveMonkeys",
+						format: "heic"
+					}
+				);
+				expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
+			});
+
+			it( title="test imageWrite supported [webp]",
 				data={ codec=codec },
 				body=function( data ) {
 
@@ -90,7 +133,29 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						format: "webp"
 					}
 				);
-				expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
+				expect ( result.filecontent.trim() ).notToBeEmpty( result.filecontent );
+			});
+
+			it( title="test imageWrite unsupported [heic]",
+				data={ codec=codec },
+				body=function( data ) {
+
+				if ( listfind( getWriteableImageFormats(), "webp") gt 0) {
+					return; // codec is installed
+				}
+				// systemOutput("codec: " & data.codec, true);
+				local.result = _internalRequest(
+					template : "#createURI("codecs")#/encode_unsupported.cfm",
+					url: {
+						codec: "",
+						format: "heic"
+					}
+				);
+				if ( listFindNoCase( getReadableImageFormats(), "heic" ) ){
+					expect ( result.filecontent.trim() ).notToBeEmpty( result.filecontent );
+				} else {
+					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
+				}
 			});
 		});
 	}
