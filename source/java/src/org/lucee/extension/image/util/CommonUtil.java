@@ -1,5 +1,7 @@
 package org.lucee.extension.image.util;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.coder.Coder;
@@ -292,11 +295,28 @@ public class CommonUtil {
 					}
 				}
 			}
+
 		}
 		catch (Exception e) {
 			Coder.log(pc);
 		}
 
 		return result;
+	}
+
+	public static void flushEL(OutputStream os) {
+		try {
+			if (os != null) os.flush();
+		}
+		catch (IOException ioe) {
+		}
+	}
+
+	public static void closeEL(ImageOutputStream ios) {
+		try {
+			if (ios != null) ios.close();
+		}
+		catch (IOException ioe) {
+		}
 	}
 }

@@ -18,8 +18,8 @@ import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
+import org.lucee.extension.image.util.CommonUtil;
 
-import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -70,44 +70,35 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 				ios = ImageIO.createImageOutputStream(os);
 				jpgWriter.setOutput(ios);
 				IIOImage outputImage = new IIOImage(img.getBufferedImage(), null, null);
-				jpgWriter.write(null, outputImage, jpgWriteParam);
-				jpgWriter.dispose();
-				return;
+				try {
+					jpgWriter.write(null, outputImage, jpgWriteParam);
+				}
+				finally {
+					jpgWriter.dispose();
+					ios.flush();
+				}
 			}
-			catch (Exception e) {
-				os = null;
-				Log log = Coder.log();
-				if (log != null) log.error("image", e);
-				else e.printStackTrace();
+			catch (PageException pe) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
 			}
 			finally {
-				try {
-					if (os != null) os.flush();
-				}
-				catch (IOException ioe) {
-				}
-				try {
-					if (ios != null) ios.close();
-				}
-				catch (IOException ioe) {
-				}
-
+				CommonUtil.closeEL(ios);
 				Util.closeEL(os);
 			}
 		}
-
-		try {
-			os = destination.getOutputStream();
-			ios = ImageIO.createImageOutputStream(os);
-			ImageIO.write(img.getBufferedImage(), format, ios);
-		}
-		catch (PageException pe) {
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
-		}
-		finally {
-			os.flush();
-			ios.close();
-			Util.closeEL(os);
+		else {
+			try {
+				os = destination.getOutputStream();
+				ios = ImageIO.createImageOutputStream(os);
+				ImageIO.write(img.getBufferedImage(), format, ios);
+			}
+			catch (PageException pe) {
+				throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(pe);
+			}
+			finally {
+				CommonUtil.closeEL(ios);
+				Util.closeEL(os);
+			}
 		}
 
 		if (destination.length() == 0) throw new IOException("could not encode to format [" + format + "]");
