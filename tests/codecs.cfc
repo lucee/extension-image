@@ -2,7 +2,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function run( testResults, testBox ) localmode=true{
 
-		var codecs = ["JDeli","Aspose","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI",""];
+		var codecs = ["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI",""];
 
 		loop array="#codecs#" value="local.codec" {
 			describe("test image codect: [#codec#]", function(){

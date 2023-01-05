@@ -91,8 +91,18 @@ Tests can be found in at least the following locations. (Look for files named wi
 * https://github.com/lucee/Lucee/tree/6.0/test/functions
 * https://github.com/lucee/Lucee/tree/6.0/test/general
 
-## Troubleshooting ##
+## Troubleshooting
 
 On a headless Linux server, you will get a `java.lang.reflect.InvocationTargetException` error if you don't have fonts installed
 
 Please refer to [LDEV-2619 various image functions crash on headless linux when font packages aren't installed](https://luceeserver.atlassian.net/browse/LDEV-2619) for solution
+
+## Codec support (v2)
+
+Since Version 2, you can limit the image codecs being used via `this.image.coder=['Lucee','TwelveMonkeys'];` in your `Application.cfc`
+
+Supported codecs are:
+
+`["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI"]`
+
+To test and profile codec support and performance, there is a new function `ImageCoderInfo(image)`
