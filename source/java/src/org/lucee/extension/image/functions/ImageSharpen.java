@@ -35,7 +35,7 @@ public class ImageSharpen extends FunctionSupport {
 		
 		if (gain < -1.0 || gain > 2.0)
 		    throw CFMLEngineFactory.getInstance().getExceptionUtil()
-		    .createFunctionException(pc,"ImageSharpen",2,"gain","value must be between 1 and 2",null);
+		    .createFunctionException(pc, "ImageSharpen", 2, "gain", "value must be between -1 and 2", null);
 		img.sharpen((float)gain);
 		return null;
 	}
