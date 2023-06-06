@@ -1,16 +1,16 @@
 # This workflow will build a Java project with Ant
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
 
-name: Java CI- Lucee 5.3
+name: Java CI - Lucee 5.4
 
-on: [workflow_dispatch]
+on: [push, pull_request,workflow_dispatch]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
     env:
-      luceeVersion: 5.3.10.120
+      luceeVersion: light-5.4.0.73-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v3
@@ -43,7 +43,6 @@ jobs:
       with:
         repository: lucee/lucee
         path: lucee
-        ref: 5.3
     - name: Run Lucee Test Suite (testFilter="image")
       uses: lucee/script-runner@main
       with:
@@ -55,4 +54,3 @@ jobs:
       env:
         testLabels: image
         testAdditional: ${{ github.workspace }}/tests
-        extensions:
