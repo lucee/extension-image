@@ -10,7 +10,7 @@ jobs:
 
     runs-on: windows-latest
     env:
-      luceeVersion: light-6.0.0.429-SNAPSHOT
+      luceeVersion: light-6.0.0.451-BETA
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
