@@ -11,6 +11,7 @@ jobs:
     runs-on: windows-latest
     env:
       luceeVersion: 5.4.2.11-SNAPSHOT
+      luceeVersionQuery: 5.4/all/light
 
     steps:
     - uses: actions/checkout@v3
@@ -48,6 +49,7 @@ jobs:
         webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: ${{ env.luceeVersion }}
+        luceeVersionQuery: ${{ env.luceeVersionQuery }}
         extensionDir: ${{ github.workspace }}/dist
         extensions:
       env:

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       luceeVersion: 5.3.10.120
-
+      luceeVersionQuery: 5.3/all/light
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
@@ -28,9 +28,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: _actions/lucee/script-runner/main/lucee-download-cache
-        key: lucee-downloads-${{ env.luceeVersion }}
-        restore-keys: |
-          lucee-downloads
+        key: lucee-downloads
     - name: Build with Ant
       run: ant -noinput -verbose -buildfile build.xml
     - name: Upload Artifact
@@ -50,6 +48,7 @@ jobs:
         webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: ${{ env.luceeVersion }}
+        luceeVersionQuery: ${{ env.luceeVersionQuery }}
         extensionDir: ${{ github.workspace }}/dist
         extensions:
       env:

@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       luceeVersion: light-5.4.1.80
+      luceeVersionQuery: 5.4/all/light
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
@@ -46,6 +47,7 @@ jobs:
         webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: ${{ env.luceeVersion }}
+        luceeVersionQuery: ${{ env.luceeVersionQuery }}
         extensionDir: ${{ github.workspace }}/dist
         extensions:
       env:
