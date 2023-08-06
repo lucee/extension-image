@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     env:
       luceeVersion: 5.3.10.120
-      luceeVersionQuery: 5.3/all/light
+      luceeVersionQuery: 5.3/all/jar
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
@@ -41,7 +41,6 @@ jobs:
       with:
         repository: lucee/lucee
         path: lucee
-        ref: 5.3
     - name: Run Lucee Test Suite (testFilter="image")
       uses: lucee/script-runner@main
       with:
