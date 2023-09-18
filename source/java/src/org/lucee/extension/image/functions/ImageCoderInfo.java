@@ -32,7 +32,7 @@ public class ImageCoderInfo extends FunctionSupport implements Function {
 			// read
 			Array read = cre.createArray();
 			data.set("read", read);
-			BufferedImage bi = mc.read(src, null, null, read);
+			BufferedImage bi = mc.read(src, null, read);
 
 			// write
 			Array write = cre.createArray();

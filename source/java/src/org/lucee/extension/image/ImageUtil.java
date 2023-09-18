@@ -19,6 +19,7 @@
 package org.lucee.extension.image;
 
 import java.awt.Graphics2D;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
@@ -34,6 +35,7 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageInputStream;
 
@@ -41,9 +43,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.lucee.extension.image.coder.Coder;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -57,10 +60,6 @@ public class ImageUtil {
 	private static Class JPEGEncodeParam;
 
 	private static int counter = 0;
-
-	public static final int COLOR_TYPE_RGB = 1;
-	public static final int COLOR_TYPE_CMYK = 2;
-	public static final int COLOR_TYPE_YCCK = 3;
 
 	private static Coder getCoder() {
 		if (true || _coder == null) {
@@ -122,8 +121,8 @@ public class ImageUtil {
 	 * @return
 	 * @throws IOException
 	 */
-	public static BufferedImage toBufferedImage(Resource res, String format, RefInteger jpegColorType) throws IOException {
-		return getCoder().read(res, format, jpegColorType);
+	public static BufferedImage toBufferedImage(Resource res, String format) throws IOException {
+		return getCoder().read(res, format);
 	}
 
 	/**
@@ -133,8 +132,8 @@ public class ImageUtil {
 	 * @return
 	 * @throws IOException
 	 */
-	public static BufferedImage toBufferedImage(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
-		return getCoder().read(bytes, format, jpegColorType);
+	public static BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
+		return getCoder().read(bytes, format);
 	}
 
 	public static void writeOut(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
@@ -602,13 +601,6 @@ public class ImageUtil {
 		}
 	}
 
-	public static Object toColorType(Integer colorType, String defaultValue) {
-		if (COLOR_TYPE_CMYK == colorType) return "CMYK";
-		if (COLOR_TYPE_RGB == colorType) return "RGB";
-		if (COLOR_TYPE_YCCK == colorType) return "YCCK";
-		return defaultValue;
-	}
-
 	public static BufferedImage toABGR(BufferedImage src) {
 		if (src.getType() == BufferedImage.TYPE_3BYTE_BGR) {
 			BufferedImage bff = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
@@ -655,4 +647,94 @@ public class ImageUtil {
 	public static synchronized String id() {
 		return (++counter) + "x" + System.currentTimeMillis();
 	}
+
+	public static String getColorType(BufferedImage image, IIOMetadata meta, String defaultValue) {
+		ColorModel cm = image.getColorModel();
+
+		int type = cm.getColorSpace().getType();
+
+		if (type == ColorSpace.TYPE_CMYK && meta != null && isAdobeEncoded(meta)) {
+			return "YCCK";
+		}
+		switch (type) {
+		case ColorSpace.TYPE_XYZ:
+			return "XYZ";
+		case ColorSpace.TYPE_Lab:
+			return "Lab";
+		case ColorSpace.TYPE_Luv:
+			return "Luv";
+		case ColorSpace.TYPE_YCbCr:
+			return "YCbCr";
+		case ColorSpace.TYPE_Yxy:
+			return "Yxy";
+		case ColorSpace.TYPE_RGB:
+			return "RGB";
+		case ColorSpace.TYPE_GRAY:
+			return "GRAY";
+		case ColorSpace.TYPE_HSV:
+			return "HSV";
+		case ColorSpace.TYPE_CMYK:
+			return "CMYK";
+		case ColorSpace.TYPE_CMY:
+			return "CMY";
+		case ColorSpace.TYPE_2CLR:
+			return "2CLR";
+		case ColorSpace.TYPE_3CLR:
+			return "3CLR";
+		case ColorSpace.TYPE_4CLR:
+			return "4CLR";
+		case ColorSpace.TYPE_5CLR:
+			return "5CLR";
+		case ColorSpace.TYPE_6CLR:
+			return "6CLR";
+		case ColorSpace.TYPE_7CLR:
+			return "7CLR";
+		case ColorSpace.TYPE_8CLR:
+			return "8CLR";
+		case ColorSpace.TYPE_9CLR:
+			return "9CLR";
+		case ColorSpace.TYPE_ACLR:
+			return "ACLR";
+		case ColorSpace.TYPE_BCLR:
+			return "BCLR";
+		case ColorSpace.TYPE_CCLR:
+			return "CCLR";
+		case ColorSpace.TYPE_ECLR:
+			return "ECLR";
+		case ColorSpace.TYPE_FCLR:
+			return "FCLR";
+
+		}
+		return defaultValue;
+	}
+
+	private static boolean isAdobeEncoded(IIOMetadata metadata) {
+		// Check for the Adobe marker in the metadata
+		try {
+			Node tree = metadata.getAsTree("javax_imageio_jpeg_image_1.0");
+			Node markerSequence = tree.getFirstChild();
+
+			while (markerSequence != null) {
+				if ("markerSequence".equals(markerSequence.getNodeName())) {
+					Node child = markerSequence.getFirstChild();
+					while (child != null) {
+						if ("app14Adobe".equals(child.getNodeName())) {
+							NamedNodeMap attrs = child.getAttributes();
+							Node version = attrs.getNamedItem("version");
+							if (version != null && "100".equals(version.getNodeValue())) {
+								return true;
+							}
+						}
+						child = child.getNextSibling();
+					}
+				}
+				markerSequence = markerSequence.getNextSibling();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

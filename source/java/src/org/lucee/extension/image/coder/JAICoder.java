@@ -10,7 +10,6 @@ import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.JAIUtil;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
@@ -22,12 +21,12 @@ class JAICoder extends Coder {
 	}
 
 	@Override
-	public final BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(Resource res, String format) throws IOException {
 		return JAIUtil.read(res);
 	}
 
 	@Override
-	public final BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(byte[] bytes, String format) throws IOException {
 		return JAIUtil.read(new ByteArrayInputStream(bytes), format);
 	}
 

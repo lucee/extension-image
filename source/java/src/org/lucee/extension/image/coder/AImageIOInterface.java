@@ -38,7 +38,6 @@ import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
@@ -77,7 +76,7 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 	}
 
 	@Override
-	public BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(Resource res, String format) throws IOException {
 		if (res instanceof File) return createBufferedImage(res, format);
 		InputStream is = null;
 		try {
@@ -94,7 +93,7 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 	}
 
 	@Override
-	public BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(byte[] bytes, String format) throws IOException {
 		ByteArrayInputStream bais = null;
 		try {
 			bais = new ByteArrayInputStream(bytes);

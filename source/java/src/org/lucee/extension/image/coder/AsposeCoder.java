@@ -14,7 +14,6 @@ import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
@@ -75,7 +74,7 @@ public class AsposeCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(Resource res, String format) throws IOException {
 		// System.out.println("JDeli.read");
 		InputStream is = res.getInputStream();
 		try {
@@ -94,7 +93,7 @@ public class AsposeCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(byte[] bytes, String format) throws IOException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 		try {
 			return read(bais);

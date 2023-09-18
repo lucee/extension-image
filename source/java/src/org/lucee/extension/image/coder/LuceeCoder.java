@@ -59,7 +59,6 @@ import org.lucee.extension.image.jpg.decoder.JPEGDecoder;
 import org.lucee.extension.image.jpg.encoder.JPEGEncoder;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -85,7 +84,7 @@ class LuceeCoder extends Coder implements FormatNames {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(Resource res, String format) throws IOException {
 		// System.out.println("JRE.read");
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
@@ -105,14 +104,14 @@ class LuceeCoder extends Coder implements FormatNames {
 			JPEGDecoder reader = new JPEGDecoder();
 			try {
 				if (res instanceof File) {
-					BufferedImage bi = reader.readImage((File) res, jpegColorType);
+					BufferedImage bi = reader.readImage((File) res);
 					if (bi != null) return bi;
 				}
 				else {
 					Resource tmp = eng.getSystemUtil().getTempFile("jpg", false);
 					eng.getIOUtil().copy(res, tmp);
 					try {
-						BufferedImage bi = reader.readImage((File) tmp, jpegColorType);
+						BufferedImage bi = reader.readImage((File) tmp);
 						if (bi != null) return bi;
 					}
 					finally {
@@ -152,7 +151,7 @@ class LuceeCoder extends Coder implements FormatNames {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(byte[] bytes, String format) throws IOException {
 		// System.out.println("JRE.read");
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		if (eng.getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(bytes, null);
@@ -165,7 +164,7 @@ class LuceeCoder extends Coder implements FormatNames {
 		else if ("jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format)) {
 			JPEGDecoder decoder = new JPEGDecoder();
 			try {
-				BufferedImage bi = decoder.readImage(bytes, jpegColorType);
+				BufferedImage bi = decoder.readImage(bytes);
 				if (bi != null) return bi;
 			}
 			catch (Exception e) {
@@ -266,7 +265,11 @@ class LuceeCoder extends Coder implements FormatNames {
 		}
 		catch (IIOException iioe) {
 			// TODO correct the bands in case a CMYK image is read in when creating the BufferedImage
-			if (img2.jpegColorType != null && img2.jpegColorType.toInt() > 0 && (iioe.getMessage() + "").indexOf("Metadata components != number of destination bands") != -1) {
+
+			IIOMetadata metadata = img2.getMetaData(null, null);
+			String ct = ImageUtil.getColorType(img2.image(), metadata, null);
+
+			if (ct != null && (iioe.getMessage() + "").indexOf("Metadata components != number of destination bands") != -1) {
 				ImageUtil.closeEL(ios);
 				eng().getIOUtil().closeSilent(os);
 

@@ -33,7 +33,6 @@ import org.lucee.extension.image.format.FormatNames;
 import org.lucee.extension.image.util.MultiException;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -62,11 +61,11 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
-		return read(res, format, jpegColorType, null);
+	public BufferedImage read(Resource res, String format) throws IOException {
+		return read(res, format, null);
 	}
 
-	public BufferedImage read(Resource res, String format, RefInteger jpegColorType, Array detail) throws IOException {
+	public BufferedImage read(Resource res, String format, Array detail) throws IOException {
 		if (Util.isEmpty(format, true)) {
 			format = ImageUtil.getFormat(res);
 		}
@@ -85,12 +84,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 					data.set("class", coder.getClass().getName());
 					start = System.currentTimeMillis();
 				}
-				bi = coder.read(res, format, jpegColorType);
+				bi = coder.read(res, format);
 				if (detail != null) {
 					data.set("time", System.currentTimeMillis() - start);
 					data.set("image", new Image(bi));
 				}
-				if (detail == null && bi != null) return bi;
+				if (detail == null && bi != null) {
+					return bi;
+				}
 			}
 			catch (Throwable t) {
 				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
@@ -134,7 +135,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(byte[] bytes, String format) throws IOException {
 		if (Util.isEmpty(format, true)) {
 			format = ImageUtil.getFormat(bytes);
 		}
@@ -142,7 +143,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getReaderFormatNames(), format)) continue;
 			try {
-				BufferedImage bi = coder.read(bytes, format, jpegColorType);
+				BufferedImage bi = coder.read(bytes, format);
 				if (bi != null) return bi;
 			}
 			catch (Exception e) {

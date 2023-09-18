@@ -21,7 +21,6 @@ import org.lucee.extension.image.format.FormatNames;
 import org.lucee.extension.image.util.CommonUtil;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
@@ -30,10 +29,11 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 
 	protected ImageIOCoder() {
 		super();
+		ImageIO.setUseCache(false);
 	}
 
 	@Override
-	public final BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(Resource res, String format) throws IOException {
 		InputStream is = null;
 		try {
 			return ImageIO.read(is = res.getInputStream());
@@ -44,7 +44,7 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public final BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(byte[] bytes, String format) throws IOException {
 		return ImageIO.read(new ByteArrayInputStream(bytes));
 
 	}

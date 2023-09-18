@@ -12,7 +12,6 @@ import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
@@ -29,7 +28,7 @@ public class JDeliCoder extends Coder implements FormatNames, FormatExtract {
 			new String[] { "BMP", "DICOM", "EMF", "GIF", "HEIC", "ICO", "JPEG", "JPEG2000", "PDF", "PNG", "SGI", "PSD", "TIFF", "WEBP", "WMF" });
 
 	@Override
-	public BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(Resource res, String format) throws IOException {
 		// System.out.println("JDeli.read");
 		InputStream is = res.getInputStream();
 		try {
@@ -49,7 +48,7 @@ public class JDeliCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
-	public BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public BufferedImage read(byte[] bytes, String format) throws IOException {
 		// System.out.println("JDeli.read");
 		try {
 			return read(bytes);

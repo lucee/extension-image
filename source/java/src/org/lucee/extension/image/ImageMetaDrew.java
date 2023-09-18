@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+import org.lucee.extension.image.util.CommonUtil;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.imaging.jpeg.JpegProcessingException;
 import com.drew.imaging.tiff.TiffMetadataReader;
@@ -52,7 +54,7 @@ public class ImageMetaDrew {
 	 */
 	public static void addInfo(String format, Resource res, Struct info) {
 		try {
-			if ("jpg".equalsIgnoreCase(format)) jpg(res, info);
+			if (ImageUtil.isJPEG(format)) jpg(res, info);
 			else if ("tiff".equalsIgnoreCase(format)) tiff(res, info);
 		}
 		catch (Exception ex) {
@@ -64,6 +66,7 @@ public class ImageMetaDrew {
 			}
 			catch (Exception e) {
 			}
+
 		}
 
 		// Metadata.addInfo(format,source,sctInfo);
@@ -104,12 +107,12 @@ public class ImageMetaDrew {
 		while (directories.hasNext()) {
 			Directory directory = directories.next();
 			Struct sct = eng.getCreationUtil().createStruct();
-			info.setEL(eng.getCreationUtil().createKey(directory.getName()), sct);
+			info.setEL(eng.getCreationUtil().createKey(CommonUtil.unwrap(directory.getName())), sct);
 
 			Iterator<Tag> tags = directory.getTags().iterator();
 			while (tags.hasNext()) {
 				Tag tag = tags.next();
-				sct.setEL(eng.getCreationUtil().createKey(tag.getTagName()), tag.getDescription());
+				sct.setEL(eng.getCreationUtil().createKey(CommonUtil.unwrap(tag.getTagName())), CommonUtil.unwrap(tag.getDescription()));
 			}
 		}
 	}

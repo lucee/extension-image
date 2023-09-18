@@ -71,6 +71,7 @@ public class Metadata {
 				md = Imaging.getMetadata(res.getInputStream(), res.getName());
 			}
 			if (md == null) return;
+
 			if (md instanceof JpegImageMetadata) {
 				final JpegImageMetadata jpegMetadata = (JpegImageMetadata) md;
 
@@ -84,7 +85,8 @@ public class Metadata {
 					Struct exif = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
 					info.setEL("exif", exif);
 					try {
-						set(jpegMetadata.getExif().getItems(), info, exif);
+						TiffImageMetadata _exif = jpegMetadata.getExif();
+						set(_exif.getItems(), info, exif);
 					}
 					catch (Exception e) {
 						if (log != null) log.error("imaging", e);

@@ -99,7 +99,6 @@ import org.w3c.dom.Node;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -173,17 +172,15 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private Stroke stroke;
 
-	private Struct sctInfo;
-
 	private float alpha = 1;
 
 	private Composite composite;
-	public final RefInteger jpegColorType;
 	private int orientation = Metadata.ORIENTATION_UNDEFINED;
 
 	private static CFMLEngine _eng;
 	private static Object sync = new Object();
 	private final boolean fromNew;
+	private Struct sctInfo;
 
 	static {
 		ImageIO.scanForPlugins();
@@ -196,8 +193,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
-		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
-		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
+		_image = ImageUtil.toBufferedImage(binary, format);
 		if (_image == null) throw new IOException("Unable to read binary image file");
 
 		checkOrientation(binary);
@@ -211,8 +207,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
 		this.format = format;
-		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
-		_image = ImageUtil.toBufferedImage(res, format, jpegColorType);
+		_image = ImageUtil.toBufferedImage(res, format);
 		this.source = res;
 		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
 
@@ -224,10 +219,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Image(BufferedImage image) {
 		this._image = image;
 		this.format = null;
-		jpegColorType = null;
-		// TODO find out jpeg type
 		fromNew = false;
-
 	}
 
 	public static Image getInstance(PageContext pc, String str, String format) throws IOException, ImageReadException, PageException {
@@ -255,8 +247,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
 		this.format = format;
-		jpegColorType = CFMLEngineFactory.getInstance().getCreationUtil().createRefInteger(0);
-		_image = ImageUtil.toBufferedImage(binary, format, jpegColorType);
+		_image = ImageUtil.toBufferedImage(binary, format);
 		if (_image == null) throw new IOException("Unable to decode image from base64 string");
 
 		checkOrientation(binary);
@@ -271,13 +262,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			clearRect(0, 0, width, height);
 		}
 		this.format = null;
-		jpegColorType = null;
 		fromNew = true;
 	}
 
 	public Image() {
 		this.format = null;
-		jpegColorType = null;
 		fromNew = true;
 
 	}
@@ -352,7 +341,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Struct info() throws PageException {
-		if (sctInfo != null) return sctInfo;
+		// if (sctInfo != null) return sctInfo;
 
 		Struct sctInfo = eng().getCreationUtil().createStruct(), sct;
 		ImageMetaDrew.addInfo(format, source, sctInfo);
@@ -360,20 +349,26 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		sctInfo.setEL("height", Double.valueOf(getHeight()));
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
 		sctInfo.setEL("source", source == null ? "" : source.getAbsolutePath());
-		if (jpegColorType != null && jpegColorType.toInteger() > 0) {
-			sctInfo.setEL("jpeg_color_type", ImageUtil.toColorType(jpegColorType.toInteger(), ""));
+
+		if (ImageUtil.isJPEG(getFormat())) {
+
 		}
+
+		// if (jpegColorType != null && jpegColorType.toInteger() > 0) {
+		// sctInfo.setEL("jpeg_color_type", ImageUtil.toColorType(jpegColorType.toInteger(), ""));
+		// }
 		// sct.setEL("mime_type",getMimeType());
 
 		ColorModel cm = image().getColorModel();
 		sct = eng().getCreationUtil().createStruct();
 		sctInfo.setEL("colormodel", sct);
-
-		sct.setEL("alpha_channel_support", eng().getCastUtil().toBoolean(cm.hasAlpha()));
+		int numComponents = cm.getNumComponents();
+		boolean hasAlpha = cm.hasAlpha();
+		sct.setEL("alpha_channel_support", eng().getCastUtil().toBoolean(hasAlpha));
 		sct.setEL("alpha_premultiplied", eng().getCastUtil().toBoolean(cm.isAlphaPremultiplied()));
 		sct.setEL("transparency", toStringTransparency(cm.getTransparency()));
 		sct.setEL("pixel_size", eng().getCastUtil().toDouble(cm.getPixelSize()));
-		sct.setEL("num_components", eng().getCastUtil().toDouble(cm.getNumComponents()));
+		sct.setEL("num_components", eng().getCastUtil().toDouble(numComponents));
 		sct.setEL("num_color_components", eng().getCastUtil().toDouble(cm.getNumColorComponents()));
 		sct.setEL("colorspace", toStringColorSpace(cm.getColorSpace()));
 
@@ -393,8 +388,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else if (cm instanceof PackedColorModel) sct.setEL("colormodel_type", "PackedColorModel");
 		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
-		getMetaData(sctInfo, null);
-
+		IIOMetadata metadata = getMetaData(sctInfo, null);
+		if (ImageUtil.isJPEG(getFormat())) {
+			String ct = ImageUtil.getColorType(image(), metadata, "");
+			if (ct != null) {
+				sctInfo.setEL("jpeg_color_type", ct);
+			}
+		}
 		try {
 			Log log = null;
 			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
@@ -404,8 +404,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
-		this.sctInfo = sctInfo;
-		return sctInfo;
+		return this.sctInfo = sctInfo;
 	}
 
 	public IIOMetadata getMetaData(Struct parent, String format) {

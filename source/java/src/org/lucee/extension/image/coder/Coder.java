@@ -33,7 +33,6 @@ import org.lucee.extension.image.util.CommonUtil;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -99,7 +98,7 @@ public abstract class Coder {
 	 * @return
 	 * @throws IOException
 	 */
-	public abstract BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException;
+	public abstract BufferedImage read(Resource res, String format) throws IOException;
 
 	/**
 	 * translate a binary array to a buffered image
@@ -108,7 +107,7 @@ public abstract class Coder {
 	 * @return
 	 * @throws IOException
 	 */
-	public abstract BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException;
+	public abstract BufferedImage read(byte[] bytes, String format) throws IOException;
 
 	public abstract boolean supported();
 

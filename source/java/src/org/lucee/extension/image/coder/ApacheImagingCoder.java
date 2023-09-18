@@ -20,7 +20,6 @@ import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
 
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.types.RefInteger;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
@@ -68,7 +67,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage read(Resource res, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(Resource res, String format) throws IOException {
 		// System.out.println("Sanselan.read");
 		InputStream is = null;
 		try {
@@ -90,7 +89,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 	 * @throws IOException
 	 */
 	@Override
-	public final BufferedImage read(byte[] bytes, String format, RefInteger jpegColorType) throws IOException {
+	public final BufferedImage read(byte[] bytes, String format) throws IOException {
 		// System.out.println("Sanselan.read");
 		try {
 			return Imaging.getBufferedImage(new ByteArrayInputStream(bytes));
