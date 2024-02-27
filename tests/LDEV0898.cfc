@@ -17,14 +17,15 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
-
+	
+	variables.imageDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"image/";
+	variables.tmpDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"temp/";
+	
 	public void function test() {
-		var dir=GetDirectoryFromPath(GetCurrentTemplatePath());
-		var parent=GetDirectoryFromPath(mid(dir,1,dir.len()-1));
-		var src=parent&"functions/images/BigBen.jpg";
-		var trgDir=dir&"images/";
-		var trg=trgDir&"BigBen.jpg";
-
+		var src=variables.imageDir&"BigBen.jpg";
+		var trg=variables.tmpDir&"BigBen.jpg";
+		if(!directoryExists(variables.tmpDir)) directoryCreate(variables.tmpDir);
+		
 		try {
 			// create directory
 			if(!directoryExists(trgDir)) directoryCreate(trgDir);
@@ -44,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			assertEquals(50,ImageGetHeight(img2));
 		}
 		finally {
-			DirectoryDelete(trgDir,true);
+			DirectoryDelete(variables.tmpDir,true);
 		}
 	}
 } 
