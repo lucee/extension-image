@@ -24,11 +24,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	public void function test() {
 		var src=variables.imageDir&"BigBen.jpg";
 		var trg=variables.tmpDir&"BigBen.jpg";
-		if(!directoryExists(variables.tmpDir)) directoryCreate(variables.tmpDir);
 		
 		try {
 			// create directory
-			if(!directoryExists(trgDir)) directoryCreate(trgDir);
+			if(!directoryExists(variables.tmpDir)) directoryCreate(variables.tmpDir);
 			
 			// create file
 			if(fileExists(trg)) fileDelete(trg);
