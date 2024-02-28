@@ -24,8 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	}
 
 	public void function testImage() localmode="true"{
-		debug(server);
-		
+		systemOutput(server,1,1);
 		ImageCrop(image,10,10,100,100);
 	}
 } 
