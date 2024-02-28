@@ -18,7 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	
-	variables.imageDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"image/";
+	variables.imageDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"images/";
 	variables.tmpDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"temp/";
 	
 	public void function test() {

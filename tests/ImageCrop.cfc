@@ -25,7 +25,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	public void function testImage() localmode="true"{
 		ImageCrop(image,10,10,100,100);
-	} 
-
+	}
 } 
 </cfscript>
