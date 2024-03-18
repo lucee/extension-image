@@ -1,0 +1,63 @@
+# This workflow will build a Java project with Ant
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
+
+name: Test Java 21
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      luceeVersion: light-6.0.0.451-BETA
+      luceeVersionQuery: 0/all/light
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11 for build
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: lucee-script-runner-maven-cache
+        enableCrossOsArchive: true
+    - name: Cache Lucee files
+      uses: actions/cache@v3
+      with:
+        path: ~/work/_actions/lucee/script-runner/main/lucee-download-cache
+        key: lucee-downloads
+        enableCrossOsArchive: true
+    - name: Build with Ant
+      run: ant -noinput -verbose -buildfile build.xml
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: image-lex
+        path: dist/*.lex
+    - uses: actions/checkout@v3
+    - name: Set up JDK 21 for testing
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'adopt'
+    - name: Checkout Lucee
+      uses: actions/checkout@v3
+      with:
+        repository: lucee/lucee
+        path: lucee
+    - name: Run Lucee Test Suite (testFilter="image")
+      uses: lucee/script-runner@main
+      with:
+        webroot: ${{ github.workspace }}/lucee/test
+        execute: /bootstrap-tests.cfm
+        luceeVersion: ${{ env.luceeVersion }}
+        luceeVersionQuery: ${{ env.luceeVersionQuery }}
+        extensionDir: ${{ github.workspace }}/dist
+        extensions:
+      env:
+        testLabels: image
+        testAdditional: ${{ github.workspace }}/tests
