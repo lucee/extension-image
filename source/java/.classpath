@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="libs/org.lucee.jmagick-6.2.4.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.twelvemonkeys.imageio-ico-3.0.2.jar"/>
 	<classpathentry kind="lib" path="libs/org.apache.commons.commons-imaging-1.0.0.alpha3.jar"/>
-	<classpathentry kind="lib" path="libs/org.apache.commons.commons-io-2.11.0.jar"/>
 	<classpathentry kind="lib" path="libs/org.apiguardian.api-1.1.2.jar"/>
 	<classpathentry kind="lib" path="libs/org.hamcrest-2.2.jar"/>
 	<classpathentry kind="lib" path="libs/org.opentest4j-1.2.0.jar"/>
