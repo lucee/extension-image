@@ -86,7 +86,7 @@ public class Metadata {
 					info.setEL("exif", exif);
 					try {
 						TiffImageMetadata _exif = jpegMetadata.getExif();
-						if (_exif != null) set(_exif.getItems(), info, exif);
+						set(_exif.getItems(), info, exif);
 					}
 					catch (Exception e) {
 						if (log != null) log.error("imaging", e);
