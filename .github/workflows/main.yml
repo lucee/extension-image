@@ -58,6 +58,7 @@ jobs:
       MYSQL_PASSWORD: lucee
       MYSQL_PORT: 3306
       MYSQL_DATABASE: lucee
+      LUCEE_VERSIONS: ${{ env.LUCEE_VERSIONS }}
     strategy:
       matrix:
         lucee: ${{ fromJSON(env.LUCEE_VERSIONS) }}
