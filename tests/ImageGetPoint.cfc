@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image2" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function run( testResults, testBox ){
 		describe( "test case for ImageDrawPoint", function() {
