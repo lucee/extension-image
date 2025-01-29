@@ -43,7 +43,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
 public class ImageFilter extends FunctionSupport {
-	private static Struct _EMPTY_STRUCT;
 	private static Map<String, Class> filters = new HashMap<String, Class>();
 	static {
 		filters.put("applymask", ApplyMaskFilter.class);
@@ -229,8 +228,7 @@ public class ImageFilter extends FunctionSupport {
 	}
 
 	private static Struct getEmptyStruct() {
-		if (_EMPTY_STRUCT == null) _EMPTY_STRUCT = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-		return null;
+		return CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
 	}
 
 	private static void setters(String key, Class clazz, StringBuilder sb) {
