@@ -85,7 +85,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: image-lex-${{ matrix.lucee.version }}
+          name: image-lex-${{ matrix.lucee.version }}-${{ matrix.java }}
           path: target/*.lex
 
       - name: Checkout Lucee
