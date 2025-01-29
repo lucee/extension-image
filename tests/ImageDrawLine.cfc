@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"ImageDrawLine/";
+		variables.path = getTempDirectory() & "ImageDrawLine/";
 		if(!directoryExists(path)){
 			directorycreate(path);
 		}
@@ -21,14 +21,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				newImg = imageNew("",150,150,"rgb","149c82");
 				newImg.Drawline(30,50,130,130);
 				cfimage(action = "write", source = newImg, destination = path&'objDrawline.jpg', overwrite="yes");
-				expect(fileExists(path&'Drawline.jpg')).tobe("true");
+				expect(fileExists(path&'objDrawline.jpg')).tobe("true");
 			});
 
 		});
 	}
 
 	function afterAll(){
-		if(directoryExists(path)){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
 			directoryDelete(path,true);
 		}
 	}

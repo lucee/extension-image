@@ -6,8 +6,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			it(title = "Checking with image.Overlay", body = function( currentSpec ) {
 				var myImg = imageNew("",152,152,"rgb","40739e");
 				var topImg = imageNew("",80,80,"rgb","fbc531");
-				myImg.overlay(topImg);
-				expect( isImage(myImg) ).tobe("true");
+				myImg = myImg.overlay(topImg);
+				expect( isImage( myImg) ).tobe("true");
 			});
 
 			it(title = "Checking with imageOverlay", body = function( currentSpec ) {

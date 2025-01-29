@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"ImageDrawPoint/";
+		variables.path = getTempDirectory() & "ImageDrawPoint/";
 		if(!directoryExists(path)){
 			directorycreate(path);
 		}
@@ -11,24 +11,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		describe( "test case for ImageDrawPoint", function() {
 
 			it(title = "Checking with ImageDrawOval", body = function( currentSpec ){
-				imgOne = imageNew("",200,200,"rgb","red");
-				imageDrawPoint(imgOne,90,90);
-				cfimage(action = "write", source = imgOne, destination = path&'imgDrawovalOne.jpg',overwrite = "yes");
-				expect(fileexists(path&'imgDrawovalOne.jpg')).tobe("true");
+				var img = imageNew("",200,200,"rgb","red");
+				imageSetDrawingColor(img, "white");
+				imageDrawPoint(img,90,90);
+				cfimage(action = "write", source = img, destination = path&'imgDrawPoint.jpg',overwrite = "yes");
+				expect(fileexists(path&'imgDrawPoint.jpg')).toBe("true");
 			});
 
 			it(title = "Checking with image.drawOval()", body = function( currentSpec ){
-				imgTwo = imageNew("",200,200,"rgb","blue");
-				imgTwo.DrawPoint(100,130);
-				cfimage(action = "write", source = imgTwo, destination = path&'drawovalObjone.jpg',overwrite = "yes");
-				expect(fileexists(path&'drawovalObjone.jpg')).tobe("true");
+				var img = imageNew("",200,200,"rgb","blue");
+				img.setDrawingColor("white");
+				img.DrawPoint(100,130);
+				cfimage(action = "write", source = img, destination = path&'objDrawPoint.jpg',overwrite = "yes");
+				expect(fileexists(path&'objDrawPoint.jpg')).toBe("true");
 			});
 
 		});
 	}
 
 	function afterAll(){
-		if(directoryExists(path)){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
 			directoryDelete(path,true);
 		}
 	}

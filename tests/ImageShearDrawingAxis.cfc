@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"ImageShearDrawingAxis/";
+		variables.path = getTempDirectory() & "ImageShearDrawingAxis/";
 		if(!directoryExists(path)){
 			directorycreate(path);
 		}
@@ -30,8 +30,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	};
 
 	function afterAll(){
-		if(directoryExists(path)){
-			directoryDelete(path, true);
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
+			directoryDelete(path,true);
 		}
 	}
 }

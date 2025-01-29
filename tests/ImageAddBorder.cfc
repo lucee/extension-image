@@ -1,31 +1,55 @@
-<!--- 
- *
- * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
-	
 
-	public void function testImageAddBorder() localmode="true" {
-		path=GetDirectoryFromPath(GetCurrentTemplatePath())&"images/lucee.png";
-		img=imageRead(path)
-		//echo(img);
-		imageAddBorder(img);
-		// img.addBorder();
-		//echo(img);
-	} 
-} 
-</cfscript>
+	function beforeAll(){
+		variables.path = getTempDirectory() & "imageAddBorder/";
+		if(!directoryExists(path)){
+			directoryCreate(path);
+		}
+	}
+
+	function run( testResults , testBox ) {
+		describe( "test case for ImageAddBorder", function() {
+
+			it(title = "Checking with BIF", body = function( currentSpec ) {
+				var img = imageNew("",200,200,"rgb","red");
+				imageAddBorder( img );
+				imageWrite(img, getTempFile(path, "bif","png"));
+			});
+
+			it(title = "Checking with member function", body = function( currentSpec ) {
+				var img = imageNew("",200,200,"rgb","yellow");
+				img.addBorder();
+				imageWrite(img, getTempFile(path, "member","png"));
+			});
+
+			it(title = "Checking border", body = function( currentSpec ) {
+				var borders = {
+					red: 10,
+					yellow: 20,
+					green: 30
+				}
+				loop collection=#borders# item="local.thickness" key="local.color" {
+					var img = imageNew( "", 200, 200, "rgb", "silver" );
+					imageAddBorder( image=img, thickness=thickness, color=color );
+					imageWrite(img, getTempFile(path, "border-#thickness#-#color#","png"));
+				}
+			});
+
+			it(title = "Checking borderType", body = function( currentSpec ) {
+				var borderTypes= [ "zero", "constant", "copy", "reflect", "wrap" ];
+				loop array=#borderTypes# item="local.type" {
+					var img = imageNew( "", 200, 200, "rgb", "white" );
+					imageAddBorder( image=img, thickness=5, color="red", type=type );
+					imageWrite(img, getTempFile(path, "borderType-#type#","png"));
+				}
+			});
+
+		});
+	}
+	function afterAll(){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
+			directoryDelete(path,true);
+		}
+	}
+
+}

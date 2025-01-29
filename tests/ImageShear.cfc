@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
 		variables.path = getTempDirectory() & "ImageShear/";
@@ -28,8 +28,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true"
 	};
 
 	function afterAll(){
-		if(directoryExists(path)){
-			directoryDelete(path, true);
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
+			directoryDelete(path,true);
 		}
 	}
 }

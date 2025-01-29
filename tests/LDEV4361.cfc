@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image2" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function testImageInfoMetaDataImageNew(){
 		loop list="rgb,argb,grayscale,empty" item="local.color"{

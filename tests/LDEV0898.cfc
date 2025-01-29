@@ -19,7 +19,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	
 	variables.imageDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"images/";
-	variables.tmpDir=GetDirectoryFromPath(GetCurrentTemplatePath())&"temp/";
+	variables.tmpDir=GetTempDirectory() & "LDEV-0898/";
 	
 	public void function test() {
 		var src=variables.imageDir&"BigBen.jpg";
@@ -44,7 +44,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			assertEquals(50,ImageGetHeight(img2));
 		}
 		finally {
-			DirectoryDelete(variables.tmpDir,true);
+			if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(tmpDir)){
+				DirectoryDelete(variables.tmpDir,true);
+			}
 		}
 	}
 } 

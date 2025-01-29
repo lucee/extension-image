@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image"{
 
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"imageCopy/";
+		variables.path = getTempDirectory() & "imageCopy/";
 		if(!directoryExists(path)){
 			directorycreate(path);
 		}
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image"{
 	}
 
 	function afterAll(){
-		if(directoryExists(path)){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
 			directoryDelete(path,true);
 		}
 	}

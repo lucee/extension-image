@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"ImageDrawText/";
+		variables.path = getTempDirectory() & "ImageDrawText/";
 		if(!directoryExists(path)){
 			directorycreate(path);
 		}
@@ -11,25 +11,25 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		describe( "test case for ImageDrawText()", function() {
 
 			it(title = "Checking with ImageDrawText()", body = function( currentSpec ){
-				img = imageNew("",150,150,"RGB","149c82");
+				var img = imageNew("",150,150,"RGB","149c82");
 				ImageDrawText(img, "I Love Lucee",40,70);
 				cfimage(action = "write", source = img, destination = path&'imgDrawtext.jpg', overwrite = "yes");
 				expect(fileexists(path&'imgDrawtext.jpg')).tobe("true");
 			});
 
 			it(title = "Checking with Image.DrawText()", body = function( currentSpec ){
-				imgObj = imageNew("",200,200,"RGB","0000BB");
-				aCollection = { style="BOLD", underline = "true", size = "23", font="Arial Black" };
-				imgObj.DrawText("Save Tree!!!",40,30,aCollection);
-				cfimage(action = "write", source = imgObj, destination = path&'drawtxtObj.jpg', overwrite = "yes");
-				expect(fileExists(path&'drawtxtObj.jpg')).tobe("true");
+				var img = imageNew("",200,200,"RGB","0000BB");
+				var aCollection = { style="BOLD", underline = "true", size = "23", font="Arial Black" };
+				img = img.DrawText("Save Tree!!!",40,30,aCollection);
+				cfimage(action = "write", source = img, destination = path&'objDrawText.jpg', overwrite="yes");
+				expect(fileExists(path&'objDrawText.jpg')).tobe("true");
 			});
 
 		});
 	}
 
 	function afterAll(){
-		if(directoryExists(path)){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
 			directoryDelete(path,true);
 		}
 	}

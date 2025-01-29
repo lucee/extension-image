@@ -1,7 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll() {
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/" &"ImageDrawCubicCurve/";
+		variables.path = getTempDirectory() & "ImageDrawCubicCurve/";
 		if(!directoryExists(path)) {
 			directoryCreate(path);
 		}
@@ -13,8 +13,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title="Checking with imageDrawCubicCurve() function", body=function( currentSpec ) {
 				var imgDraw = imageNew("", 150, 150, "rgb", "149c82");
 				imageDrawCubicCurve(imgDraw, 0, 0, 45, 15, 50, 75, 0, 100);
-				cfimage(action="write", source=imgDraw, destination=path&'imgDrawimg.jpg', overwrite="yes");
-				expect(fileExists(path&'imgDrawimg.jpg')).tobe("true");
+				cfimage(action="write", source=imgDraw, destination=path&'imgDrawCubicCurve.jpg', overwrite="yes");
+				expect(fileExists(path&'imgDrawCubicCurve.jpg')).tobe("true");
 			});
 
 			it(title="Checking with image.drawCubicCurve()", body=function( currentSpec ) {
@@ -26,9 +26,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		});
 	}
 
-	function afterAll() {
-		if(directoryExists(path)) {
-			directoryDelete(path, true);
+	function afterAll(){
+		if (server.system.environment.TEST_CLEANUP ?: true && directoryExists(path)){
+			directoryDelete(path,true);
 		}
 	}
 }
