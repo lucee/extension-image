@@ -205,7 +205,8 @@ public class FlareFilter extends PointFilter  implements DynFiltering {
 		Object o;
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		if((o=parameters.removeEL(eng.getCreationUtil().createKey("Radius")))!=null)setRadius(ImageFilterUtil.toFloatValue(o,"Radius"));
-		//if((o=parameters.removeEL(eng.getCreationUtil().createKey("Centre")))!=null)setCentre(ImageFilterUtil.toPoint2D(o,"Centre"));
+		if((o=parameters.removeEL(eng.getCreationUtil().createKey("CentreX")))!=null)setCentreY(ImageFilterUtil.toFloatValue(o,"CentreX"));
+		if((o=parameters.removeEL(eng.getCreationUtil().createKey("CentreY")))!=null)setCentreX(ImageFilterUtil.toFloatValue(o,"CentreY"));
 		if((o=parameters.removeEL(eng.getCreationUtil().createKey("RingWidth")))!=null)setRingWidth(ImageFilterUtil.toFloatValue(o,"RingWidth"));
 		if((o=parameters.removeEL(eng.getCreationUtil().createKey("BaseAmount")))!=null)setBaseAmount(ImageFilterUtil.toFloatValue(o,"BaseAmount"));
 		if((o=parameters.removeEL(eng.getCreationUtil().createKey("RingAmount")))!=null)setRingAmount(ImageFilterUtil.toFloatValue(o,"RingAmount"));
