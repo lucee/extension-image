@@ -33,7 +33,7 @@ JDeli for example provides support the for HEIC format and write support for WEB
 
 _General_ extension documentation is [here](https://docs.lucee.org/guides/working-with-source/building-and-testing-extensions.html).
 
-As image tests sometimes require visual confirmation, many tests check for the environment variable `TEST_CLEANUP=FALSE`, which will leave the generated test artifacts in place for visual inspection in your local `lucee-server/content/temp` directory
+As image tests sometimes require visual confirmation, many tests check for the environment variable `TEST_CLEANUP=FALSE`, which will leave the generated test artifacts in place for visual inspection in your local `lucee-server/context/temp/` directory
 
 #### Mac/Linux
 
