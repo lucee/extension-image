@@ -1,5 +1,5 @@
 
-package org.lucee.extension.image.coder;
+package org.lucee.extension.image.coder.jai;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
-import org.lucee.extension.image.JAIUtil;
+import org.lucee.extension.image.coder.Coder;
 
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngineFactory;

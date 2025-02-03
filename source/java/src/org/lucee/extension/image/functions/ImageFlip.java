@@ -18,47 +18,44 @@
  **/
 package org.lucee.extension.image.functions;
 
-import javax.media.jai.operator.TransposeDescriptor;
-import javax.media.jai.operator.TransposeType;
+import org.lucee.extension.image.Image;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-import org.lucee.extension.image.Image;
-
 public class ImageFlip extends FunctionSupport {
 	public static String call(PageContext pc, Object name) throws PageException {
-		return call(pc,name,"vertical");
+		return call(pc, name, "vertical");
 	}
+
 	public static String call(PageContext pc, Object name, String strTranspose) throws PageException {
-		//if(name instanceof String) name=pc.getVariable(Caster.toString(name));
-		Image img = Image.toImage(pc,name);
-		
-		strTranspose=strTranspose.toLowerCase().trim();
-		TransposeType transpose = TransposeDescriptor.FLIP_VERTICAL;
-		if("vertical".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_VERTICAL;
-		else if("horizontal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_HORIZONTAL;
-		else if("diagonal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_DIAGONAL;
-		else if("antidiagonal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_ANTIDIAGONAL;
-		else if("anti diagonal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_ANTIDIAGONAL;
-		else if("anti-diagonal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_ANTIDIAGONAL;
-		else if("anti_diagonal".equals(strTranspose)) transpose=TransposeDescriptor.FLIP_ANTIDIAGONAL;
-		else if("90".equals(strTranspose)) transpose=TransposeDescriptor.ROTATE_90;
-		else if("180".equals(strTranspose)) transpose=TransposeDescriptor.ROTATE_180;
-		else if("270".equals(strTranspose)) transpose=TransposeDescriptor.ROTATE_270;
-		else throw CFMLEngineFactory.getInstance().getExceptionUtil()
-		.createFunctionException(pc,"ImageFlip",2,"transpose","invalid transpose definition ["+strTranspose+"], " +
-				"valid transpose values are [vertical,horizontal,diagonal,90,180,270]",null);
-		
+		// if(name instanceof String) name=pc.getVariable(Caster.toString(name));
+		Image img = Image.toImage(pc, name);
+
+		strTranspose = strTranspose.toLowerCase().trim();
+		int transpose = Image.TRANSPOSE_VERTICAL;
+		if ("vertical".equals(strTranspose)) transpose = Image.TRANSPOSE_VERTICAL;
+		else if ("horizontal".equals(strTranspose)) transpose = Image.TRANSPOSE_HORIZONTAL;
+		else if ("diagonal".equals(strTranspose)) transpose = Image.TRANSPOSE_DIAGONAL;
+		else if ("antidiagonal".equals(strTranspose)) transpose = Image.TRANSPOSE_ANTIDIAGONAL;
+		else if ("anti diagonal".equals(strTranspose)) transpose = Image.TRANSPOSE_ANTIDIAGONAL;
+		else if ("anti-diagonal".equals(strTranspose)) transpose = Image.TRANSPOSE_ANTIDIAGONAL;
+		else if ("anti_diagonal".equals(strTranspose)) transpose = Image.TRANSPOSE_ANTIDIAGONAL;
+		else if ("90".equals(strTranspose)) transpose = Image.TRANSPOSE_ROTATE_90;
+		else if ("180".equals(strTranspose)) transpose = Image.TRANSPOSE_ROTATE_180;
+		else if ("270".equals(strTranspose)) transpose = Image.TRANSPOSE_ROTATE_270;
+		else throw CFMLEngineFactory.getInstance().getExceptionUtil().createFunctionException(pc, "ImageFlip", 2, "transpose",
+				"invalid transpose definition [" + strTranspose + "], " + "valid transpose values are [vertical,horizontal,diagonal,90,180,270]", null);
+
 		img.flip(transpose);
 		return null;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==2) return call(pc, args[0],cast.toString(args[1]));
-		if(args.length==1) return call(pc, args[0]);
+		if (args.length == 2) return call(pc, args[0], cast.toString(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
 		throw exp.createFunctionException(pc, "ImageFlip", 1, 2, args.length);
 	}
 }

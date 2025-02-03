@@ -42,11 +42,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
+import java.awt.image.ConvolveOp;
 import java.awt.image.IndexColorModel;
+import java.awt.image.Kernel;
 import java.awt.image.PackedColorModel;
 import java.awt.image.PixelGrabber;
 import java.awt.image.WritableRaster;
-import java.awt.image.renderable.ParameterBlock;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -57,6 +58,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
@@ -64,13 +66,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
-import javax.media.jai.BorderExtender;
-import javax.media.jai.BorderExtenderConstant;
-import javax.media.jai.Interpolation;
-import javax.media.jai.JAI;
-import javax.media.jai.LookupTableJAI;
-import javax.media.jai.operator.ShearDir;
-import javax.media.jai.operator.TransposeType;
 import javax.swing.ImageIcon;
 
 import org.apache.commons.imaging.ImageReadException;
@@ -119,8 +114,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private static final long serialVersionUID = -2370381932689749657L;
 	public static final short TYPE_IMAGE = 25; // copy from core
 
-	public static final int BORDER_TYPE_CONSTANT = -1;
-
 	public static final int INTERPOLATION_NONE = 0;
 	public static final int INTERPOLATION_NEAREST = 1;
 	public static final int INTERPOLATION_BILINEAR = 2;
@@ -155,7 +148,23 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private static final int ANTI_ALIAS_ON = 1;
 	private static final int ANTI_ALIAS_OFF = 2;
 
+	public static final int BORDER_ZERO = 1;
+	public static final int BORDER_CONSTANT = 2;
+	public static final int BORDER_COPY = 4;
+	public static final int BORDER_REFLECT = 8;
+	public static final int BORDER_WRAP = 16;
+
+	public static final int TRANSPOSE_VERTICAL = 1;
+	public static final int TRANSPOSE_HORIZONTAL = 2;
+	public static final int TRANSPOSE_DIAGONAL = 3;
+	public static final int TRANSPOSE_ANTIDIAGONAL = 4;
+	public static final int TRANSPOSE_ROTATE_90 = 5;
+	public static final int TRANSPOSE_ROTATE_180 = 6;
+	public static final int TRANSPOSE_ROTATE_270 = 7;
+
 	private static final String FORMAT = "javax_imageio_1.0";
+	public static final int SHEAR_HORIZONTAL = 1;
+	public static final int SHEAR_VERTICAL = 2;
 
 	private BufferedImage _image;
 	private Resource source = null;
@@ -271,69 +280,181 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	}
 
-	/**
-	 * add a border to image
-	 * 
-	 * @param thickness
-	 * @param color
-	 * @param borderType
-	 */
 	public void addBorder(int thickness, Color color, int borderType) throws PageException {
-		ColorModel cm = image().getColorModel();
-		if (((cm instanceof IndexColorModel)) && (cm.hasAlpha()) && (!cm.isAlphaPremultiplied())) {
-			image(paletteToARGB(image()));
-			cm = image().getColorModel();
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
+		int newWidth = width + 2 * thickness;
+		int newHeight = height + 2 * thickness;
+
+		// Create a new image with extra space for the border
+		BufferedImage borderedImage = new BufferedImage(newWidth, newHeight, src.getType());
+		Graphics2D g2d = borderedImage.createGraphics();
+
+		// Sets the border to the specified color (default).
+		if (borderType == BORDER_CONSTANT) {
+			g2d.setColor(color);
+			g2d.fillRect(0, 0, newWidth, newHeight);
+		}
+		// Sets sample values to copies of the nearest valid pixel. For example, pixels to the left of the
+		// valid rectangle assume the value of the valid edge pixel in the same row. Pixels both above and
+		// to the left of the valid rectangle assume the value of the upper-left pixel.
+		else if (borderType == BORDER_COPY) {
+			// Draw main image first
+			g2d.drawImage(src, thickness, thickness, null);
+
+			// Top edge - repeat top row pixels
+			g2d.drawImage(src, thickness, 0, width + thickness, thickness, // dest
+					0, 0, width, 1, // source - just first row
+					null);
+
+			// Bottom edge - repeat bottom row pixels
+			g2d.drawImage(src, thickness, height + thickness, width + thickness, newHeight, // dest
+					0, height - 1, width, height, // source - just last row
+					null);
+
+			// Left edge - repeat leftmost column pixels
+			g2d.drawImage(src, 0, thickness, thickness, height + thickness, // dest
+					0, 0, 1, height, // source - just first column
+					null);
+
+			// Right edge - repeat rightmost column pixels
+			g2d.drawImage(src, width + thickness, thickness, newWidth, height + thickness, // dest
+					width - 1, 0, width, height, // source - just last column
+					null);
+
+			// Corners - fill with corner pixel color from source image
+			// Top-left corner
+			Color topLeft = new Color(src.getRGB(0, 0));
+			g2d.setColor(topLeft);
+			g2d.fillRect(0, 0, thickness, thickness);
+
+			// Top-right corner
+			Color topRight = new Color(src.getRGB(width - 1, 0));
+			g2d.setColor(topRight);
+			g2d.fillRect(width + thickness, 0, thickness, thickness);
+
+			// Bottom-left corner
+			Color bottomLeft = new Color(src.getRGB(0, height - 1));
+			g2d.setColor(bottomLeft);
+			g2d.fillRect(0, height + thickness, thickness, thickness);
+
+			// Bottom-right corner
+			Color bottomRight = new Color(src.getRGB(width - 1, height - 1));
+			g2d.setColor(bottomRight);
+			g2d.fillRect(width + thickness, height + thickness, thickness, thickness);
+		}
+		// Mirrors the edges of the source image. For example, if the left edge of the valid rectangle is
+		// located at x = 10, pixel (9, y) is a copy of pixel (10, y) and pixel (6, y) is a copy of pixel
+		// (13, y).
+		else if (borderType == BORDER_REFLECT) {
+			// Top and bottom edges first (excluding corners)
+			g2d.drawImage(src, thickness, 0, width + thickness, thickness, // dest
+					0, thickness, width, 0, // source - flip top vertically
+					null);
+			g2d.drawImage(src, thickness, height + thickness, width + thickness, newHeight, // dest
+					0, height, width, height - thickness, // source - flip bottom vertically
+					null);
+
+			// Left and right edges (excluding corners)
+			g2d.drawImage(src, 0, thickness, thickness, height + thickness, // dest
+					thickness, 0, 0, height, // source - flip left horizontally
+					null);
+			g2d.drawImage(src, width + thickness, thickness, newWidth, height + thickness, // dest
+					width, 0, width - thickness, height, // source - flip right horizontally
+					null);
+
+			// Draw the main image
+			g2d.drawImage(src, thickness, thickness, null);
+
+			// Top corners - flip horizontally only
+			g2d.drawImage(borderedImage, 0, 0, thickness, thickness, // dest
+					thickness * 2, 0, thickness, thickness, // source - flip horizontally from top edge
+					null);
+			g2d.drawImage(borderedImage, width + thickness, 0, newWidth, thickness, // dest
+					width + thickness, 0, width + thickness - thickness, thickness, // source - flip horizontally from top edge
+					null);
+
+			// Bottom corners - mirror from bottom edge and flip horizontally
+			g2d.drawImage(borderedImage, 0, height + thickness, thickness, newHeight, // dest
+					thickness * 2, height + thickness, thickness, height + thickness * 2, // source - flip from bottom horizontally
+					null);
+			g2d.drawImage(borderedImage, width + thickness, height + thickness, newWidth, newHeight, // dest
+					width + thickness, height + thickness, width + thickness - thickness, height + thickness * 2, // source
+					null);
+		}
+		// Tiles the source image in the plane.
+		else if (borderType == BORDER_WRAP) {
+			// Draw corners first
+			// Top-left corner
+			g2d.drawImage(src, 0, 0, thickness, thickness, // dest
+					width - thickness, height - thickness, width, height, // source
+					null);
+			// Top-right corner
+			g2d.drawImage(src, width + thickness, 0, newWidth, thickness, // dest
+					0, height - thickness, thickness, height, // source
+					null);
+			// Bottom-left corner
+			g2d.drawImage(src, 0, height + thickness, thickness, newHeight, // dest
+					width - thickness, 0, width, thickness, // source
+					null);
+			// Bottom-right corner
+			g2d.drawImage(src, width + thickness, height + thickness, newWidth, newHeight, // dest
+					0, 0, thickness, thickness, // source
+					null);
+
+			// Top and bottom edges
+			g2d.drawImage(src, thickness, 0, width + thickness, thickness, // dest
+					0, height - thickness, width, height, // source
+					null);
+			g2d.drawImage(src, thickness, height + thickness, width + thickness, newHeight, // dest
+					0, 0, width, thickness, // source
+					null);
+
+			// Left and right edges
+			g2d.drawImage(src, 0, thickness, thickness, height + thickness, // dest
+					width - thickness, 0, width, height, // source
+					null);
+			g2d.drawImage(src, width + thickness, thickness, newWidth, height + thickness, // dest
+					0, 0, thickness, height, // source
+					null);
+		}
+		// Sets the border color to black.
+		else if (borderType == BORDER_ZERO) {
+			g2d.setColor(Color.BLACK);
+			g2d.fillRect(0, 0, newWidth, newHeight);
+		}
+		else {
+			throw eng().getExceptionUtil().createApplicationException("invalid border type definition, valid types are [copy,reflect,wrap,zero,constant]");
 		}
 
-		BufferedImage alpha = null;
-		if ((cm.getNumComponents() > 3) && (cm.hasAlpha())) {
-			alpha = getAlpha(image());
-			image(removeAlpha(image()));
-		}
-		if (alpha != null) {
-			ParameterBlock params1 = new ParameterBlock();
-			params1.addSource(alpha);
+		// Draw the original image onto the new image, centered
+		g2d.drawImage(src, thickness, thickness, null);
+		g2d.dispose();
 
-			params1.add(thickness); // left
-			params1.add(thickness); // right
-			params1.add(thickness); // top
-			params1.add(thickness); // bottom
-			params1.add(new BorderExtenderConstant(new double[] { 255D }));
-
-			RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
-			alpha = JAI.create("border", params1, hints).getAsBufferedImage();
-		}
-
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(thickness); // left
-		params.add(thickness); // right
-		params.add(thickness); // top
-		params.add(thickness); // bottom
-		params.add(toBorderExtender(borderType, color));
-
-		image(JAI.create("border", params).getAsBufferedImage());
-
-		if (alpha != null) {
-			image(addAlpha(image(), alpha, thickness, thickness));
-		}
-	}
-
-	private Object toBorderExtender(int borderType, Color color) {
-		if (borderType == Image.BORDER_TYPE_CONSTANT) {
-			double[] colorArray = { color.getRed(), color.getGreen(), color.getBlue() };
-			return new BorderExtenderConstant(colorArray);
-		}
-		return BorderExtender.createInstance(borderType);
+		image(borderedImage);
 	}
 
 	public void blur(int blurFactor) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(blurFactor);
-		RenderingHints hint = new RenderingHints(JAI.KEY_BORDER_EXTENDER, BorderExtender.createInstance(1));
-		image(JAI.create("boxfilter", params, hint).getAsBufferedImage());
+		// Validate and adjust blur factor
+		int safeFactor = Math.min(Math.max(blurFactor, 3), 10);
+		if (safeFactor != blurFactor) {
+			// Optionally warn about adjustment
+			System.out.println("Blur factor adjusted to " + safeFactor + " (valid range: 3-10)");
+		}
+
+		BufferedImage source = image();
+		BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+
+		// Create kernel
+		float[] kernel = new float[safeFactor * safeFactor];
+		float value = 1.0f / (safeFactor * safeFactor);
+		Arrays.fill(kernel, value);
+
+		ConvolveOp op = new ConvolveOp(new Kernel(safeFactor, safeFactor, kernel), ConvolveOp.EDGE_NO_OP, null);
+
+		op.filter(source, result);
+		image(result);
 	}
 
 	public void clearRect(int x, int y, int width, int height) throws PageException {
@@ -553,11 +674,52 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void sharpen(float gain) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add((Object) null);
-		params.add(new Float(gain));
-		image(JAI.create("unsharpmask", params).getAsBufferedImage());
+		try {
+			BufferedImage source = image();
+
+			// Create a copy of the source image
+			BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
+
+			// Define the unsharp mask kernel
+			float amount = Math.abs(gain) * 0.5f;
+			float[][] kernel;
+
+			if (gain >= 0) {
+				// Sharpening kernel
+				kernel = new float[][] { { -amount / 4, -amount / 4, -amount / 4 }, { -amount / 4, 2 + amount, -amount / 4 }, { -amount / 4, -amount / 4, -amount / 4 } };
+			}
+			else {
+				// Blurring kernel (Gaussian approximation)
+				float blurAmount = amount / 4;
+				kernel = new float[][] { { blurAmount, blurAmount, blurAmount }, { blurAmount, 1 - (blurAmount * 8), blurAmount }, { blurAmount, blurAmount, blurAmount } };
+			}
+
+			// Create the convolve operation
+			Kernel convKernel = new Kernel(3, 3, flattenKernel(kernel));
+			ConvolveOp convOp = new ConvolveOp(convKernel, ConvolveOp.EDGE_NO_OP, new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+
+			// Apply the filter
+			convOp.filter(source, result);
+
+			// Update the image reference
+			image(result);
+
+		}
+		catch (Exception e) {
+			throw eng().getCastUtil().toPageException(e);
+		}
+	}
+
+	// Helper method to flatten 2D kernel array
+	private float[] flattenKernel(float[][] kernel) {
+		float[] flatKernel = new float[kernel.length * kernel[0].length];
+		int index = 0;
+		for (int i = 0; i < kernel.length; i++) {
+			for (int j = 0; j < kernel[0].length; j++) {
+				flatKernel[index++] = kernel[i][j];
+			}
+		}
+		return flatKernel;
 	}
 
 	public void setTranparency(float percent) throws PageException {
@@ -568,26 +730,63 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void invert() throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		image(JAI.create("invert", params).getAsBufferedImage());
+		BufferedImage source = image();
+		BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+
+		// Get the raster and process all pixels
+		for (int x = 0; x < source.getWidth(); x++) {
+			for (int y = 0; y < source.getHeight(); y++) {
+				int rgb = source.getRGB(x, y);
+
+				// Extract and invert each channel
+				int alpha = (rgb >> 24) & 0xff;
+				int red = 255 - (rgb >> 16) & 0xff;
+				int green = 255 - (rgb >> 8) & 0xff;
+				int blue = 255 - rgb & 0xff;
+
+				// Recombine the channels
+				rgb = (alpha << 24) | (red << 16) | (green << 8) | blue;
+				result.setRGB(x, y, rgb);
+			}
+		}
+
+		image(result);
 	}
 
 	public Image copy(float x, float y, float width, float height) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(x);
-		params.add(y);
-		params.add(width);
-		params.add(height);
-		// image(JAI.create("crop", params).getAsBufferedImage());
-		return new Image(JAI.create("crop", params).getAsBufferedImage());
+		BufferedImage source = image();
+
+		// Convert float parameters to int and ensure they're within bounds
+		int ix = Math.max(0, (int) x);
+		int iy = Math.max(0, (int) y);
+		int iw = Math.min(source.getWidth() - ix, (int) width);
+		int ih = Math.min(source.getHeight() - iy, (int) height);
+
+		// Create a new BufferedImage for the cropped area
+		BufferedImage result = source.getSubimage(ix, iy, iw, ih);
+
+		// Create a copy of the subimage since getSubimage returns a shared data buffer
+		BufferedImage copy = new BufferedImage(iw, ih, source.getType());
+		Graphics2D g = copy.createGraphics();
+		g.drawImage(result, 0, 0, null);
+		g.dispose();
+
+		return new Image(copy);
 	}
 
 	public Image copy(float x, float y, float width, float height, float dx, float dy) throws PageException {
-		Image img = copy(x, y, width, height);
-		img.getGraphics().copyArea((int) x, (int) y, (int) width, (int) height, (int) (dx - x), (int) (dy - y));
-		return img;
+		// First create the cropped copy
+		Image result = copy(x, y, width, height);
+		BufferedImage img = result.getBufferedImage();
+
+		// If dx/dy are specified (not -999), draw the copied area at the new location
+		if (dx != -999 && dy != -999) {
+			Graphics2D g = img.createGraphics();
+			g.drawImage(img, (int) (dx - x), (int) (dy - y), null);
+			g.dispose();
+		}
+
+		return result;
 	}
 
 	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean filled) throws PageException {
@@ -765,11 +964,68 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		getGraphics().setStroke(stroke);
 	}
 
-	public void flip(TransposeType transpose) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(transpose);
-		image(JAI.create("transpose", params).getAsBufferedImage());
+	public void flip(int transpose) throws PageException {
+		BufferedImage source = image();
+		BufferedImage result;
+		AffineTransform transform = new AffineTransform();
+
+		int width = source.getWidth();
+		int height = source.getHeight();
+
+		switch (transpose) {
+		case TRANSPOSE_VERTICAL:
+			transform.scale(1, -1);
+			transform.translate(0, -height);
+			result = new BufferedImage(width, height, source.getType());
+			break;
+
+		case TRANSPOSE_HORIZONTAL:
+			transform.scale(-1, 1);
+			transform.translate(-width, 0);
+			result = new BufferedImage(width, height, source.getType());
+			break;
+
+		case TRANSPOSE_ROTATE_90:
+			transform.rotate(Math.PI / 2, width / 2, height / 2);
+			transform.translate((height - width) / 2, (height - width) / 2);
+			result = new BufferedImage(height, width, source.getType());
+			break;
+
+		case TRANSPOSE_ROTATE_180:
+			transform.rotate(Math.PI, width / 2, height / 2);
+			result = new BufferedImage(width, height, source.getType());
+			break;
+
+		case TRANSPOSE_ROTATE_270:
+			transform.rotate(-Math.PI / 2, width / 2, height / 2);
+			transform.translate((width - height) / 2, (width - height) / 2);
+			result = new BufferedImage(height, width, source.getType());
+			break;
+
+		case TRANSPOSE_DIAGONAL:
+			transform.rotate(Math.PI / 2, width / 2, height / 2);
+			transform.scale(-1, 1);
+			transform.translate(-height, 0);
+			result = new BufferedImage(height, width, source.getType());
+			break;
+
+		case TRANSPOSE_ANTIDIAGONAL:
+			transform.rotate(-Math.PI / 2, width / 2, height / 2);
+			transform.scale(-1, 1);
+			transform.translate(-height, 0);
+			result = new BufferedImage(height, width, source.getType());
+			break;
+
+		default:
+			throw eng().getExceptionUtil().createApplicationException("Invalid transpose type");
+		}
+
+		Graphics2D g = result.createGraphics();
+		g.setTransform(transform);
+		g.drawImage(source, 0, 0, null);
+		g.dispose();
+
+		image(result);
 	}
 
 	public void grayscale() throws PageException {
@@ -798,19 +1054,60 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void overlay(Image topImage) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.addSource(topImage.image());
-		image(JAI.create("overlay", params).getAsBufferedImage());
+		BufferedImage source = image();
+		BufferedImage overlay = topImage.image();
+
+		// Convert both images to compatible types if needed
+		BufferedImage compatibleSource = ensureCompatible(source);
+		BufferedImage compatibleOverlay = ensureCompatible(overlay);
+
+		// Create graphics context with high-quality settings
+		Graphics2D g = compatibleSource.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Calculate center position
+		int x = (compatibleSource.getWidth() - compatibleOverlay.getWidth()) / 2;
+		int y = (compatibleSource.getHeight() - compatibleOverlay.getHeight()) / 2;
+
+		// Draw the overlay image
+		g.drawImage(compatibleOverlay, x, y, null);
+		g.dispose();
+
+		// Update the source image
+		image(compatibleSource);
+	}
+
+	private BufferedImage ensureCompatible(BufferedImage img) {
+		// If image is already in ARGB, return it
+		if (img.getType() == BufferedImage.TYPE_INT_ARGB) {
+			return img;
+		}
+
+		// Create new image with ARGB color model
+		BufferedImage compatible = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+
+		// Copy and convert the original image
+		Graphics2D g = compatible.createGraphics();
+		g.drawImage(img, 0, 0, null);
+		g.dispose();
+
+		return compatible;
 	}
 
 	public void paste(Image topImage, int x, int y) throws PageException {
-		RenderingHints interp = new RenderingHints(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		BorderExtender extender = BorderExtender.createInstance(1);
 		Graphics2D g = getGraphics();
-		g.addRenderingHints(new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender));
-		g.drawImage(topImage.image(), (new AffineTransformOp(AffineTransform.getTranslateInstance(x, y), interp)), 0, 0);
 
+		// Set high quality rendering hints
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Draw the top image at the specified coordinates
+		g.drawImage(topImage.image(), x, y, null);
+
+		g.dispose();
 	}
 
 	public void setXorMode(Color color) throws PageException {
@@ -820,22 +1117,31 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void translate(int xtrans, int ytrans, Object interpolation) throws PageException {
+		BufferedImage source = image();
+		BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
 
-		RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, interpolation);
-		if (interpolation != RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR) {
-			hints.add(new RenderingHints(JAI.KEY_BORDER_EXTENDER, BorderExtender.createInstance(1)));
+		// Set interpolation hint based on parameter
+		Object interpValue = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR; // default
+		if ("bilinear".equalsIgnoreCase(String.valueOf(interpolation))) {
+			interpValue = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+		}
+		else if ("bicubic".equalsIgnoreCase(String.valueOf(interpolation))) {
+			interpValue = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 		}
 
-		ParameterBlock pb = new ParameterBlock();
-		pb.addSource(image());
-		BufferedImage img = JAI.create("translate", pb).getAsBufferedImage();
-		Graphics2D graphics = img.createGraphics();
-		graphics.clearRect(0, 0, img.getWidth(), img.getHeight());
-		AffineTransform at = new AffineTransform();
-		at.setToIdentity();
-		graphics.drawImage(image(), new AffineTransformOp(at, hints), xtrans, ytrans);
-		graphics.dispose();
-		image(img);
+		// Create graphics context with specified interpolation
+		Graphics2D g = result.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpValue);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+		// Clear the background
+		g.clearRect(0, 0, result.getWidth(), result.getHeight());
+
+		// Draw the translated image
+		g.drawImage(source, xtrans, ytrans, null);
+		g.dispose();
+
+		image(result);
 	}
 
 	public void translateAxis(int x, int y) throws PageException {
@@ -854,30 +1160,48 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		getGraphics().shear(shx, shy);
 	}
 
-	public void shear(float shear, ShearDir direction, Object interpolation) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(shear);
-		params.add(direction);
-		params.add(0.0F);
-		params.add(0.0F);
-		RenderingHints hints = null;
+	public void shear(float shear, int direction, Object interpolation) throws PageException {
+		BufferedImage sourceImage = image();
+		int width = sourceImage.getWidth();
+		int height = sourceImage.getHeight();
 
-		if (interpolation == RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR) params.add(Interpolation.getInstance(0));
+		// Determine the shear transformation
+		AffineTransform transform = new AffineTransform();
+		if (direction == SHEAR_HORIZONTAL) {
+			transform.shear(shear, 0.0);
+		}
+		else {
+			transform.shear(0.0, shear);
+		}
+
+		// Create a new image with the same dimensions and transparency settings
+		BufferedImage newImage = new BufferedImage(width, height, sourceImage.getType());
+		Graphics2D g2d = newImage.createGraphics();
+
+		// Set interpolation based on the provided parameter
+		if (interpolation == RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR) {
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+		}
 		else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BILINEAR) {
-			params.add(Interpolation.getInstance(1));
-			BorderExtender extender = BorderExtender.createInstance(1);
-			hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		}
 		else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BICUBIC) {
-			params.add(Interpolation.getInstance(2));
-			BorderExtender extender = BorderExtender.createInstance(1);
-			hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		}
-		// TODO
+
+		// Set background color
 		Color bg = getGraphics().getBackground();
-		params.add(new double[] { bg.getRed(), bg.getGreen(), bg.getBlue() });
-		image(JAI.create("shear", params, hints).getAsBufferedImage());
+		g2d.setColor(bg);
+		g2d.fillRect(0, 0, width, height);
+
+		// Apply the transformation and draw the sheared image
+		g2d.setTransform(transform);
+		g2d.drawImage(sourceImage, 0, 0, null);
+
+		g2d.dispose();
+
+		// Update the image with the transformed version
+		image(newImage);
 	}
 
 	public BufferedImage getBufferedImage() throws PageException {
@@ -1402,118 +1726,51 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				rotateClockwise180();
 				return;
 			}
-			if (angle == 90) {
+			if (angle == 270) {
 				rotateClockwise270();
 				return;
 			}
 		}
 
 		if (x == -1) {
-			x = Math.round(getWidth() / 2);
+			x = getWidth() / 2.0f;
 		}
 		if (y == -1) {
-			y = Math.round(getHeight() / 2);
+			y = getHeight() / 2.0f;
 		}
 
-		angle = (float) Math.toRadians(angle);
-		ColorModel cmSource = image().getColorModel();
+		double radians = Math.toRadians(angle);
+		BufferedImage src = image();
+		int width = src.getWidth();
+		int height = src.getHeight();
 
-		if (cmSource instanceof IndexColorModel && cmSource.hasAlpha() && !cmSource.isAlphaPremultiplied()) {
-			image(paletteToARGB(image()));
-			cmSource = image().getColorModel();
+		// Calculate the new dimensions to fit the rotated image
+		int newWidth = (int) Math.round(Math.abs(width * Math.cos(radians)) + Math.abs(height * Math.sin(radians)));
+		int newHeight = (int) Math.round(Math.abs(height * Math.cos(radians)) + Math.abs(width * Math.sin(radians)));
+
+		// Create an output image that accounts for rotation without cutting parts
+		BufferedImage rotatedImage = new BufferedImage(newWidth, newHeight, src.getType());
+		Graphics2D g2d = rotatedImage.createGraphics();
+
+		// Apply interpolation for smooth rotation
+		Object interpolationHint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+		if (interpolation == INTERPOLATION_NEAREST) {
+			interpolationHint = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
 		}
-
-		BufferedImage alpha = null;
-		if (cmSource.hasAlpha() && !cmSource.isAlphaPremultiplied()) {
-			alpha = getAlpha(image());
-			image(removeAlpha(image()));
+		else if (interpolation == INTERPOLATION_BILINEAR) {
+			interpolationHint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 		}
+		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationHint);
 
-		Interpolation interp = Interpolation.getInstance(0);
-		if (INTERPOLATION_BICUBIC == interpolation) interp = Interpolation.getInstance(1);
-		else if (INTERPOLATION_BILINEAR == interpolation) interp = Interpolation.getInstance(2);
+		// Perform rotation and translate to center
+		AffineTransform transform = new AffineTransform();
+		transform.translate((newWidth - width) / 2.0, (newHeight - height) / 2.0);
+		transform.rotate(radians, width / 2.0, height / 2.0);
+		g2d.setTransform(transform);
+		g2d.drawImage(src, 0, 0, null);
+		g2d.dispose();
 
-		if (alpha != null) {
-			ParameterBlock params = new ParameterBlock();
-			params.addSource(alpha);
-			params.add(x);
-			params.add(y);
-			params.add(angle);
-			params.add(interp);
-			params.add(new double[] { 0.0 });
-			RenderingHints hints = new RenderingHints(RenderingHints.KEY_INTERPOLATION, (RenderingHints.VALUE_INTERPOLATION_BICUBIC));
-			hints.add(new RenderingHints(JAI.KEY_BORDER_EXTENDER, new BorderExtenderConstant(new double[] { 255.0 })));
-			hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
-			alpha = JAI.create("rotate", params, hints).getAsBufferedImage();
-		}
-
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(x);
-		params.add(y);
-		params.add(angle);
-		params.add(interp);
-		params.add(new double[] { 0.0 });
-
-		BorderExtender extender = new BorderExtenderConstant(new double[] { 0.0 });
-		RenderingHints hints = new RenderingHints(JAI.KEY_BORDER_EXTENDER, extender);
-		hints.add(new RenderingHints(JAI.KEY_REPLACE_INDEX_COLOR_MODEL, Boolean.TRUE));
-		image(JAI.create("rotate", params, hints).getAsBufferedImage());
-		if (alpha != null) image(addAlpha(image(), alpha, 0, 0));
-	}
-
-	private static BufferedImage paletteToARGB(BufferedImage src) {
-		IndexColorModel icm = (IndexColorModel) src.getColorModel();
-		int bands = icm.hasAlpha() ? 4 : 3;
-
-		byte[][] data = new byte[bands][icm.getMapSize()];
-		if (icm.hasAlpha()) icm.getAlphas(data[3]);
-		icm.getReds(data[0]);
-		icm.getGreens(data[1]);
-		icm.getBlues(data[2]);
-		LookupTableJAI rtable = new LookupTableJAI(data);
-		return JAI.create("lookup", src, rtable).getAsBufferedImage();
-	}
-
-	private static BufferedImage getAlpha(BufferedImage src) {
-		return JAI.create("bandselect", src, new int[] { 3 }).getAsBufferedImage();
-	}
-
-	private static BufferedImage removeAlpha(BufferedImage src) {
-		return JAI.create("bandselect", src, new int[] { 0, 1, 2 }).getAsBufferedImage();
-	}
-
-	private static BufferedImage addAlpha(BufferedImage src, BufferedImage alpha, int x, int y) {
-		int w = src.getWidth();
-		int h = src.getHeight();
-		BufferedImage bi = new BufferedImage(w, h, 2);
-		WritableRaster wr = bi.getWritableTile(0, 0);
-		WritableRaster wr3 = wr.createWritableChild(0, 0, w, h, 0, 0, new int[] { 0, 1, 2 });
-		WritableRaster wr1 = wr.createWritableChild(0, 0, w, h, 0, 0, new int[] { 3 });
-		wr3.setRect(src.getData());
-		wr1.setRect(alpha.getData());
-		bi.releaseWritableTile(0, 0);
-		return bi;
-	}
-
-	public void _rotate(float x, float y, float angle, String interpolation) throws PageException {
-
-		float radiansAngle = (float) Math.toRadians(angle);
-
-		// rotation center
-		float centerX = (float) getWidth() / 2;
-		float centerY = (float) getHeight() / 2;
-
-		ParameterBlock pb = new ParameterBlock();
-		pb.addSource(image());
-		pb.add(centerX);
-		pb.add(centerY);
-		pb.add(radiansAngle);
-		pb.add(new javax.media.jai.InterpolationBicubic(10));
-
-		// create a new, rotated image
-		image(JAI.create("rotate", pb).getAsBufferedImage());
-
+		image(rotatedImage);
 	}
 
 	public static Image toImage(Object obj) throws PageException {
@@ -1704,22 +1961,44 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return image().getColorModel();
 	}
 
-	public void crop(float x, float y, float width, float height) throws PageException {
-		ParameterBlock params = new ParameterBlock();
-		params.addSource(image());
-		params.add(x);
-		params.add(y);
+	public void crop(int x, int y, int width, int height) throws PageException {
+		try {
+			BufferedImage source = image();
 
-		float w = getWidth();
-		float h = getHeight();
+			// Convert float parameters to int and ensure they're within bounds
+			x = Math.max(0, x);
+			y = Math.max(0, y);
 
-		if (w < x + width) params.add(w - x);
-		else params.add(width);
+			// Calculate actual width and height considering image boundaries
+			width = Math.min(width, source.getWidth() - x);
+			height = Math.min(height, source.getHeight() - y);
 
-		if (h < y + height) params.add(h - y);
-		else params.add(height);
+			// Create cropped image maintaining original color model
+			BufferedImage cropped = new BufferedImage(width, height, source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
 
-		image(JAI.create("crop", params).getAsBufferedImage());
+			// Perform the crop operation
+			Graphics2D g2d = cropped.createGraphics();
+			try {
+				// Enable high-quality rendering
+				g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+				// Draw the cropped portion
+				g2d.drawImage(source, 0, 0, width, height, // Destination coordinates
+						x, y, x + width, y + height, // Source coordinates
+						null);
+			}
+			finally {
+				g2d.dispose(); // Clean up graphics resources
+			}
+
+			// Update the image reference
+			image(cropped);
+
+		}
+		catch (Exception e) {
+			throw eng().getCastUtil().toPageException(e);
+		}
 	}
 
 	public int getWidth() throws PageException {

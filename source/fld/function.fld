@@ -28,78 +28,77 @@
 		</return>
 	</function>
 	<function>
-		<name>ImageAddBorder</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageAddBorder</class>
-		<member-name>addBorder</member-name>
-		<member-type>image</member-type>
-		<keywords>image</keywords>
-		<description>Adds a rectangular border around the outside edge of a image.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>thickness</name>
-			<type>number</type>
-			<required>No</required>
-			<default>1</default>
-			<description>Thickness of the border in pixels. The default value is 1. The border is added to the outside edge of the image; the image area is increased accordingly.</description>
-		</argument>
-		<argument>
-			<name>color</name>
-			<alias>colour</alias>
-			<type>string</type>
-			<required>No</required>
-			<default>black</default>
-			<description>Optional. Border color. The default border color is black. See Usage.
-Only valid if the borderType is not specified or if borderType = "constant".</description>
-		</argument>
-		<argument>
-			<name>borderType</name>
-			<alias>type,border</alias>
-			<type>string</type>
-			<required>No</required>
-			<default>constant</default>
-			<description>The type of border:
-- zero: Sets the border color to black.
-- constant: Sets the border to the specified color (default).
-- copy: Sets sample values to copies of the nearest valid pixel. For example, pixels to the left of the valid rectangle assume the value of the valid edge pixel in the same row. Pixels both above and to the left of the valid rectangle assume the value of the upper-left pixel.
-- reflect: Mirrors the edges of the source image. For example, if the left edge of the valid rectangle is located at x = 10, pixel (9, y) is a copy of pixel (10, y) and pixel (6, y) is a copy of pixel (13, y).
-- wrap: Tiles the source image in the plane.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageAddBorder</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageAddBorder</class>
+	    <member-name>addBorder</member-name>
+	    <member-type>image</member-type>
+	    <keywords>image,border,effect</keywords>
+    	<description>Adds a rectangular border around the outside edge of an image. The border can be a solid color or generated using various edge extension methods. The original image remains centered while the border increases the image dimensions.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The source image to which the border will be added.</description>
+	    </argument>
+	    <argument>
+	        <name>thickness</name>
+	        <type>number</type>
+	        <required>No</required>
+	        <default>1</default>
+	        <description>Thickness of the border in pixels. The border is added to the outside edge of the image, increasing the image dimensions by 2 * thickness in both width and height.</description>
+	    </argument>
+	    <argument>
+	        <name>color</name>
+	        <alias>colour</alias>
+	        <type>string</type>
+	        <required>No</required>
+	        <default>black</default>
+	        <description>The color of the border when borderType is "constant". Has no effect with other border types. Can be any valid color name or hex value.</description>
+	    </argument>
+	    <argument>
+	        <name>borderType</name>
+	        <alias>type,border</alias>
+	        <type>string</type>
+	        <required>No</required>
+	        <default>constant</default>
+	        <description>Determines how the border area is filled:
+
+* `constant`: Creates a solid color border using the specified color
+* `zero`: Creates a black border (equivalent to constant with color="black")
+* `copy`: Extends edge pixels outward. Each border pixel copies the value of the nearest edge pixel. Corner areas are filled with the color of the nearest corner pixel
+* `reflect`: Creates a mirror effect by reflecting the image at its edges. Edge pixels are mirrored outward, and corners are created by mirroring the already reflected edges horizontally
+* `wrap`: Creates a tiled effect by wrapping the image content around to the opposite side, as if the image were repeated in all directions</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
-		<name>ImageBlur</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageBlur</class>
-		<member-name>blur</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Smooths image.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>blurRadius</name>
-			<type>number</type>
-			<required>No</required>
-			<default>3</default>
-			<description>The size of the blur radius.
-Value must be greater than or equal to 3 and less than or equal to 10. The default value is 3.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageBlur</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageBlur</class>
+	    <member-name>blur</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Applies a box blur filter to smooth an image by averaging pixel values within a square region. Useful for reducing image noise or creating soft focus effects.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The image object, binary object, base64 string, or file path to be processed. The image will be modified in place.</description>
+	    </argument>
+	    <argument>
+	        <name>blurRadius</name>
+	        <type>number</type>
+	        <required>No</required>
+	        <default>3</default>
+	        <description>The size of the blur radius (averaging region) in pixels. Must be between 3 and 10 inclusive. Higher values create stronger blur effects. Default is 3. Performance impact increases quadratically with radius size.</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageClearRect</name>
@@ -252,103 +251,102 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		</return>
 	</function>
 	<function>
-		<name>ImageCopy</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCopy</class>
-		<member-name>copy</member-name>
-		<member-type>image</member-type>
-		<keywords>image</keywords>
-		<description>Copies a rectangular area of an image.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>x</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The x coordinate of the source rectangle.</description>
-		</argument>
-		<argument>
-			<name>y</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The y coordinate of the source rectangle.</description>
-		</argument>
-		<argument>
-			<name>width</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The width of the source rectangle.</description>
-		</argument>
-		<argument>
-			<name>height</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The height of the source rectangle.</description>
-		</argument>
-		<argument>
-			<name>dx</name>
-			<type>number</type>
-			<required>no</required>
-			<default>-999</default>
-			<description>The x coordinate of the destination rectangle.</description>
-		</argument>
-		<argument>
-			<name>dy</name>
-			<type>number</type>
-			<required>no</required>
-			<default>-999</default>
-			<description>The y coordinate of the destination rectangle.</description>
-		</argument>
-		<return>
-			<type>any</type>
-		</return>
-	</function>
-	<function>
-		<name>ImageCrop</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
-		<member-name>crop</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>		
-		<description>Crops a image to a specified rectangular area.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>x</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The X origin of the crop area.</description>
-		</argument>
-		<argument>
-			<name>y</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The Y origin of the crop area.</description>
-		</argument>
-		<argument>
-			<name>width</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The width of the crop area.</description>
-		</argument>
-		<argument>
-			<name>height</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>The height of the crop area.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageCopy</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCopy</class>
+	    <member-name>copy</member-name>
+	    <member-type>image</member-type>
+	    <keywords>image</keywords>
+	    <description>Creates a new image by copying a rectangular area from the source image. If destination coordinates are provided, the copied area is also drawn at the new location in the resulting image.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The source image object, binary object, base64 string, or file path from which to copy.</description>
+	    </argument>
+	    <argument>
+	        <name>x</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The x coordinate of the top-left corner of the area to copy from the source image.</description>
+	    </argument>
+	    <argument>
+	        <name>y</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The y coordinate of the top-left corner of the area to copy from the source image.</description>
+	    </argument>
+	    <argument>
+	        <name>width</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The width of the rectangular area to copy. Must be positive and not exceed image boundaries.</description>
+	    </argument>
+	    <argument>
+	        <name>height</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The height of the rectangular area to copy. Must be positive and not exceed image boundaries.</description>
+	    </argument>
+	    <argument>
+	        <name>dx</name>
+	        <type>number</type>
+	        <required>no</required>
+	        <default>-999</default>
+	        <description>The x coordinate where the copied area should be drawn in the new image. If omitted, only crops the area.</description>
+	    </argument>
+	    <argument>
+	        <name>dy</name>
+	        <type>number</type>
+	        <required>no</required>
+	        <default>-999</default>
+	        <description>The y coordinate where the copied area should be drawn in the new image. If omitted, only crops the area.</description>
+	    </argument>
+	    <return>
+	        <type>any</type>
+	    </return>
+	</function><function>
+	    <name>ImageCrop</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
+	    <member-name>crop</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>        
+	    <description>Crops an image to a specified rectangular area. The function modifies the original image by extracting the defined region. If the specified crop area extends beyond the image boundaries, the function automatically adjusts to fit within the image dimensions.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The source image object to be cropped. Can be either an image object or a string containing the image path.</description>
+	    </argument>
+	    <argument>
+	        <name>x</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The X coordinate of the top-left corner of the crop area, measured in pixels from the left edge of the image.</description>
+	    </argument>
+	    <argument>
+	        <name>y</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The Y coordinate of the top-left corner of the crop area, measured in pixels from the top edge of the image.</description>
+	    </argument>
+	    <argument>
+	        <name>width</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The width of the crop area in pixels. If this extends beyond the image's right edge, it will be automatically adjusted to the image boundary.</description>
+	    </argument>
+	    <argument>
+	        <name>height</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The height of the crop area in pixels. If this extends beyond the image's bottom edge, it will be automatically adjusted to the image boundary.</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageDrawArc</name>
@@ -963,35 +961,37 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		</return>
 	</function>
 	<function>
-		<name>ImageFlip</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFlip</class>
-		<member-name>flip</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Flips an image across an axis.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>transpose</name>
-			<type>string</type>
-			<required>no</required>
-			<default>vertical</default>
-			<description>Transpose the image:
-- vertical (default): Flip an image across an imaginary horizontal line that runs through the center of the image.
-- horizontal: Flip an image across an imaginary vertical line that runs through the center of the image.
-- diagonal: Flip an image across its main diagonal that runs from the upper-left to the lower-right corner.
-- antidiagonal: Flip an image across its main diagonal that runs from the upper-right to the lower-left corner.
-- ("90|180|270"): Rotate an image clockwise by 90, 180, or 270 degrees.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageFlip</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFlip</class>
+	    <member-name>flip</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Transforms an image by flipping or rotating it along specified axes. This operation modifies the original image in place.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The image object, binary object, base64 string, or file path to be transformed. The image will be modified in place.</description>
+	    </argument>
+	    <argument>
+	        <name>transpose</name>
+	        <type>string</type>
+	        <required>no</required>
+	        <default>vertical</default>
+	        <description>The type of transformation to apply:
+	- vertical: Mirrors the image top-to-bottom (default)
+	- horizontal: Mirrors the image left-to-right
+	- diagonal: Flips across top-left to bottom-right diagonal with rotation
+	- antidiagonal: Flips across top-right to bottom-left diagonal with rotation
+	- 90: Rotates clockwise by 90 degrees
+	- 180: Rotates by 180 degrees
+	- 270: Rotates clockwise by 270 degrees (same as -90)</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageCaptcha</name>
@@ -1254,22 +1254,22 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		</return>
 	</function>
 	<function>
-		<name>ImageInfo</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageInfo</class>
-		<member-name>info</member-name>
-		<member-type>image</member-type>
-		<keywords>image</keywords>
-		<description>Returns a structure that contains information about the image, such as height, width, color model, size, and filename.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<return>
-			<type>struct</type>
-		</return>
+	    <name>ImageInfo</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageInfo</class>
+	    <member-name>info</member-name>
+	    <member-type>image</member-type>
+	    <keywords>image</keywords>
+	    <description>Returns a structure containing image information. When called with an image argument, returns details about the specific image including height, width, color model, size, and filename. When called without arguments, returns information about the Lucee image processing extension including its OSGi bundle version and status.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>No</required>
+	        <description>Optional: The image to analyze. If provided, returns information about this specific image. If omitted, returns information about the image processing extension.</description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageCoderInfo</name>
@@ -1290,23 +1290,23 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		</return>
 	</function>
 	<function>
-		<name>ImageNegative</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNegative</class>
-		<member-name>negative</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Inverts the pixel values of a image.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageNegative</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNegative</class>
+	    <member-name>negative</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Creates a negative version of the image by inverting all pixel values. Each color channel value is subtracted from 255, resulting in opposite colors (e.g., white becomes black, red becomes cyan).</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The image object, binary object, base64 string, or file path to be inverted. The image will be modified in place.</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageNew</name>
@@ -1355,64 +1355,64 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		</return>
 	</function>
 	<function>
-		<name>ImageOverlay</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageOverlay</class>
-		<member-name>overlay</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Reads two source images and overlays the second source image on the first source image.</description>
-		<argument>
-			<name>source1</name>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image that is the bottom layer in the image.</description>
-		</argument>
-		<argument>
-			<name>source2</name>
-			<type>any</type>
-			<required>Yes</required>
-			<description>the image that is the top layer (overlaid on the source1 image) in the image.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageOverlay</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageOverlay</class>
+	    <member-name>overlay</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Combines two images by overlaying one on top of the other using alpha compositing. The second image is blended with the first based on its transparency.</description>
+	    <argument>
+	        <name>source1</name>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The base image that serves as the bottom layer. This image is modified in place to contain the final result.</description>
+	    </argument>
+	    <argument>
+	        <name>source2</name>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The overlay image that is blended on top of the base image. Its transparency affects the final blending result.</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
-		<name>ImagePaste</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImagePaste</class>
-		<member-name>paste</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Takes two images and an (x,y) coordinate and draws the second image over the first image with the upper-left corner at coordinate (x,y).</description>
-		<argument>
-			<name>image1</name>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The bottom image.</description>
-		</argument>
-		<argument>
-			<name>image2</name>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image that is pasted on top of image1.</description>
-		</argument>
-		<argument>
-			<name>x</name>
-			<type>number</type>
-			<required>no</required>
-			<description> The x coordinate where the upper-left corner of image2 is pasted.</description>
-		</argument>
-		<argument>
-			<name>y</name>
-			<type>number</type>
-			<required>no</required>
-			<description> The y coordinate where the upper-left corner of image2 is pasted.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImagePaste</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImagePaste</class>
+	    <member-name>paste</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Composites one image onto another at specified coordinates. The second image is overlaid on top of the first image, preserving transparency and using high-quality interpolation.</description>
+	    <argument>
+	        <name>image1</name>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The base image that will receive the pasted content. This image is modified in place.</description>
+	    </argument>
+	    <argument>
+	        <name>image2</name>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The image to paste onto the base image. Its transparency (alpha channel) is preserved during compositing.</description>
+	    </argument>
+	    <argument>
+	        <name>x</name>
+	        <type>number</type>
+	        <required>no</required>
+	        <description>The x coordinate where image2 will be placed on image1. If negative, image2 will be partially clipped.</description>
+	    </argument>
+	    <argument>
+	        <name>y</name>
+	        <type>number</type>
+	        <required>no</required>
+	        <description>The y coordinate where image2 will be placed on image1. If negative, image2 will be partially clipped.</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageReadBase64</name>
@@ -1934,79 +1934,91 @@ The file format is derived from the extension of the filename. The default value
 			<type>void</type>
 		</return>
 	</function>
+<function>
+    <name>ImageSharpen</name>
+    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSharpen</class>
+    <member-name>sharpen</member-name>
+    <member-type>image</member-type>
+    <member-chaining>true</member-chaining>
+    <keywords>image</keywords>
+    <description>Enhances image clarity by applying an unsharp mask filter. 
+
+This technique works by:
+1. Creating a blurred copy of the original image
+2. Finding edges by comparing differences
+3. Enhancing edge contrast where differences are found
+
+*Note:* Despite the name "unsharp mask", this process actually increases sharpness.</description>
+    <argument>
+        <name>image</name>
+        <alias>name</alias>
+        <type>any</type>
+        <required>Yes</required>
+        <description>The source image to be sharpened. Can be:
+- An image object
+- A string containing the image path</description>
+    </argument>
+    <argument>
+        <name>gain</name>
+        <type>number</type>
+        <required>no</required>
+        <default>1</default>
+        <description>Controls the intensity of the sharpening effect:
+- **Positive values**: Increase sharpness
+- **Zero** (= 0): No effect
+- **Negative values**: Create blur effect
+
+*Typical range:* -10.0 to 10.0  
+*Default value:* 1.0  
+*Recommended:* Start with small values (0.5 - 2.0) for best results</description>
+    </argument>
+    <return>
+        <type>void</type>
+    </return>
+</function>
 	<function>
-		<name>ImageSharpen</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSharpen</class>
-		<member-name>sharpen</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Sharpens a image by using the unsharp mask filter.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>gain</name>
-			<type>number</type>
-			<required>no</required>
-			<default>1</default>
-			<description>Gain values can be integers or real numbers. The default value is 1.0.
-The value determines whether the image is blurred or sharpened:
-- if &gt; 0, the image is sharpened
-- if = 0, no effect
-- if &lt; 0, the image is blurred</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
-	<function>
-		<name>ImageShear</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShear</class>
-		<member-name>shear</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Shears an image either horizontally or vertically.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>shear</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>Shear value. Coordinates can be integers or real numbers.</description>
-		</argument>
-		<argument>
-			<name>direction</name>
-			<type>string</type>
-			<required>no</required>
-			<default>horizontal</default>
-			<description>Shear direction:
-- horizontal (default)
-- vertical</description>
-		</argument>
-		<argument>
-			<name>interpolation</name>
-			<type>string</type>
-			<required>no</required>
-			<default>nearest</default>
-			<description>Type of interpolation:
-- nearest (default): Applies the nearest neighbor method of interpolation. Image quality is lower than the other interpolation methods, but processing is fastest.
-- bilinear: Applies the bilinear method of interpolation. The quality of the image is less pixelated than the default, but processing is slower.
-- bicubic: Applies the bicubic method of interpolation. Generally, the quality of image is highest with this method and processing is slowest.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+	    <name>ImageShear</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShear</class>
+	    <member-name>shear</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Transforms an image by shearing it along one axis, creating a slanted or skewed effect. Positive values slant in one direction, negative values in the opposite direction.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The source image to be sheared. The operation modifies this image directly.</description>
+	    </argument>
+	    <argument>
+	        <name>shear</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The shear factor to apply. Positive values slant forward, negative values backward. For example, 0.5 creates a 45-degree shear.</description>
+	    </argument>
+	    <argument>
+	        <name>direction</name>
+	        <type>string</type>
+	        <required>no</required>
+	        <default>horizontal</default>
+	        <description>The axis along which to apply the shear:
+	- horizontal (default): Shears along the x-axis, slanting vertical lines
+	- vertical: Shears along the y-axis, slanting horizontal lines</description>
+	    </argument>
+	    <argument>
+	        <name>interpolation</name>
+	        <type>string</type>
+	        <required>no</required>
+	        <default>nearest</default>
+	        <description>The interpolation method to use during transformation:
+	- nearest (default): Fastest method but lowest quality, best for simple transformations
+	- bilinear: Balanced between speed and quality, good for moderate shearing
+	- bicubic: Highest quality but slowest, recommended for significant shearing</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageShearDrawingAxis</name>
@@ -2040,45 +2052,45 @@ The value determines whether the image is blurred or sharpened:
 		</return>
 	</function>
 	<function>
-		<name>ImageTranslate</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslate</class>
-		<member-name>translate</member-name>
-		<member-type>image</member-type>
-		<member-chaining>true</member-chaining>
-		<keywords>image</keywords>
-		<description>Copies an image to a new location on the plane.</description>
-		<argument>
-			<name>image</name>
-			<alias>name</alias>
-			<type>any</type>
-			<required>Yes</required>
-			<description>The image on which this operation is performed.</description>
-		</argument>
-		<argument>
-			<name>xTrans</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>Displacement in the x direction.</description>
-		</argument>
-		<argument>
-			<name>yTrans</name>
-			<type>number</type>
-			<required>Yes</required>
-			<description>Displacement in the y direction.</description>
-		</argument>
-		<argument>
-			<name>interpolation</name>
-			<type>string</type>
-			<required>no</required>
-			<default>nearest</default>
-			<description>Type of interpolation:
-- nearest (default): Applies the nearest neighbor method of interpolation. Image quality is lower than the other interpolation methods, but processing is fastest.
-- bilinear: Applies the bilinear method of interpolation. The quality of the image is less pixelated than the default, but processing is slower.
-- bicubic: Applies the bicubic method of interpolation. Generally, the quality of image is highest with this method and processing is slowest.</description>
-		</argument>
-		<return>
-			<type>void</type>
-		</return>
+    <name>ImageTranslate</name>
+	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslate</class>
+	    <member-name>translate</member-name>
+	    <member-type>image</member-type>
+	    <member-chaining>true</member-chaining>
+	    <keywords>image</keywords>
+	    <description>Moves an image to a new position by specified x and y offsets. The original image content is cleared and redrawn at the new location.</description>
+	    <argument>
+	        <name>image</name>
+	        <alias>name</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>The source image to be translated. The operation modifies this image directly.</description>
+	    </argument>
+	    <argument>
+	        <name>xTrans</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The horizontal displacement in pixels. Positive values move right, negative values move left.</description>
+	    </argument>
+	    <argument>
+	        <name>yTrans</name>
+	        <type>number</type>
+	        <required>Yes</required>
+	        <description>The vertical displacement in pixels. Positive values move down, negative values move up.</description>
+	    </argument>
+	    <argument>
+	        <name>interpolation</name>
+	        <type>string</type>
+	        <required>no</required>
+	        <default>nearest</default>
+	        <description>The interpolation method to use during translation:
+	- nearest (default): Fastest but lowest quality, uses nearest neighbor interpolation
+	- bilinear: Medium quality and speed, uses bilinear interpolation
+	- bicubic: Highest quality but slowest, uses bicubic interpolation</description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
 	</function>
 	<function>
 		<name>ImageTranslateDrawingAxis</name>

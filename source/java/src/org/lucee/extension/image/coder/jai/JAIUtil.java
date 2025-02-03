@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package org.lucee.extension.image;
+package org.lucee.extension.image.coder.jai;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -37,7 +37,7 @@ import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 
-public class JAIUtil {
+class JAIUtil {
 
 	private static Method getAsBufferedImage;
 	private static Method create1;

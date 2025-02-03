@@ -301,7 +301,7 @@ public final class Image extends TagImpl {
 	private void doActionBorder() throws PageException, IOException {
 		required("source", source);
 
-		source.addBorder(thickness, color, org.lucee.extension.image.Image.BORDER_TYPE_CONSTANT);
+		source.addBorder(thickness, color, org.lucee.extension.image.Image.BORDER_CONSTANT);
 		write();
 
 	}
