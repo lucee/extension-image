@@ -53,11 +53,6 @@ jobs:
     env:
       testLabels: image
       testAdditional: ${{ github.workspace }}/tests
-      MYSQL_SERVER: localhost
-      MYSQL_USERNAME: lucee
-      MYSQL_PASSWORD: lucee
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: lucee
       LUCEE_TEST_VERSIONS: ${{ vars.LUCEE_TEST_VERSIONS }}
     strategy:
       matrix:
