@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.path = server._getTempDir("ImageRotate") & "/";
+		variables.path = getTempDirectory() & "ImageRotate/";
 		if( directoryExists( path ) ){
 			directoryDelete( path, true );
 		}
@@ -12,10 +12,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		describe( "test case for ImageRotate", function() {
 
 			it(title = "Checking with imageRotate() Function", body = function( currentSpec ) {
-				var img = imageNew("",150,150,"RGB","00BFFF");
-				imageRotate(img,10,10,50);
-				cfimage(action = "write", source = img, destination = path&"rotateImg.jpg");
-			  	expect(fileExists(path&"rotateImg.jpg")).tobe("true");
+				loop list="50,90,125,180,270" item="local.angle" {
+					var img = imageRead(GetDirectoryFromPath(GetCurrentTemplatePath())&"images/BigBen.jpg");
+					imageRotate(img,10,10,angle);
+					cfimage(action = "write", source = img, destination = path&"imageRotate-#angle#.jpg");
+					expect(fileExists(path&"imageRotate-#angle#.jpg")).tobe("true");
+				}
 			});
 
 			it(title = "Checking with imageRotate() with interpolation", body = function( currentSpec ) {
@@ -48,4 +50,3 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		}
 	}
 }
-		
