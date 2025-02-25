@@ -45,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			it("should correctly invert the colors of an image - BIF", function() {
 				var img = imageRead(GetDirectoryFromPath(GetCurrentTemplatePath())&"images/BigBen.jpg");
 				imageNegative( img );
-				cfimage(action="write", source=img, destination = path&"imageNegative.jpg");
+				cfimage(action="write", source=img, destination = path&"imageNegative-photo.jpg");
 				expect(fileExists(path&"imageNegative-photo.jpg")).tobe("true");
 			});
 		
