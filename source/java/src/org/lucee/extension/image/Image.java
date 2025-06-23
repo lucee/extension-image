@@ -200,10 +200,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
-		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
+		if (eng().getStringUtil().isEmpty(format))
+			format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null) throw new IOException("Unable to read binary image file");
+		if (_image == null)
+			throw new IOException("Unable to read binary image file");
 
 		checkOrientation(binary);
 		fromNew = false;
@@ -214,11 +216,13 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
-		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(res);
+		if (eng().getStringUtil().isEmpty(format))
+			format = ImageUtil.getFormat(res);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(res, format);
 		this.source = res;
-		if (_image == null) throw new IOException("Unable to read image file [" + res + "]");
+		if (_image == null)
+			throw new IOException("Unable to read image file [" + res + "]");
 
 		checkOrientation(res);
 		fromNew = false;
@@ -231,10 +235,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		fromNew = false;
 	}
 
-	public static Image getInstance(PageContext pc, String str, String format) throws IOException, ImageReadException, PageException {
+	public static Image getInstance(PageContext pc, String str, String format)
+			throws IOException, ImageReadException, PageException {
 
 		if (str.length() < 4000) {
-			if (pc == null) pc = CFMLEngineFactory.getInstance().getThreadPageContext();
+			if (pc == null)
+				pc = CFMLEngineFactory.getInstance().getThreadPageContext();
 			Resource res = eng().getResourceUtil().toResourceNotExisting(pc, str);
 			if (res.isFile()) {
 				Config c = (pc == null) ? CFMLEngineFactory.getInstance().getThreadConfig() : pc.getConfig();
@@ -254,10 +260,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (eng().getStringUtil().isEmpty(format) && !eng().getStringUtil().isEmpty(mimetype.toString())) {
 			format = ImageUtil.getFormatFromMimeType(mimetype.toString());
 		}
-		if (eng().getStringUtil().isEmpty(format)) format = ImageUtil.getFormat(binary, null);
+		if (eng().getStringUtil().isEmpty(format))
+			format = ImageUtil.getFormat(binary, null);
 		this.format = format;
 		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null) throw new IOException("Unable to decode image from base64 string");
+		if (_image == null)
+			throw new IOException("Unable to decode image from base64 string");
 
 		checkOrientation(binary);
 		fromNew = false;
@@ -296,8 +304,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			g2d.setColor(color);
 			g2d.fillRect(0, 0, newWidth, newHeight);
 		}
-		// Sets sample values to copies of the nearest valid pixel. For example, pixels to the left of the
-		// valid rectangle assume the value of the valid edge pixel in the same row. Pixels both above and
+		// Sets sample values to copies of the nearest valid pixel. For example, pixels
+		// to the left of the
+		// valid rectangle assume the value of the valid edge pixel in the same row.
+		// Pixels both above and
 		// to the left of the valid rectangle assume the value of the upper-left pixel.
 		else if (borderType == BORDER_COPY) {
 			// Draw main image first
@@ -344,8 +354,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			g2d.setColor(bottomRight);
 			g2d.fillRect(width + thickness, height + thickness, thickness, thickness);
 		}
-		// Mirrors the edges of the source image. For example, if the left edge of the valid rectangle is
-		// located at x = 10, pixel (9, y) is a copy of pixel (10, y) and pixel (6, y) is a copy of pixel
+		// Mirrors the edges of the source image. For example, if the left edge of the
+		// valid rectangle is
+		// located at x = 10, pixel (9, y) is a copy of pixel (10, y) and pixel (6, y)
+		// is a copy of pixel
 		// (13, y).
 		else if (borderType == BORDER_REFLECT) {
 			// Top and bottom edges first (excluding corners)
@@ -372,12 +384,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					thickness * 2, 0, thickness, thickness, // source - flip horizontally from top edge
 					null);
 			g2d.drawImage(borderedImage, width + thickness, 0, newWidth, thickness, // dest
-					width + thickness, 0, width + thickness - thickness, thickness, // source - flip horizontally from top edge
+					width + thickness, 0, width + thickness - thickness, thickness, // source - flip horizontally from
+																					// top edge
 					null);
 
 			// Bottom corners - mirror from bottom edge and flip horizontally
 			g2d.drawImage(borderedImage, 0, height + thickness, thickness, newHeight, // dest
-					thickness * 2, height + thickness, thickness, height + thickness * 2, // source - flip from bottom horizontally
+					thickness * 2, height + thickness, thickness, height + thickness * 2, // source - flip from bottom
+																							// horizontally
 					null);
 			g2d.drawImage(borderedImage, width + thickness, height + thickness, newWidth, newHeight, // dest
 					width + thickness, height + thickness, width + thickness - thickness, height + thickness * 2, // source
@@ -423,9 +437,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		else if (borderType == BORDER_ZERO) {
 			g2d.setColor(Color.BLACK);
 			g2d.fillRect(0, 0, newWidth, newHeight);
-		}
-		else {
-			throw eng().getExceptionUtil().createApplicationException("invalid border type definition, valid types are [copy,reflect,wrap,zero,constant]");
+		} else {
+			throw eng().getExceptionUtil().createApplicationException(
+					"invalid border type definition, valid types are [copy,reflect,wrap,zero,constant]");
 		}
 
 		// Draw the original image onto the new image, centered
@@ -476,7 +490,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		// if (jpegColorType != null && jpegColorType.toInteger() > 0) {
-		// sctInfo.setEL("jpeg_color_type", ImageUtil.toColorType(jpegColorType.toInteger(), ""));
+		// sctInfo.setEL("jpeg_color_type",
+		// ImageUtil.toColorType(jpegColorType.toInteger(), ""));
 		// }
 		// sct.setEL("mime_type",getMimeType());
 
@@ -504,10 +519,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		sct.setEL("bits_component", arr);
 
 		// colormodel_type
-		if (cm instanceof ComponentColorModel) sct.setEL("colormodel_type", "ComponentColorModel");
-		else if (cm instanceof IndexColorModel) sct.setEL("colormodel_type", "IndexColorModel");
-		else if (cm instanceof PackedColorModel) sct.setEL("colormodel_type", "PackedColorModel");
-		else sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
+		if (cm instanceof ComponentColorModel)
+			sct.setEL("colormodel_type", "ComponentColorModel");
+		else if (cm instanceof IndexColorModel)
+			sct.setEL("colormodel_type", "IndexColorModel");
+		else if (cm instanceof PackedColorModel)
+			sct.setEL("colormodel_type", "PackedColorModel");
+		else
+			sct.setEL("colormodel_type", eng().getListUtil().last(cm.getClass().getName(), ".", true));
 
 		IIOMetadata metadata = getMetaData(sctInfo, null);
 		if (ImageUtil.isJPEG(getFormat())) {
@@ -519,30 +538,31 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		try {
 			Log log = null;
 			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
-			if (c != null) log = c.getLog("application");
+			if (c != null)
+				log = c.getLog("application");
 			Metadata.addExifInfoToStruct(source, sctInfo, log);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
 		return this.sctInfo = sctInfo;
 	}
 
 	public IIOMetadata getMetaData(Struct parent, String format) {
-		if (fromNew) return null;
+		if (fromNew)
+			return null;
 
 		InputStream is = null;
 		javax.imageio.stream.ImageInputStreamImpl iis = null;
 		try {
-			if (Util.isEmpty(format)) format = Util.isEmpty(this.format) ? ImageUtil.getOneWriterFormatName("png", "jpg", "jpeg") : this.format;
+			if (Util.isEmpty(format))
+				format = Util.isEmpty(this.format) ? ImageUtil.getOneWriterFormatName("png", "jpg", "jpeg")
+						: this.format;
 
 			if (source instanceof File) {
 				iis = new FileImageInputStream((File) source);
-			}
-			else if (source == null) {
+			} else if (source == null) {
 				iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes(format, true)));
-			}
-			else {
+			} else {
 				iis = new MemoryCacheImageInputStream(is = source.getInputStream());
 			}
 
@@ -571,10 +591,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				}
 				return meta;
 			}
-		}
-		catch (Exception e) {
-		}
-		finally {
+		} catch (Exception e) {
+		} finally {
 			ImageUtil.closeEL(iis);
 			eng().getIOUtil().closeSilent(is);
 		}
@@ -585,11 +603,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ImageMetadata md;
 		Struct rtn = eng().getCreationUtil().createStruct();
 		try {
-			if (source instanceof File) md = Imaging.getMetadata((File) source);
-			else md = Imaging.getMetadata(getImageBytes(format, true));
+			if (source instanceof File)
+				md = Imaging.getMetadata((File) source);
+			else
+				md = Imaging.getMetadata(getImageBytes(format, true));
 
 			// not jpeg
-			if (!(md instanceof JpegImageMetadata)) return rtn;
+			if (!(md instanceof JpegImageMetadata))
+				return rtn;
 
 			// fill to struct
 			Key KEYWORDS = eng().getCreationUtil().createKey("Keywords");
@@ -597,7 +618,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 			JpegImageMetadata jmd = (JpegImageMetadata) md;
 			JpegPhotoshopMetadata jpmd = jmd.getPhotoshop(); // selects IPTC metadata
-			if (jpmd == null) return rtn;
+			if (jpmd == null)
+				return rtn;
 			Iterator<? extends ImageMetadataItem> it = jpmd.getItems().iterator();
 			ImageMetadataItem item;
 			GenericImageMetadataItem i = null;
@@ -613,26 +635,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					if (v != null) {
 						if (KEYWORDS.equals(k)) {
 							rtn.set(k, v + ";" + i.getText());
-						}
-						else if (SUBJECT_REFERENCE.equals(k)) {
+						} else if (SUBJECT_REFERENCE.equals(k)) {
 							rtn.set(k, v + " " + i.getText());
-						}
-						else if (v instanceof Array) {
+						} else if (v instanceof Array) {
 							arr = (Array) v;
 							arr.append(i.getText());
-						}
-						else {
+						} else {
 							arr = eng().getCreationUtil().createArray();
 							arr.append(v);
 							arr.append(i.getText());
 							rtn.set(k, arr);
 						}
-					}
-					else rtn.set(k, i.getText());
+					} else
+						rtn.set(k, i.getText());
 				}
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
 		return rtn;
@@ -646,8 +664,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		int len = attrs.getLength();
 		if (len == 1 && "value".equals(attrs.item(0).getNodeName())) {
 			parent.setEL(name, attrs.item(0).getNodeValue());
-		}
-		else {
+		} else {
 			Struct sct = metaGetChild(parent, name);
 			for (int i = attrs.getLength() - 1; i >= 0; i--) {
 				attr = (Attr) attrs.item(i);
@@ -667,7 +684,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private Struct metaGetChild(Struct parent, String name) {
 		Object child = parent.get(name, null);
-		if (child instanceof Struct) return (Struct) child;
+		if (child instanceof Struct)
+			return (Struct) child;
 		Struct sct = eng().getCreationUtil().createStruct();
 		parent.setEL(name, sct);
 		return sct;
@@ -678,7 +696,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			BufferedImage source = image();
 
 			// Create a copy of the source image
-			BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
+			BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(),
+					source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
 
 			// Define the unsharp mask kernel
 			float amount = Math.abs(gain) * 0.5f;
@@ -686,17 +705,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 			if (gain >= 0) {
 				// Sharpening kernel
-				kernel = new float[][] { { -amount / 4, -amount / 4, -amount / 4 }, { -amount / 4, 2 + amount, -amount / 4 }, { -amount / 4, -amount / 4, -amount / 4 } };
-			}
-			else {
+				kernel = new float[][] { { -amount / 4, -amount / 4, -amount / 4 },
+						{ -amount / 4, 2 + amount, -amount / 4 }, { -amount / 4, -amount / 4, -amount / 4 } };
+			} else {
 				// Blurring kernel (Gaussian approximation)
 				float blurAmount = amount / 4;
-				kernel = new float[][] { { blurAmount, blurAmount, blurAmount }, { blurAmount, 1 - (blurAmount * 8), blurAmount }, { blurAmount, blurAmount, blurAmount } };
+				kernel = new float[][] { { blurAmount, blurAmount, blurAmount },
+						{ blurAmount, 1 - (blurAmount * 8), blurAmount }, { blurAmount, blurAmount, blurAmount } };
 			}
 
 			// Create the convolve operation
 			Kernel convKernel = new Kernel(3, 3, flattenKernel(kernel));
-			ConvolveOp convOp = new ConvolveOp(convKernel, ConvolveOp.EDGE_NO_OP, new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
+			ConvolveOp convOp = new ConvolveOp(convKernel, ConvolveOp.EDGE_NO_OP,
+					new RenderingHints(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY));
 
 			// Apply the filter
 			convOp.filter(source, result);
@@ -704,8 +725,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			// Update the image reference
 			image(result);
 
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
 	}
@@ -723,7 +743,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void setTranparency(float percent) throws PageException {
-		if (percent == -1) return;
+		if (percent == -1)
+			return;
 		tranparency = percent;
 		AlphaComposite rule = AlphaComposite.getInstance(3, 1.0F - (percent / 100.0F));
 		getGraphics().setComposite(rule);
@@ -789,17 +810,23 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return result;
 	}
 
-	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean filled) throws PageException {
-		if (filled) getGraphics().fillArc(x, y, width, height, startAngle, arcAngle);
-		else getGraphics().drawArc(x, y, width, height, startAngle, arcAngle);
+	public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle, boolean filled)
+			throws PageException {
+		if (filled)
+			getGraphics().fillArc(x, y, width, height, startAngle, arcAngle);
+		else
+			getGraphics().drawArc(x, y, width, height, startAngle, arcAngle);
 	}
 
 	public void draw3DRect(int x, int y, int width, int height, boolean raised, boolean filled) throws PageException {
-		if (filled) getGraphics().fill3DRect(x, y, width + 1, height + 1, raised);
-		else getGraphics().draw3DRect(x, y, width, height, raised);
+		if (filled)
+			getGraphics().fill3DRect(x, y, width + 1, height + 1, raised);
+		else
+			getGraphics().draw3DRect(x, y, width, height, raised);
 	}
 
-	public void drawCubicCurve(double ctrlx1, double ctrly1, double ctrlx2, double ctrly2, double x1, double y1, double x2, double y2) throws PageException {
+	public void drawCubicCurve(double ctrlx1, double ctrly1, double ctrlx2, double ctrly2, double x1, double y1,
+			double x2, double y2) throws PageException {
 		CubicCurve2D curve = new CubicCurve2D.Double(x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2);
 		getGraphics().draw(curve);
 	}
@@ -808,19 +835,25 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		drawLine(x, y, x + 1, y);
 	}
 
-	public void drawQuadraticCurve(double x1, double y1, double ctrlx, double ctrly, double x2, double y2) throws PageException {
+	public void drawQuadraticCurve(double x1, double y1, double ctrlx, double ctrly, double x2, double y2)
+			throws PageException {
 		QuadCurve2D curve = new QuadCurve2D.Double(x1, y1, ctrlx, ctrly, x2, y2);
 		getGraphics().draw(curve);
 	}
 
 	public void drawRect(int x, int y, int width, int height, boolean filled) throws PageException {
-		if (filled) getGraphics().fillRect(x, y, width + 1, height + 1);
-		else getGraphics().drawRect(x, y, width, height);
+		if (filled)
+			getGraphics().fillRect(x, y, width + 1, height + 1);
+		else
+			getGraphics().drawRect(x, y, width, height);
 	}
 
-	public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight, boolean filled) throws PageException {
-		if (filled) getGraphics().fillRoundRect(x, y, width + 1, height + 1, arcWidth, arcHeight);
-		else getGraphics().drawRoundRect(x, y, width, height, arcWidth, arcHeight);
+	public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight, boolean filled)
+			throws PageException {
+		if (filled)
+			getGraphics().fillRoundRect(x, y, width + 1, height + 1, arcWidth, arcHeight);
+		else
+			getGraphics().drawRoundRect(x, y, width, height, arcWidth, arcHeight);
 	}
 
 	public void drawLine(int x1, int y1, int x2, int y2) throws PageException {
@@ -837,17 +870,20 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void drawLines(int[] xcoords, int[] ycoords, boolean isPolygon, boolean filled) throws PageException {
 		if (isPolygon) {
-			if (filled) getGraphics().fillPolygon(xcoords, ycoords, xcoords.length);
-			else getGraphics().drawPolygon(xcoords, ycoords, xcoords.length);
-		}
-		else {
+			if (filled)
+				getGraphics().fillPolygon(xcoords, ycoords, xcoords.length);
+			else
+				getGraphics().drawPolygon(xcoords, ycoords, xcoords.length);
+		} else {
 			getGraphics().drawPolyline(xcoords, ycoords, xcoords.length);
 		}
 	}
 
 	public void drawOval(int x, int y, int width, int height, boolean filled) throws PageException {
-		if (filled) getGraphics().fillOval(x, y, width, height);
-		else getGraphics().drawOval(x, y, width, height);
+		if (filled)
+			getGraphics().fillOval(x, y, width, height);
+		else
+			getGraphics().drawOval(x, y, width, height);
 	}
 
 	public void drawString(String text, int x, int y, Struct attr) throws PageException {
@@ -858,8 +894,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			String font = eng().getCastUtil().toString(attr.get("font", "")).toLowerCase().trim();
 			if (!eng().getStringUtil().isEmpty(font)) {
 				font = FontUtil.getFont(font).getFontName();
-			}
-			else font = "Serif";
+			} else
+				font = "Serif";
 
 			// alpha
 			// float alpha=eng().getCastUtil().toFloatValue(attr.get("alpha",null),1F);
@@ -872,15 +908,24 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			String strStyle = eng().getCastUtil().toString(attr.get("style", "")).toLowerCase();
 			strStyle = CommonUtil.removeWhiteSpace(strStyle);
 			if (!eng().getStringUtil().isEmpty(strStyle)) {
-				if ("plain".equals(strStyle)) style = Font.PLAIN;
-				else if ("bold".equals(strStyle)) style = Font.BOLD;
-				else if ("italic".equals(strStyle)) style = Font.ITALIC;
-				else if ("bolditalic".equals(strStyle)) style = Font.BOLD + Font.ITALIC;
-				else if ("bold,italic".equals(strStyle)) style = Font.BOLD + Font.ITALIC;
-				else if ("italicbold".equals(strStyle)) style = Font.BOLD + Font.ITALIC;
-				else if ("italic,bold".equals(strStyle)) style = Font.BOLD + Font.ITALIC;
-				else throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
-						"key style of argument attributeCollection has an invalid value [" + strStyle + "], valid values are [plain,bold,italic,bolditalic]");
+				if ("plain".equals(strStyle))
+					style = Font.PLAIN;
+				else if ("bold".equals(strStyle))
+					style = Font.BOLD;
+				else if ("italic".equals(strStyle))
+					style = Font.ITALIC;
+				else if ("bolditalic".equals(strStyle))
+					style = Font.BOLD + Font.ITALIC;
+				else if ("bold,italic".equals(strStyle))
+					style = Font.BOLD + Font.ITALIC;
+				else if ("italicbold".equals(strStyle))
+					style = Font.BOLD + Font.ITALIC;
+				else if ("italic,bold".equals(strStyle))
+					style = Font.BOLD + Font.ITALIC;
+				else
+					throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+							"key style of argument attributeCollection has an invalid value [" + strStyle
+									+ "], valid values are [plain,bold,italic,bolditalic]");
 			}
 
 			// strikethrough
@@ -891,14 +936,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 			AttributedString as = new AttributedString(text);
 			as.addAttribute(TextAttribute.FONT, new Font(font, style, size));
-			if (strikethrough) as.addAttribute(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
-			if (underline) as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+			if (strikethrough)
+				as.addAttribute(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
+			if (underline)
+				as.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
 			Graphics2D g = getGraphics();
 			// if(alpha!=1D) setAlpha(g,alpha);
 
 			g.drawString(as.getIterator(), x, y);
-		}
-		else getGraphics().drawString(text, x, y);
+		} else
+			getGraphics().drawString(text, x, y);
 
 	}
 
@@ -912,33 +959,46 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		// width
 		float width = eng().getCastUtil().toFloatValue(attr.get("width", new Float(1F)));
-		if (width < 0) throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("key [width] should be a none negativ number");
+		if (width < 0)
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("key [width] should be a none negativ number");
 
 		// endcaps
 		String strEndcaps = eng().getCastUtil().toString(attr.get("endcaps", "square"));
 		strEndcaps = strEndcaps.trim().toLowerCase();
 		int endcaps;
-		if ("square".equals(strEndcaps)) endcaps = BasicStroke.CAP_SQUARE;
-		else if ("butt".equals(strEndcaps)) endcaps = BasicStroke.CAP_BUTT;
-		else if ("round".equals(strEndcaps)) endcaps = BasicStroke.CAP_ROUND;
-		else throw CFMLEngineFactory.getInstance().getExceptionUtil()
-				.createExpressionException("key [endcaps] has an invalid value [" + strEndcaps + "], valid values are [square,round,butt]");
+		if ("square".equals(strEndcaps))
+			endcaps = BasicStroke.CAP_SQUARE;
+		else if ("butt".equals(strEndcaps))
+			endcaps = BasicStroke.CAP_BUTT;
+		else if ("round".equals(strEndcaps))
+			endcaps = BasicStroke.CAP_ROUND;
+		else
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+					"key [endcaps] has an invalid value [" + strEndcaps + "], valid values are [square,round,butt]");
 
 		// linejoins
 		String strLinejoins = eng().getCastUtil().toString(attr.get("linejoins", "miter"));
 		strLinejoins = strLinejoins.trim().toLowerCase();
 		int linejoins;
-		if ("bevel".equals(strLinejoins)) linejoins = BasicStroke.JOIN_BEVEL;
-		else if ("miter".equals(strLinejoins)) linejoins = BasicStroke.JOIN_MITER;
-		else if ("round".equals(strLinejoins)) linejoins = BasicStroke.JOIN_ROUND;
-		else throw CFMLEngineFactory.getInstance().getExceptionUtil()
-				.createExpressionException("key [linejoins] has an invalid value [" + strLinejoins + "], valid values are [bevel,miter,round]");
+		if ("bevel".equals(strLinejoins))
+			linejoins = BasicStroke.JOIN_BEVEL;
+		else if ("miter".equals(strLinejoins))
+			linejoins = BasicStroke.JOIN_MITER;
+		else if ("round".equals(strLinejoins))
+			linejoins = BasicStroke.JOIN_ROUND;
+		else
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("key [linejoins] has an invalid value [" + strLinejoins
+							+ "], valid values are [bevel,miter,round]");
 
 		// miterlimit
 		float miterlimit = 10.0F;
 		if (linejoins == BasicStroke.JOIN_MITER) {
 			miterlimit = eng().getCastUtil().toFloatValue(attr.get("miterlimit", new Float(10F)));
-			if (miterlimit < 1F) throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("key [miterlimit] should be greater or equal to 1");
+			if (miterlimit < 1F)
+				throw CFMLEngineFactory.getInstance().getExceptionUtil()
+						.createExpressionException("key [miterlimit] should be greater or equal to 1");
 		}
 
 		// dashArray
@@ -954,12 +1014,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		setDrawingStroke(width, endcaps, linejoins, miterlimit, dashArray, dash_phase);
 	}
 
-	public void setDrawingStroke(float width, int endcaps, int linejoins, float miterlimit, float[] dash, float dash_phase) throws PageException {
+	public void setDrawingStroke(float width, int endcaps, int linejoins, float miterlimit, float[] dash,
+			float dash_phase) throws PageException {
 		setDrawingStroke(new BasicStroke(width, endcaps, linejoins, miterlimit, dash, dash_phase));
 	}
 
 	public void setDrawingStroke(Stroke stroke) throws PageException {
-		if (stroke == null) return;
+		if (stroke == null)
+			return;
 		this.stroke = stroke;
 		getGraphics().setStroke(stroke);
 	}
@@ -1111,7 +1173,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void setXorMode(Color color) throws PageException {
-		if (color == null) return;
+		if (color == null)
+			return;
 		xmColor = color;
 		getGraphics().setXORMode(color);
 	}
@@ -1124,8 +1187,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		Object interpValue = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR; // default
 		if ("bilinear".equalsIgnoreCase(String.valueOf(interpolation))) {
 			interpValue = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-		}
-		else if ("bicubic".equalsIgnoreCase(String.valueOf(interpolation))) {
+		} else if ("bicubic".equalsIgnoreCase(String.valueOf(interpolation))) {
 			interpValue = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 		}
 
@@ -1169,8 +1231,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		AffineTransform transform = new AffineTransform();
 		if (direction == SHEAR_HORIZONTAL) {
 			transform.shear(shear, 0.0);
-		}
-		else {
+		} else {
 			transform.shear(0.0, shear);
 		}
 
@@ -1181,11 +1242,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		// Set interpolation based on the provided parameter
 		if (interpolation == RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR) {
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		}
-		else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BILINEAR) {
+		} else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BILINEAR) {
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		}
-		else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BICUBIC) {
+		} else if (interpolation == RenderingHints.VALUE_INTERPOLATION_BICUBIC) {
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		}
 
@@ -1209,7 +1268,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public BufferedImage image() throws PageException {
-		if (_image == null) throw (CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("image is not initialized"));
+		if (_image == null)
+			throw (CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("image is not initialized"));
 		return _image;
 	}
 
@@ -1224,13 +1285,20 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (graphics == null) {
 			graphics = image().createGraphics();
 			// reset all properties
-			if (antiAlias != ANTI_ALIAS_NONE) setAntiAliasing(antiAlias == ANTI_ALIAS_ON);
-			if (bgColor != null) setBackground(bgColor);
-			if (fgColor != null) setColor(fgColor);
-			if (alpha != 1) setAlpha(alpha);
-			if (tranparency != -1) setTranparency(tranparency);
-			if (xmColor != null) setXorMode(xmColor);
-			if (stroke != null) setDrawingStroke(stroke);
+			if (antiAlias != ANTI_ALIAS_NONE)
+				setAntiAliasing(antiAlias == ANTI_ALIAS_ON);
+			if (bgColor != null)
+				setBackground(bgColor);
+			if (fgColor != null)
+				setColor(fgColor);
+			if (alpha != 1)
+				setAlpha(alpha);
+			if (tranparency != -1)
+				setTranparency(tranparency);
+			if (xmColor != null)
+				setXorMode(xmColor);
+			if (stroke != null)
+				setDrawingStroke(stroke);
 		}
 		return graphics;
 	}
@@ -1241,21 +1309,25 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		// Apply current settings to temp graphics
 		if (antiAlias != ANTI_ALIAS_NONE) {
 			if (antiAlias == ANTI_ALIAS_ON) {
-				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+						RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 				tempGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			}
-			else {
-				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+			} else {
+				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+						RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 				tempGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 			}
 		}
-		if (bgColor != null) tempGraphics.setBackground(bgColor);
-		if (fgColor != null) tempGraphics.setColor(fgColor);
+		if (bgColor != null)
+			tempGraphics.setBackground(bgColor);
+		if (fgColor != null)
+			tempGraphics.setColor(fgColor);
 		if (alpha != 1) {
 			Composite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 			tempGraphics.setComposite(alphaComposite);
 		}
-		if (stroke != null) tempGraphics.setStroke(stroke);
+		if (stroke != null)
+			tempGraphics.setStroke(stroke);
 
 		return tempGraphics;
 	}
@@ -1328,21 +1400,28 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	private Object toStringTransparency(int transparency) {
-		if (Transparency.OPAQUE == transparency) return "OPAQUE";
-		if (Transparency.BITMASK == transparency) return "BITMASK";
-		if (Transparency.TRANSLUCENT == transparency) return "TRANSLUCENT";
+		if (Transparency.OPAQUE == transparency)
+			return "OPAQUE";
+		if (Transparency.BITMASK == transparency)
+			return "BITMASK";
+		if (Transparency.TRANSLUCENT == transparency)
+			return "TRANSLUCENT";
 		return "Unknown type of transparency";
 	}
 
-	public String writeBase64(Resource destination, String format, boolean inHTMLFormat) throws PageException, IOException {
+	public String writeBase64(Resource destination, String format, boolean inHTMLFormat)
+			throws PageException, IOException {
 		// destination
 		if (destination == null) {
-			if (source != null) destination = source;
-			else throw new IOException("missing destination file");
+			if (source != null)
+				destination = source;
+			else
+				throw new IOException("missing destination file");
 		}
 		format = ImageUtil.toFormat(format);
 		String content = getBase64String(format);
-		if (inHTMLFormat) content = "data:image/" + format + ";base64," + content;
+		if (inHTMLFormat)
+			content = "data:image/" + format + ";base64," + content;
 		eng().getIOUtil().write(destination, content, false, (Charset) null);
 		return content;
 	}
@@ -1351,67 +1430,81 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return new String(eng().getCastUtil().toBase64(getImageBytes(ImageUtil.toFormat(format))));
 	}
 
-	public void writeOut(Resource destination, String format, boolean overwrite, float quality, boolean noMeta) throws IOException, PageException {
+	public void writeOut(Resource destination, String format, boolean overwrite, float quality, boolean noMeta)
+			throws IOException, PageException {
 
-		if (format == null && destination != null) format = ImageUtil.getFormat(destination);
+		if (format == null && destination != null)
+			format = ImageUtil.getFormat(destination);
 
 		if (destination == null) {
-			if (source != null) destination = source;
-			else throw new IOException("missing destination file");
+			if (source != null)
+				destination = source;
+			else
+				throw new IOException("missing destination file");
 		}
 		if (!destination.getParentResource().exists()) {
 			throw new IOException("destination folder [ " + destination.getParentResource() + " ] doesn't exist");
 		}
 
 		if (destination.exists()) {
-			if (!overwrite) throw new IOException("can't overwrite existing image");
+			if (!overwrite)
+				throw new IOException("can't overwrite existing image");
 		}
 
 		ImageUtil.writeOut(this, destination, format, quality, noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
 	}
 
-	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException, PageException {
-		ImageUtil.writeOut(this, os, format, quality, closeStream, noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
+	public void writeOut(OutputStream os, String format, float quality, boolean closeStream, boolean noMeta)
+			throws IOException, PageException {
+		ImageUtil.writeOut(this, os, format, quality, closeStream,
+				noMeta || orientation != Metadata.ORIENTATION_UNDEFINED);
 	}
 
 	/*
 	 * public void convertX(String format) { this.format=format; }
 	 */
 
-	public void scaleToFit(String fitWidth, String fitHeight, String interpolation, double blurFactor) throws PageException {
-		if (eng().getStringUtil().isEmpty(fitWidth) || eng().getStringUtil().isEmpty(fitHeight)) resize(fitWidth, fitHeight, interpolation, blurFactor);
+	public void scaleToFit(String fitWidth, String fitHeight, String interpolation, double blurFactor)
+			throws PageException {
+		if (eng().getStringUtil().isEmpty(fitWidth) || eng().getStringUtil().isEmpty(fitHeight))
+			resize(fitWidth, fitHeight, interpolation, blurFactor);
 		else {
 			float width = eng().getCastUtil().toFloatValue(fitWidth) / getWidth();
 			float height = eng().getCastUtil().toFloatValue(fitHeight) / getHeight();
-			if (width < height) resize(fitWidth, "", interpolation, blurFactor);
-			else resize("", fitHeight, interpolation, blurFactor);
+			if (width < height)
+				resize(fitWidth, "", interpolation, blurFactor);
+			else
+				resize("", fitHeight, interpolation, blurFactor);
 		}
 	}
 
 	/**
-	 * Convenience method that returns a scaled instance of the provided {@code BufferedImage}.
+	 * Convenience method that returns a scaled instance of the provided
+	 * {@code BufferedImage}.
 	 *
-	 * @param img the original image to be scaled
-	 * @param targetWidth the desired width of the scaled instance, in pixels
-	 * @param targetHeight the desired height of the scaled instance, in pixels
-	 * @param hint one of the rendering hints that corresponds to
-	 *            {@code RenderingHints.KEY_INTERPOLATION} (e.g.
-	 *            {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
-	 *            {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
-	 *            {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
-	 * @param higherQuality if true, this method will use a multi-step scaling technique that provides
-	 *            higher quality than the usual one-step technique (only useful in downscaling cases,
-	 *            where {@code targetWidth} or {@code targetHeight} is smaller than the original
-	 *            dimensions, and generally only when the {@code BILINEAR} hint is specified)
+	 * @param img           the original image to be scaled
+	 * @param targetWidth   the desired width of the scaled instance, in pixels
+	 * @param targetHeight  the desired height of the scaled instance, in pixels
+	 * @param hint          one of the rendering hints that corresponds to
+	 *                      {@code RenderingHints.KEY_INTERPOLATION} (e.g.
+	 *                      {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
+	 *                      {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
+	 *                      {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
+	 * @param higherQuality if true, this method will use a multi-step scaling
+	 *                      technique that provides higher quality than the usual
+	 *                      one-step technique (only useful in downscaling cases,
+	 *                      where {@code targetWidth} or {@code targetHeight} is
+	 *                      smaller than the original dimensions, and generally only
+	 *                      when the {@code BILINEAR} hint is specified)
 	 * @return a scaled version of the original {@code BufferedImage}
 	 */
-	private BufferedImage getScaledInstance(BufferedImage img, int targetWidth, int targetHeight, Object hint, boolean higherQuality) {
+	private BufferedImage getScaledInstance(BufferedImage img, int targetWidth, int targetHeight, Object hint,
+			boolean higherQuality) {
 		// functionality not supported in java 1.4
 		int transparency = Transparency.OPAQUE;
 		try {
 			transparency = img.getTransparency();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 		}
 		int type = (transparency == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
 
@@ -1423,8 +1516,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			// until the target size is reached
 			w = img.getWidth();
 			h = img.getHeight();
-		}
-		else {
+		} else {
 			// Use one-step technique: scale directly from original
 			// size to target size with a single drawImage() call
 			w = targetWidth;
@@ -1453,15 +1545,15 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			g2.dispose();
 
 			ret = tmp;
-		}
-		while (w != targetWidth || h != targetHeight);
+		} while (w != targetWidth || h != targetHeight);
 
 		return ret;
 	}
 
 	public void resize(int scale, String interpolation, double blurFactor) throws PageException {
 		if (blurFactor < 0D || blurFactor > 10D)
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+					"argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
 
 		BufferedImage bi = image();
 		float width = bi.getWidth() / 100F * scale;
@@ -1470,11 +1562,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		resize(bi, (int) width, -1, toInterpolation(interpolation), blurFactor);
 	}
 
-	public void resize(String strWidth, String strHeight, String interpolation, double blurFactor) throws PageException {
+	public void resize(String strWidth, String strHeight, String interpolation, double blurFactor)
+			throws PageException {
 		if (eng().getStringUtil().isEmpty(strWidth, true) && eng().getStringUtil().isEmpty(strHeight, true))
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("you have to define width or height");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("you have to define width or height");
 		if (blurFactor < 0D || blurFactor > 10D)
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+					"argument [blurFactor] must be between 0 and 10, was [" + blurFactor + "]");
 		BufferedImage bi = image();
 		float height = resizeDimesion("height", strHeight, bi.getHeight());
 		float width = resizeDimesion("width", strWidth, bi.getWidth());
@@ -1487,10 +1582,15 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public void resizeImage(int width, int height, int interpolation) throws PageException {
 		Object ip;
-		if (interpolation == IPC_NEAREST) ip = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
-		else if (interpolation == IPC_BICUBIC) ip = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
-		else if (interpolation == IPC_BILINEAR) ip = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-		else throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("invalid interpoltion definition");
+		if (interpolation == IPC_NEAREST)
+			ip = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+		else if (interpolation == IPC_BICUBIC)
+			ip = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+		else if (interpolation == IPC_BILINEAR)
+			ip = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+		else
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("invalid interpoltion definition");
 
 		BufferedImage dst = new BufferedImage(width, height, image().getType());
 		Graphics2D graphics = dst.createGraphics();
@@ -1502,7 +1602,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	private float resizeDimesion(String label, String strDimension, float originalDimension) throws PageException {
-		if (eng().getStringUtil().isEmpty(strDimension, true)) return -1;
+		if (eng().getStringUtil().isEmpty(strDimension, true))
+			return -1;
 		strDimension = strDimension.trim();
 
 		if (strDimension != null && strDimension.endsWith("%")) {
@@ -1510,7 +1611,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			return originalDimension * p;
 		}
 		float dimension = eng().getCastUtil().toFloatValue(strDimension);
-		if (dimension <= 0F) throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(label + " has to be a none negative number");
+		if (dimension <= 0F)
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException(label + " has to be a none negative number");
 		return dimension;
 	}
 
@@ -1518,14 +1621,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		resize(image(), width, height, interpolation, blurFactor);
 	}
 
-	private void resize(BufferedImage bi, int width, int height, int interpolation, double blurFactor) throws PageException {
+	private void resize(BufferedImage bi, int width, int height, int interpolation, double blurFactor)
+			throws PageException {
 
 		if (interpolation == IP_AUTOMATIC && blurFactor == 1) {
 			try {
 				image(ImageUtil.resize(bi, width, height, false));
 				return;
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 			}
 		}
 
@@ -1536,31 +1639,36 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		if (cm.getColorSpace().getType() == ColorSpace.TYPE_GRAY && cm.getComponentSize()[0] == 8) {
-			if (interpolation == IP_AUTOMATIC || interpolation == IP_HIGHESTQUALITY || interpolation == IP_HIGHPERFORMANCE || interpolation == IP_HIGHQUALITY
+			if (interpolation == IP_AUTOMATIC || interpolation == IP_HIGHESTQUALITY
+					|| interpolation == IP_HIGHPERFORMANCE || interpolation == IP_HIGHQUALITY
 					|| interpolation == IP_MEDIUMPERFORMANCE || interpolation == IP_MEDIUMQUALITY) {
 				interpolation = IPC_BICUBIC;
 			}
 			if (interpolation != IPC_BICUBIC && interpolation != IPC_BILINEAR && interpolation != IPC_NEAREST) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("invalid grayscale interpolation");
+				throw CFMLEngineFactory.getInstance().getExceptionUtil()
+						.createExpressionException("invalid grayscale interpolation");
 			}
 		}
 
 		Scalr.Method method = toMethod(interpolation);
 		if (blurFactor == 1D && method != null) {
-			if (width == -1) image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_HEIGHT, 1, height, new BufferedImageOp[0]));
-			else if (height == -1) image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_WIDTH, width, 1, new BufferedImageOp[0]));
-			else image(Scalr.resize(image(), method, Scalr.Mode.FIT_EXACT, width, height, new BufferedImageOp[0]));
-		}
-		else {
+			if (width == -1)
+				image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_HEIGHT, 1, height, new BufferedImageOp[0]));
+			else if (height == -1)
+				image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_WIDTH, width, 1, new BufferedImageOp[0]));
+			else
+				image(Scalr.resize(image(), method, Scalr.Mode.FIT_EXACT, width, height, new BufferedImageOp[0]));
+		} else {
 			int h = bi.getHeight();
 			int w = bi.getWidth();
-			if (height == -1) height = (int) Math.round(h * (1D / w * width));
-			if (width == -1) width = (int) Math.round(w * (1D / h * height));
+			if (height == -1)
+				height = (int) Math.round(h * (1D / w * width));
+			if (width == -1)
+				width = (int) Math.round(w * (1D / h * height));
 
 			if (interpolation <= IPC_MAX) {
 				resizeImage(width, height, interpolation);
-			}
-			else {
+			} else {
 				image(ImageResizer.resize(image(), width, height, interpolation, blurFactor));
 
 			}
@@ -1570,19 +1678,21 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
 		try {
 			ImageMetadata metadata;
-			if (input instanceof Resource) metadata = Metadata.getMetadata((Resource) input);
-			else metadata = Imaging.getMetadata((byte[]) input);
+			if (input instanceof Resource)
+				metadata = Metadata.getMetadata((Resource) input);
+			else
+				metadata = Imaging.getMetadata((byte[]) input);
 
 			int ori = Metadata.getOrientation(metadata);
 			if (ori > 0) {
 				changeOrientation(metadata, ori);
 				orientation = Metadata.ORIENTATION_NORMAL;
-				// if (input instanceof Resource) changeExifMetadata(metadata, (Resource) input);
+				// if (input instanceof Resource) changeExifMetadata(metadata, (Resource)
+				// input);
 
 				// IImageMetadata metadata
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 
 		}
 	}
@@ -1661,7 +1771,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		image(dest);
 	}
 
-	public void changeExifMetadata(ImageMetadata metadata, final Resource dst) throws IOException, ImageReadException, ImageWriteException {
+	public void changeExifMetadata(ImageMetadata metadata, final Resource dst)
+			throws IOException, ImageReadException, ImageWriteException {
 		OutputStream os = null;
 		boolean canThrow = false;
 		try {
@@ -1735,8 +1846,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			// new ExifRewriter().updateExifMetadataLossless(jpegImageFile, os, outputSet);
 
 			canThrow = true;
-		}
-		finally {
+		} finally {
 			Util.closeEL(os);
 		}
 	}
@@ -1781,8 +1891,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		Object interpolationHint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 		if (interpolation == INTERPOLATION_NEAREST) {
 			interpolationHint = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
-		}
-		else if (interpolation == INTERPOLATION_BILINEAR) {
+		} else if (interpolation == INTERPOLATION_BILINEAR) {
 			interpolationHint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 		}
 		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolationHint);
@@ -1812,17 +1921,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public static Image toImage(PageContext pc, Object obj, boolean checkForVariables) throws PageException {
-		if (obj instanceof Image) return (Image) obj;
-		if (obj instanceof ObjectWrap) return toImage(pc, ((ObjectWrap) obj).getEmbededObject(), checkForVariables);
+		if (obj instanceof Image)
+			return (Image) obj;
+		if (obj instanceof ObjectWrap)
+			return toImage(pc, ((ObjectWrap) obj).getEmbededObject(), checkForVariables);
 
-		if (obj instanceof BufferedImage) return new Image((BufferedImage) obj);
+		if (obj instanceof BufferedImage)
+			return new Image((BufferedImage) obj);
 
 		// try to load from binary
 		if (eng().getDecisionUtil().isBinary(obj)) {
 			try {
 				return new Image(eng().getCastUtil().toBinary(obj), null);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw eng().getCastUtil().toPageException(e);
 			}
 		}
@@ -1831,12 +1942,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			String str = eng().getCastUtil().toString(obj);
 			if (checkForVariables && pc != null) {
 				Object o = CommonUtil.getVariableEL(pc, str, null);
-				if (o != null) return toImage(pc, o, false);
+				if (o != null)
+					return toImage(pc, o, false);
 			}
 			try {
 				return Image.getInstance(pc, str, null);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 
 				throw eng().getCastUtil().toPageException(e);
 			}
@@ -1848,15 +1959,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public static Image toImage(PageContext pc, Object obj, boolean checkForVariables, Image defaultValue) {
 		try {
 			return toImage(pc, obj, checkForVariables);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
 
 	public static boolean isImage(Object obj) {
-		if (obj instanceof Image) return true;
-		if (obj instanceof ObjectWrap) return isImage(((ObjectWrap) obj).getEmbededObject(""));
+		if (obj instanceof Image)
+			return true;
+		if (obj instanceof ObjectWrap)
+			return isImage(((ObjectWrap) obj).getEmbededObject(""));
 		return false;
 	}
 
@@ -1869,14 +1981,17 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		Coll coll = CommonUtil.getMembers(pc).get(methodName);
 		if (coll != null) {
-			if (!coll.memberChaining) return coll.bif.invoke(pc, pre(args));
-			else coll.bif.invoke(pc, pre(args));
+			if (!coll.memberChaining)
+				return coll.bif.invoke(pc, pre(args));
+			else
+				coll.bif.invoke(pc, pre(args));
 			return this;
 		}
 
 		// TODO handle this dyn
 		/*
-		 * if(methodName.equals("blur")) { new ImageBlur().invoke(pc, pre(args)); return this; }
+		 * if(methodName.equals("blur")) { new ImageBlur().invoke(pc, pre(args)); return
+		 * this; }
 		 */
 
 		return CommonUtil.call(pc, this, methodName, args, new short[] { TYPE_IMAGE }, new String[] { "image" });
@@ -1901,15 +2016,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public static boolean isCastableToImage(PageContext pc, Object obj) {
-		if (isImage(obj)) return true;
+		if (isImage(obj))
+			return true;
 		return toImage(pc, obj, true, null) != null;
 	}
 
-	public static Image createImage(PageContext pc, Object obj, boolean check4Var, boolean clone, boolean checkAccess, String format) throws PageException {
+	public static Image createImage(PageContext pc, Object obj, boolean check4Var, boolean clone, boolean checkAccess,
+			String format) throws PageException {
 		try {
 			if ((obj instanceof Resource || obj instanceof File)) {
 				Resource res = eng().getCastUtil().toResource(obj);
-				if (checkAccess) pc.getConfig().getSecurityManager().checkFileLocation(res);
+				if (checkAccess)
+					pc.getConfig().getSecurityManager().checkFileLocation(res);
 				return new Image(res, format);
 			}
 			if (obj instanceof CharSequence) {
@@ -1924,8 +2042,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 						pc.getConfig().getSecurityManager().checkFileLocation(res);
 
 						return new Image(res, format);
-					}
-					catch (Exception ee) {
+					} catch (Exception ee) {
 						e = ee;
 					}
 				}
@@ -1933,17 +2050,16 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				// Base64
 				try {
 					return new Image(str, format);
-				}
-				catch (Exception ee) {
-					if (e == null) e = ee;
+				} catch (Exception ee) {
+					if (e == null)
+						e = ee;
 				}
 
 				// variable
 				if (check4Var && eng().getDecisionUtil().isVariableName(str)) {
 					try {
 						return createImage(pc, pc.getVariable(str), false, clone, checkAccess, format);
-					}
-					catch (Exception ee) {
+					} catch (Exception ee) {
 						throw e;
 					}
 				}
@@ -1951,15 +2067,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				throw e;
 			}
 			if (obj instanceof Image) {
-				if (clone) return (Image) ((Image) obj).clone();
+				if (clone)
+					return (Image) ((Image) obj).clone();
 				return (Image) obj;
 			}
-			if (eng().getDecisionUtil().isBinary(obj)) return new Image(eng().getCastUtil().toBinary(obj), format);
-			if (obj instanceof BufferedImage) return new Image(((BufferedImage) obj));
-			if (obj instanceof java.awt.Image) return new Image(toBufferedImage((java.awt.Image) obj));
+			if (eng().getDecisionUtil().isBinary(obj))
+				return new Image(eng().getCastUtil().toBinary(obj), format);
+			if (obj instanceof BufferedImage)
+				return new Image(((BufferedImage) obj));
+			if (obj instanceof java.awt.Image)
+				return new Image(toBufferedImage((java.awt.Image) obj));
 
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
 		throw eng().getExceptionUtil().createCasterException(obj, "Image");
@@ -1969,8 +2088,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Collection duplicate(boolean deepCopy) {
 		try {
 			return new Image(getImageBytes(null));
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			if (Util.isEmpty(getFormat()) && _image != null) {
 				ColorModel cm = _image.getColorModel();
 				boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
@@ -1999,7 +2117,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			height = Math.min(height, source.getHeight() - y);
 
 			// Create cropped image maintaining original color model
-			BufferedImage cropped = new BufferedImage(width, height, source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
+			BufferedImage cropped = new BufferedImage(width, height,
+					source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType());
 
 			// Perform the crop operation
 			Graphics2D g2d = cropped.createGraphics();
@@ -2012,16 +2131,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				g2d.drawImage(source, 0, 0, width, height, // Destination coordinates
 						x, y, x + width, y + height, // Source coordinates
 						null);
-			}
-			finally {
+			} finally {
 				g2d.dispose(); // Clean up graphics resources
 			}
 
 			// Update the image reference
 			image(cropped);
 
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
 	}
@@ -2046,15 +2163,15 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			writeOut(baos, format, 1f, true, noMeta);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
 		return baos.toByteArray();
 	}
 
 	public void setColor(Color color) throws PageException {
-		if (color == null) return;
+		if (color == null)
+			return;
 		fgColor = color;
 		getGraphics().setColor(color);
 	}
@@ -2065,18 +2182,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		Composite alphaComposite;
 		if (composite == null) {
-			if (alpha == 1) return;
+			if (alpha == 1)
+				return;
 			composite = g.getComposite();
 		}
-		if (alpha == 1) alphaComposite = composite;
-		else alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+		if (alpha == 1)
+			alphaComposite = composite;
+		else
+			alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 
 		g.setComposite(alphaComposite);
 		// graphics.setComposite(originalComposite);
 	}
 
 	public void setBackground(Color color) throws PageException {
-		if (color == null) return;
+		if (color == null)
+			return;
 		bgColor = color;
 		getGraphics().setBackground(color);
 	}
@@ -2087,8 +2208,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		if (antiAlias) {
 			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		}
-		else {
+		} else {
 			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		}
@@ -2097,8 +2217,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private Struct _info() {
 		try {
 			return info();
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			throw eng().getExceptionUtil().createPageRuntimeException(eng().getCastUtil().toPageException(e));
 		}
 	}
@@ -2113,9 +2232,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		return _info().containsKey(key);
 	}
 
-	@Override
 	public boolean containsKey(PageContext pc, Key key) {
-		return _info().containsKey(pc, key);
+		return _info().containsKey(key);
 	}
 
 	@Override
@@ -2135,24 +2253,26 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	@Override
 	public Object remove(Key key) throws PageException {
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't remove key [" + key.getString() + "] from struct, struct is readonly");
+		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException(
+				"can't remove key [" + key.getString() + "] from struct, struct is readonly");
 	}
 
 	@Override
 	public Object removeEL(Key key) {
-		throw eng().getExceptionUtil()
-				.createPageRuntimeException(eng().getExceptionUtil().createApplicationException("can't remove key [" + key.getString() + "] from struct, struct is readonly"));
+		throw eng().getExceptionUtil().createPageRuntimeException(eng().getExceptionUtil().createApplicationException(
+				"can't remove key [" + key.getString() + "] from struct, struct is readonly"));
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't set key [" + key.getString() + "] to struct, struct is readonly");
+		throw CFMLEngineFactory.getInstance().getExceptionUtil()
+				.createExpressionException("can't set key [" + key.getString() + "] to struct, struct is readonly");
 	}
 
 	@Override
 	public Object setEL(Key key, Object value) {
-		throw eng().getExceptionUtil()
-				.createPageRuntimeException(eng().getExceptionUtil().createApplicationException("can't set key [" + key.getString() + "] to struct, struct is readonly"));
+		throw eng().getExceptionUtil().createPageRuntimeException(eng().getExceptionUtil()
+				.createApplicationException("can't set key [" + key.getString() + "] to struct, struct is readonly"));
 	}
 
 	@Override
@@ -2168,9 +2288,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			dt.setTitle("Struct (Image)");
 			try {
 				String format = ImageUtil.getOneWriterFormatName("png", "jpeg");
-				dt.setComment("<img style=\"margin:5px\" src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + getBase64String(format) + "\">");
-			}
-			catch (Exception e) {
+				dt.setComment("<img style=\"margin:5px\" src=\"data:" + ImageUtil.getMimeTypeFromFormat(format)
+						+ ";base64," + getBase64String(format) + "\">");
+			} catch (Exception e) {
 			}
 
 		}
@@ -2182,7 +2302,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public String castToString() throws PageException {
 		try {
 			String format = ImageUtil.getOneWriterFormatName("png", "jpeg");
-			return "<img src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + getBase64String(format) + "\">";
+			return "<img src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + getBase64String(format)
+					+ "\">";
 		}
 
 		catch (IOException e) {
@@ -2194,8 +2315,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public String castToString(String defaultValue) {
 		try {
 			return castToString();
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -2229,8 +2349,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public Boolean castToBoolean(Boolean defaultValue) {
 		try {
 			return info().castToBoolean(defaultValue);
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -2244,8 +2363,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public DateTime castToDateTime(DateTime defaultValue) {
 		try {
 			return info().castToDateTime(defaultValue);
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -2259,8 +2377,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public double castToDoubleValue(double defaultValue) {
 		try {
 			return info().castToDoubleValue(defaultValue);
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			return defaultValue;
 		}
 	}
@@ -2287,49 +2404,83 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	public static int toInterpolation(String strInterpolation) throws PageException {
 		if (eng().getStringUtil().isEmpty(strInterpolation))
-			throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("interpolation definition is empty");
+			throw CFMLEngineFactory.getInstance().getExceptionUtil()
+					.createExpressionException("interpolation definition is empty");
 		strInterpolation = strInterpolation.trim().toLowerCase();
 
-		if ("automatic".equals(strInterpolation)) return IP_AUTOMATIC;
-		else if ("ultraQuality".equals(strInterpolation)) return IP_HIGHESTQUALITY;
-		else if ("quality".equals(strInterpolation)) return IP_MEDIUMQUALITY;
-		else if ("balanced".equals(strInterpolation)) return IPC_BILINEAR;
-		else if ("speed".equals(strInterpolation)) return IP_HIGHESTPERFORMANCE;
+		if ("automatic".equals(strInterpolation))
+			return IP_AUTOMATIC;
+		else if ("ultraQuality".equals(strInterpolation))
+			return IP_HIGHESTQUALITY;
+		else if ("quality".equals(strInterpolation))
+			return IP_MEDIUMQUALITY;
+		else if ("balanced".equals(strInterpolation))
+			return IPC_BILINEAR;
+		else if ("speed".equals(strInterpolation))
+			return IP_HIGHESTPERFORMANCE;
 
-		else if ("highestquality".equals(strInterpolation)) return IP_HIGHESTQUALITY;
-		else if ("highquality".equals(strInterpolation)) return IP_HIGHQUALITY;
-		else if ("mediumquality".equals(strInterpolation)) return IP_MEDIUMQUALITY;
-		else if ("highestperformance".equals(strInterpolation)) return IP_HIGHESTPERFORMANCE;
-		else if ("highperformance".equals(strInterpolation)) return IP_HIGHPERFORMANCE;
-		else if ("mediumperformance".equals(strInterpolation)) return IP_MEDIUMPERFORMANCE;
-		else if ("nearest".equals(strInterpolation)) return IPC_NEAREST;
-		else if ("bilinear".equals(strInterpolation)) return IPC_BILINEAR;
-		else if ("bicubic".equals(strInterpolation)) return IPC_BICUBIC;
-		else if ("bessel".equals(strInterpolation)) return IP_BESSEL;
-		else if ("blackman".equals(strInterpolation)) return IP_BLACKMAN;
-		else if ("hamming".equals(strInterpolation)) return IP_HAMMING;
-		else if ("hanning".equals(strInterpolation)) return IP_HANNING;
-		else if ("hermite".equals(strInterpolation)) return IP_HERMITE;
-		else if ("lanczos".equals(strInterpolation)) return IP_LANCZOS;
-		else if ("mitchell".equals(strInterpolation)) return IP_MITCHELL;
-		else if ("quadratic".equals(strInterpolation)) return IP_QUADRATIC;
+		else if ("highestquality".equals(strInterpolation))
+			return IP_HIGHESTQUALITY;
+		else if ("highquality".equals(strInterpolation))
+			return IP_HIGHQUALITY;
+		else if ("mediumquality".equals(strInterpolation))
+			return IP_MEDIUMQUALITY;
+		else if ("highestperformance".equals(strInterpolation))
+			return IP_HIGHESTPERFORMANCE;
+		else if ("highperformance".equals(strInterpolation))
+			return IP_HIGHPERFORMANCE;
+		else if ("mediumperformance".equals(strInterpolation))
+			return IP_MEDIUMPERFORMANCE;
+		else if ("nearest".equals(strInterpolation))
+			return IPC_NEAREST;
+		else if ("bilinear".equals(strInterpolation))
+			return IPC_BILINEAR;
+		else if ("bicubic".equals(strInterpolation))
+			return IPC_BICUBIC;
+		else if ("bessel".equals(strInterpolation))
+			return IP_BESSEL;
+		else if ("blackman".equals(strInterpolation))
+			return IP_BLACKMAN;
+		else if ("hamming".equals(strInterpolation))
+			return IP_HAMMING;
+		else if ("hanning".equals(strInterpolation))
+			return IP_HANNING;
+		else if ("hermite".equals(strInterpolation))
+			return IP_HERMITE;
+		else if ("lanczos".equals(strInterpolation))
+			return IP_LANCZOS;
+		else if ("mitchell".equals(strInterpolation))
+			return IP_MITCHELL;
+		else if ("quadratic".equals(strInterpolation))
+			return IP_QUADRATIC;
 
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("interpolation definition [" + strInterpolation + "] is invalid");
+		throw CFMLEngineFactory.getInstance().getExceptionUtil()
+				.createExpressionException("interpolation definition [" + strInterpolation + "] is invalid");
 	}
 
 	private Scalr.Method toMethod(int ip) {
-		if (IP_AUTOMATIC == ip) return Scalr.Method.AUTOMATIC;
+		if (IP_AUTOMATIC == ip)
+			return Scalr.Method.AUTOMATIC;
 
-		else if (IP_HIGHESTQUALITY == ip) return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_HIGHQUALITY == ip) return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_MEDIUMQUALITY == ip) return Scalr.Method.QUALITY;
-		else if (IP_MEDIUMPERFORMANCE == ip) return Scalr.Method.QUALITY;
-		else if (IP_HIGHPERFORMANCE == ip) return Scalr.Method.SPEED;
-		else if (IP_HIGHESTPERFORMANCE == ip) return Scalr.Method.SPEED;
+		else if (IP_HIGHESTQUALITY == ip)
+			return Scalr.Method.ULTRA_QUALITY;
+		else if (IP_HIGHQUALITY == ip)
+			return Scalr.Method.ULTRA_QUALITY;
+		else if (IP_MEDIUMQUALITY == ip)
+			return Scalr.Method.QUALITY;
+		else if (IP_MEDIUMPERFORMANCE == ip)
+			return Scalr.Method.QUALITY;
+		else if (IP_HIGHPERFORMANCE == ip)
+			return Scalr.Method.SPEED;
+		else if (IP_HIGHESTPERFORMANCE == ip)
+			return Scalr.Method.SPEED;
 
-		else if (IPC_NEAREST == ip) return Scalr.Method.SPEED;
-		else if (IPC_BILINEAR == ip) return Scalr.Method.BALANCED;
-		else if (IPC_BICUBIC == ip) return Scalr.Method.QUALITY;
+		else if (IPC_NEAREST == ip)
+			return Scalr.Method.SPEED;
+		else if (IPC_BILINEAR == ip)
+			return Scalr.Method.BALANCED;
+		else if (IPC_BICUBIC == ip)
+			return Scalr.Method.QUALITY;
 
 		return null;
 	}
@@ -2345,8 +2496,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public boolean containsValue(Object value) {
 		try {
 			return info().containsValue(value);
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			return false;
 		}
 	}
@@ -2355,8 +2505,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public java.util.Collection values() {
 		try {
 			return info().values();
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			throw eng().getExceptionUtil().createPageRuntimeException(e);
 		}
 	}
@@ -2379,8 +2528,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		PixelGrabber pg = new PixelGrabber(image, 0, 0, 1, 1, false);
 		try {
 			pg.grabPixels();
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 
 		// Get the image's color model
@@ -2414,8 +2562,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			GraphicsDevice gs = ge.getDefaultScreenDevice();
 			GraphicsConfiguration gc = gs.getDefaultConfiguration();
 			bimage = gc.createCompatibleImage(image.getWidth(null), image.getHeight(null), transparency);
-		}
-		catch (HeadlessException e) {
+		} catch (HeadlessException e) {
 			// The system does not have a screen
 		}
 
@@ -2440,12 +2587,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	@Override
 	public int getType() {
-		if (_info() instanceof StructSupport) return ((StructSupport) _info()).getType();
+		if (_info() instanceof StructSupport)
+			return ((StructSupport) _info()).getType();
 		return Struct.TYPE_REGULAR;
 	}
 
 	private static CFMLEngine eng() {
-		if (_eng == null) _eng = CFMLEngineFactory.getInstance();
+		if (_eng == null)
+			_eng = CFMLEngineFactory.getInstance();
 		return _eng;
 	}
 
