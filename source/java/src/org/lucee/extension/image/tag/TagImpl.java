@@ -1,8 +1,8 @@
 package org.lucee.extension.image.tag;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.Tag;
-
+import jakarta.ejb.ApplicationException;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.tagext.Tag;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -32,7 +32,7 @@ public abstract class TagImpl implements Tag {
 	}
 
 	@Override
-	public void setPageContext(javax.servlet.jsp.PageContext pageContext) {
+	public void setPageContext(jakarta.servlet.jsp.PageContext pageContext) {
 		this.pageContext = (PageContext)pageContext;
 	}
 
@@ -71,27 +71,23 @@ public abstract class TagImpl implements Tag {
 	 * @throws ApplicationException
 	 */
 	public void required(String tagName, String actionName, String attributeName, Object attribute) throws PageException {
-		if(attribute == null)
-			throw engine.getExceptionUtil().createApplicationException(
-					"Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
+		if (attribute == null) throw engine.getExceptionUtil()
+				.createApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
 
 	}
 
 	public void required(String tagName, String attributeName, Object attribute) throws PageException {
-		if(attribute == null)
-			throw engine.getExceptionUtil().createApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required");
+		if (attribute == null) throw engine.getExceptionUtil().createApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required");
 
 	}
 
 	public void required(String tagName, String actionName, String attributeName, String attribute, boolean trim) throws PageException {
-		if(Util.isEmpty(attribute, trim))
-			throw engine.getExceptionUtil().createApplicationException(
-					"Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
+		if (Util.isEmpty(attribute, trim)) throw engine.getExceptionUtil()
+				.createApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
 	}
 
 	public void required(String tagName, String actionName, String attributeName, double attributeValue, double nullValue) throws PageException {
-		if(attributeValue == nullValue)
-			throw engine.getExceptionUtil().createApplicationException(
-					"Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
+		if (attributeValue == nullValue) throw engine.getExceptionUtil()
+				.createApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
 	}
 }

@@ -3,13 +3,12 @@ package org.lucee.extension.image.tag;
 import java.awt.Color;
 import java.io.IOException;
 
-import javax.servlet.jsp.JspException;
-
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.MarpleCaptcha;
 import org.lucee.extension.image.functions.ImageCaptcha;
 import org.lucee.extension.image.util.CommonUtil;
 
+import jakarta.servlet.jsp.JspException;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
