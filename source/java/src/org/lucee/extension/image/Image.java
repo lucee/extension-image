@@ -1097,7 +1097,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void paste(Image topImage, int x, int y) throws PageException {
-		Graphics2D g = getGraphics();
+		Graphics2D g = createTempGraphics();
 
 		// Set high quality rendering hints
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
@@ -1233,6 +1233,31 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			if (stroke != null) setDrawingStroke(stroke);
 		}
 		return graphics;
+	}
+
+	private Graphics2D createTempGraphics() throws PageException {
+		Graphics2D tempGraphics = image().createGraphics();
+
+		// Apply current settings to temp graphics
+		if (antiAlias != ANTI_ALIAS_NONE) {
+			if (antiAlias == ANTI_ALIAS_ON) {
+				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				tempGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			}
+			else {
+				tempGraphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+				tempGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+			}
+		}
+		if (bgColor != null) tempGraphics.setBackground(bgColor);
+		if (fgColor != null) tempGraphics.setColor(fgColor);
+		if (alpha != 1) {
+			Composite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+			tempGraphics.setComposite(alphaComposite);
+		}
+		if (stroke != null) tempGraphics.setStroke(stroke);
+
+		return tempGraphics;
 	}
 
 	private String toStringColorSpace(ColorSpace colorSpace) {
@@ -2086,6 +2111,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	@Override
 	public boolean containsKey(Key key) {
 		return _info().containsKey(key);
+	}
+
+	@Override
+	public boolean containsKey(PageContext pc, Key key) {
+		return _info().containsKey(pc, key);
 	}
 
 	@Override
