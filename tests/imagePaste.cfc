@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var bufferedImg = imageGetBufferedImage(yellow);
 				loop from=0 to=9 item="local.x" {
 					loop from=0 to=19 item="local.y" {
-						if(bufferedImg.getRGB(x, y)!=variables.colors.YELLOW) throw "invalid color x:#x#;y:#y#";
+						expect( bufferedImg.getRGB(x, y) ).toBe(variables.colors.YELLOW);
 					}
 				}
 				
@@ -53,13 +53,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var bufferedImg = imageGetBufferedImage(yellow);
 				loop from=0 to=9 item="local.x" {
 					loop from=0 to=9 item="local.y" {
-						if(bufferedImg.getRGB(x, y)!=variables.colors.BLUE) throw "invalid color x:#x#;y:#y# #bufferedImg.getRGB(x, y)#";
+						expect( bufferedImg.getRGB(x, y) ).toBe(variables.colors.BLUE);
 					}
 				}
 				// should be part yellow
 				loop from=0 to=9 item="local.x" {
 					loop from=10 to=19 item="local.y" {
-						if(bufferedImg.getRGB(x, y)!=variables.colors.YELLOW) throw "invalid color x:#x#;y:#y# #bufferedImg.getRGB(x, y)#";
+						expect( bufferedImg.getRGB(x, y) ).toBe(variables.colors.YELLOW);
 					}
 				}
 				
@@ -70,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var bufferedImg = imageGetBufferedImage(yellow);
 				loop from=0 to=9 item="local.x" {
 					loop from=0 to=19 item="local.y" {
-						if(bufferedImg.getRGB(x, y)!=variables.colors.BLUE) throw "invalid color x:#x#;y:#y# #bufferedImg.getRGB(x, y)#";
+						expect( bufferedImg.getRGB(x, y) ).toBe(variables.colors.BLUE);
 					}
 				}
 
