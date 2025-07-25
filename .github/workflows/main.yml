@@ -106,6 +106,8 @@ jobs:
         env:
           testLabels: image
           testAdditional: ${{ github.workspace }}/tests
+          LUCEE_LOGGING_FORCE_APPENDER: console
+          LUCEE_LOGGING_FORCE_LEVEL: INFO
 
   deploy:
     runs-on: ubuntu-latest
