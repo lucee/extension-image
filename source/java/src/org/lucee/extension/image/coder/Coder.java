@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.util.CommonUtil;
+import org.lucee.extension.image.util.ExceptionUtil;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -59,21 +60,30 @@ public abstract class Coder {
 			Config config = eng.getThreadConfig();
 			Log log = config == null ? null : config.getLog("application");
 			MultiCoder mc = new MultiCoder();
-			if (coderAllowed(coders, "JDeli")) add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
-			if (coderAllowed(coders, "Gotson")) add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
-			if (coderAllowed(coders, "Aspose")) add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
-			if (coderAllowed(coders, "TwelveMonkeys")) add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
-			if (coderAllowed(coders, "ImageIO")) add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
-			if (coderAllowed(coders, "Lucee")) add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
-			if (coderAllowed(coders, "ApacheImaging")) add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
-			if (coderAllowed(coders, "JAI")) add(mc, "org.lucee.extension.image.coder.jai.JAICoder", log);
+			if (coderAllowed(coders, "JDeli"))
+				add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
+			if (coderAllowed(coders, "Gotson"))
+				add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
+			if (coderAllowed(coders, "Aspose"))
+				add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
+			if (coderAllowed(coders, "TwelveMonkeys"))
+				add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
+			if (coderAllowed(coders, "ImageIO"))
+				add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
+			if (coderAllowed(coders, "Lucee"))
+				add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
+			if (coderAllowed(coders, "ApacheImaging"))
+				add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
+			if (coderAllowed(coders, "JAI"))
+				add(mc, "org.lucee.extension.image.coder.jai.JAICoder", log);
 			instances.put(hash, instance = mc);
 		}
 		return instance;
 	}
 
 	private static boolean coderAllowed(Set<String> coders, String name) {
-		if (coders == null) return true;
+		if (coders == null)
+			return true;
 		return coders.contains(name.toLowerCase());
 	}
 
@@ -83,11 +93,16 @@ public abstract class Coder {
 
 			if (coder.supported()) {
 				mc.add(coder);
-				if (log != null) log.info("image", "use JDeli Image En/Decoder");
+				if (log != null)
+					log.info("image", "sucessfully loaded Coder [" + className + "]");
 			}
-		}
-		catch (Exception e) {
-			if (log != null) log.error("image", e);
+		} catch (Exception e) {
+			if (log != null) {
+				IOException ioe = new IOException("Failed to load image Coder [" + className
+						+ "]. This is one of multiple coders being loaded, continuing with remaining coders.");
+				ExceptionUtil.initCauseEL(ioe, e);
+				log.log(Log.LEVEL_WARN, "image", ioe);
+			}
 		}
 	}
 
@@ -111,7 +126,8 @@ public abstract class Coder {
 
 	public abstract boolean supported();
 
-	public abstract void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException;
+	public abstract void write(Image img, Resource destination, String format, float quality, boolean noMeta)
+			throws IOException;
 
 	public static Log log() {
 		return log(null);
@@ -119,19 +135,24 @@ public abstract class Coder {
 
 	public static Log log(PageContext pc) {
 		Config config = pc != null ? pc.getConfig() : CFMLEngineFactory.getInstance().getThreadConfig();
-		if (config != null) return config.getLog("application");
+		if (config != null)
+			return config.getLog("application");
 		return null;
 	}
 
-	// public abstract void write(Image img, OutputStream os, String format, float quality, boolean
+	// public abstract void write(Image img, OutputStream os, String format, float
+	// quality, boolean
 	// closeStream, boolean noMeta) throws IOException;
 	public static String[] sortAndMerge(String[] names) {
 		List<String> list = new ArrayList<>();
-		for (String n: names) {
+		for (String n : names) {
 			n = n.toUpperCase();
-			if ("JPG".equals(n)) n = "JPEG";
-			if ("JPE".equals(n)) n = "JPEG";
-			if (!list.contains(n)) list.add(n.toUpperCase());
+			if ("JPG".equals(n))
+				n = "JPEG";
+			if ("JPE".equals(n))
+				n = "JPEG";
+			if (!list.contains(n))
+				list.add(n.toUpperCase());
 		}
 		String[] arr = list.toArray(new String[list.size()]);
 		Arrays.sort(arr);
@@ -142,7 +163,7 @@ public abstract class Coder {
 		Collections.sort(list);
 
 		Array arr = CFMLEngineFactory.getInstance().getCreationUtil().createArray();
-		for (String str: list) {
+		for (String str : list) {
 			arr.appendEL(str);
 		}
 		return arr;
@@ -152,7 +173,7 @@ public abstract class Coder {
 		Arrays.sort(strArr);
 
 		Array arr = CFMLEngineFactory.getInstance().getCreationUtil().createArray();
-		for (String str: strArr) {
+		for (String str : strArr) {
 			arr.appendEL(str);
 		}
 		return arr;
