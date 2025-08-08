@@ -14,9 +14,9 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.PageException;
 
-class JAICoder extends Coder {
+public class JAICoder extends Coder {
 
-	protected JAICoder() {
+	public JAICoder() {
 
 	}
 
@@ -31,23 +31,26 @@ class JAICoder extends Coder {
 	}
 
 	@Override
-	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
+	public void write(Image img, Resource destination, String format, float quality, boolean noMeta)
+			throws IOException {
 		if (Util.isEmpty(format)) {
 			format = ImageUtil.getFormatFromExtension(destination, null);
-			if (Util.isEmpty(format)) format = img.getFormat();
+			if (Util.isEmpty(format))
+				format = img.getFormat();
 		}
 		try {
 			JAIUtil.write(img.getBufferedImage(), destination, format);
-		}
-		catch (PageException e) {
+		} catch (PageException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}
 	/*
-	 * public void write(Image img, OutputStream os, String format, float quality, boolean closeStream,
-	 * boolean noMeta) throws IOException { if (Util.isEmpty(format)) format = img.getFormat(); try {
-	 * JAIUtil.write(img.getBufferedImage(), os, format); } catch (PageException e) { throw
-	 * CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e); } }
+	 * public void write(Image img, OutputStream os, String format, float quality,
+	 * boolean closeStream, boolean noMeta) throws IOException { if
+	 * (Util.isEmpty(format)) format = img.getFormat(); try {
+	 * JAIUtil.write(img.getBufferedImage(), os, format); } catch (PageException e)
+	 * { throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+	 * } }
 	 */
 
 	@Override
