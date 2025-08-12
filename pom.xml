@@ -13,13 +13,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <id>B03E92E1-F2F3-4380-981922D0BDFEF2B8</id>
+        <id>B737ABC4-D43F-4D91-8E8E973E37C40D1B</id>
         <bundlename>org.lucee.image.extension</bundlename>
         <luceeCoreVersion>7.0.0.110
 </luceeCoreVersion>
         <releaseType>server</releaseType>
-        <label>Image Extension for Jakarta EE (Lucee 7+)
-</label>
+        <label>Image Extension</label>
         <release.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</release.url>
         <snapshot.url>https://oss.sonatype.org/content/repositories/snapshots/</snapshot.url>
     </properties>
