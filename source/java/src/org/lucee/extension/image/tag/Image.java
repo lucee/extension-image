@@ -8,7 +8,6 @@ import org.lucee.extension.image.MarpleCaptcha;
 import org.lucee.extension.image.functions.ImageCaptcha;
 import org.lucee.extension.image.util.CommonUtil;
 
-import jakarta.servlet.jsp.JspException;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -96,20 +95,33 @@ public final class Image extends TagImpl {
 	public void setAction(String strAction) throws PageException {
 		this.strAction = strAction;
 		strAction = strAction.trim().toLowerCase();
-		if (eng.getStringUtil().isEmpty(strAction)) action = ACTION_READ;
-		else if ("border".equals(strAction)) action = ACTION_BORDER;
-		else if ("captcha".equals(strAction)) action = ACTION_CAPTCHA;
-		else if ("convert".equals(strAction)) action = ACTION_CONVERT;
-		else if ("info".equals(strAction)) action = ACTION_INFO;
-		else if ("read".equals(strAction)) action = ACTION_READ;
-		else if ("resize".equals(strAction)) action = ACTION_RESIZE;
-		else if ("rotate".equals(strAction)) action = ACTION_ROTATE;
-		else if ("write".equals(strAction)) action = ACTION_WRITE;
-		else if ("writetobrowser".equals(strAction)) action = ACTION_WRITE_TO_BROWSER;
-		else if ("write-to-browser".equals(strAction)) action = ACTION_WRITE_TO_BROWSER;
-		else if ("write_to_browser".equals(strAction)) action = ACTION_WRITE_TO_BROWSER;
-		else throw eng.getExceptionUtil().createApplicationException(
-				"invalid action [" + this.strAction + "], " + "valid actions are [border,captcha,convert,info,read,resize,rotate,write,writeToBrowser]");
+		if (eng.getStringUtil().isEmpty(strAction))
+			action = ACTION_READ;
+		else if ("border".equals(strAction))
+			action = ACTION_BORDER;
+		else if ("captcha".equals(strAction))
+			action = ACTION_CAPTCHA;
+		else if ("convert".equals(strAction))
+			action = ACTION_CONVERT;
+		else if ("info".equals(strAction))
+			action = ACTION_INFO;
+		else if ("read".equals(strAction))
+			action = ACTION_READ;
+		else if ("resize".equals(strAction))
+			action = ACTION_RESIZE;
+		else if ("rotate".equals(strAction))
+			action = ACTION_ROTATE;
+		else if ("write".equals(strAction))
+			action = ACTION_WRITE;
+		else if ("writetobrowser".equals(strAction))
+			action = ACTION_WRITE_TO_BROWSER;
+		else if ("write-to-browser".equals(strAction))
+			action = ACTION_WRITE_TO_BROWSER;
+		else if ("write_to_browser".equals(strAction))
+			action = ACTION_WRITE_TO_BROWSER;
+		else
+			throw eng.getExceptionUtil().createApplicationException("invalid action [" + this.strAction + "], "
+					+ "valid actions are [border,captcha,convert,info,read,resize,rotate,write,writeToBrowser]");
 	}
 
 	/**
@@ -180,14 +192,23 @@ public final class Image extends TagImpl {
 	 */
 	public void setFormat(String format) throws PageException {
 		format = format.trim().toLowerCase();
-		if ("gif".equalsIgnoreCase(format)) this.format = "gif";
-		else if ("jpg".equalsIgnoreCase(format)) this.format = "jpg";
-		else if ("jpe".equalsIgnoreCase(format)) this.format = "jpg";
-		else if ("jpeg".equalsIgnoreCase(format)) this.format = "jpg";
-		else if ("png".equalsIgnoreCase(format)) this.format = "png";
-		else if ("tiff".equalsIgnoreCase(format)) this.format = "tiff";
-		else if ("bmp".equalsIgnoreCase(format)) this.format = "bmp";
-		else throw eng.getExceptionUtil().createApplicationException("invalid format [" + format + "], " + "valid formats are [gif,jpg,png,tiff,bmp]");
+		if ("gif".equalsIgnoreCase(format))
+			this.format = "gif";
+		else if ("jpg".equalsIgnoreCase(format))
+			this.format = "jpg";
+		else if ("jpe".equalsIgnoreCase(format))
+			this.format = "jpg";
+		else if ("jpeg".equalsIgnoreCase(format))
+			this.format = "jpg";
+		else if ("png".equalsIgnoreCase(format))
+			this.format = "png";
+		else if ("tiff".equalsIgnoreCase(format))
+			this.format = "tiff";
+		else if ("bmp".equalsIgnoreCase(format))
+			this.format = "bmp";
+		else
+			throw eng.getExceptionUtil().createApplicationException(
+					"invalid format [" + format + "], " + "valid formats are [gif,jpg,png,tiff,bmp]");
 	}
 
 	/**
@@ -232,7 +253,8 @@ public final class Image extends TagImpl {
 	public void setQuality(double quality) throws PageException {
 		this.quality = (float) quality;
 		if (quality < 0 || quality > 1)
-			throw eng.getExceptionUtil().createApplicationException("quality (" + eng.getCastUtil().toString(quality) + ") has to be a value between 0 and 1");
+			throw eng.getExceptionUtil().createApplicationException(
+					"quality (" + eng.getCastUtil().toString(quality) + ") has to be a value between 0 and 1");
 	}
 
 	/**
@@ -241,7 +263,8 @@ public final class Image extends TagImpl {
 	 */
 	public void setSource(Object source) {
 		this.oSource = source;
-		// this.source=lucee.runtime.img.Image.createImage(pageContext, source, false, false);
+		// this.source=lucee.runtime.img.Image.createImage(pageContext, source, false,
+		// false);
 	}
 
 	/**
@@ -273,24 +296,36 @@ public final class Image extends TagImpl {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 		try {
 			if (this.oSource != null) {
-				if (isbase64) this.source = org.lucee.extension.image.Image.getInstance(pageContext, eng.getCastUtil().toString(oSource), null);
-				else this.source = org.lucee.extension.image.Image.createImage(pageContext, oSource, false, false, true, null);
+				if (isbase64)
+					this.source = org.lucee.extension.image.Image.getInstance(pageContext,
+							eng.getCastUtil().toString(oSource), null);
+				else
+					this.source = org.lucee.extension.image.Image.createImage(pageContext, oSource, false, false, true,
+							null);
 			}
 
-			if (action == ACTION_BORDER) doActionBorder();
-			else if (action == ACTION_CAPTCHA) doActionCaptcha();
-			else if (action == ACTION_CONVERT) doActionConvert();
-			else if (action == ACTION_INFO) doActionInfo();
-			else if (action == ACTION_READ) doActionRead();
-			else if (action == ACTION_RESIZE) doActionResize();
-			else if (action == ACTION_ROTATE) doActionRotate();
-			else if (action == ACTION_WRITE) doActionWrite();
-			else if (action == ACTION_WRITE_TO_BROWSER) doActionWriteToBrowser();
-		}
-		catch (Throwable t) {
+			if (action == ACTION_BORDER)
+				doActionBorder();
+			else if (action == ACTION_CAPTCHA)
+				doActionCaptcha();
+			else if (action == ACTION_CONVERT)
+				doActionConvert();
+			else if (action == ACTION_INFO)
+				doActionInfo();
+			else if (action == ACTION_READ)
+				doActionRead();
+			else if (action == ACTION_RESIZE)
+				doActionResize();
+			else if (action == ACTION_ROTATE)
+				doActionRotate();
+			else if (action == ACTION_WRITE)
+				doActionWrite();
+			else if (action == ACTION_WRITE_TO_BROWSER)
+				doActionWriteToBrowser();
+		} catch (Throwable t) {
 			throw eng.getCastUtil().toPageException(t);
 		}
 		return SKIP_BODY;
@@ -316,14 +351,16 @@ public final class Image extends TagImpl {
 		String path = null;
 
 		// create destination
-		if (eng.getStringUtil().isEmpty(name)) path = touchDestination();
+		if (eng.getStringUtil().isEmpty(name))
+			path = touchDestination();
 
 		MarpleCaptcha c = new MarpleCaptcha();
-		source = new org.lucee.extension.image.Image(
-				c.generate(text, eng.getCastUtil().toIntValue(width), eng.getCastUtil().toIntValue(height), fonts, true, Color.BLACK, fontsize, difficulty));
+		source = new org.lucee.extension.image.Image(c.generate(text, eng.getCastUtil().toIntValue(width),
+				eng.getCastUtil().toIntValue(height), fonts, true, Color.BLACK, fontsize, difficulty));
 
 		// link destination
-		if (doRenderHtmlTag) writeLink(path);
+		if (doRenderHtmlTag)
+			writeLink(path);
 
 		// write out
 		write();
@@ -337,8 +374,8 @@ public final class Image extends TagImpl {
 
 		if (base64) {
 			String b64 = source.getBase64String(format);
-			pageContext.write("<img src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + b64 + "\" width=\"" + source.getWidth() + "\" height=\""
-					+ source.getHeight() + "\"" + add + " />");
+			pageContext.write("<img src=\"data:" + ImageUtil.getMimeTypeFromFormat(format) + ";base64," + b64
+					+ "\" width=\"" + source.getWidth() + "\" height=\"" + source.getHeight() + "\"" + add + " />");
 			return;
 		}
 
@@ -346,11 +383,13 @@ public final class Image extends TagImpl {
 		int h = eng.getCastUtil().toIntValue(height, -1);
 		// we have a custom size
 		if (w + h > 0) {
-			if (w > 0) add.append(" width=\"").append(w).append('"');
-			if (h > 0) add.append(" height=\"").append(h).append('"');
-		}
-		else {
-			add.append(" width=\"").append(source.getWidth()).append('"').append(" height=\"").append(source.getHeight()).append('"');
+			if (w > 0)
+				add.append(" width=\"").append(w).append('"');
+			if (h > 0)
+				add.append(" height=\"").append(h).append('"');
+		} else {
+			add.append(" width=\"").append(source.getWidth()).append('"').append(" height=\"")
+					.append(source.getHeight()).append('"');
 		}
 
 		pageContext.write("<img src=\"" + path + "\"" + add + " />");
@@ -361,26 +400,31 @@ public final class Image extends TagImpl {
 		if (destination == null) {
 			String name = eng.getCreationUtil().createUUID() + "." + format;
 			Resource folder = pageContext.getConfig().getTempDirectory().getRealResource("graph");
-			if (!folder.exists()) folder.mkdirs();
+			if (!folder.exists())
+				folder.mkdirs();
 			destination = folder.getRealResource(name);
 			cleanOld(folder);
 
 			// create path
 			String cp = pageContext.getHttpServletRequest().getContextPath();
-			if (eng.getStringUtil().isEmpty(cp)) cp = "";
-			return cp + "/lucee/graph.cfm?img=" + name + "&type=" + (eng.getListUtil().last(ImageUtil.getMimeTypeFromFormat(format), "/", true).trim());
+			if (eng.getStringUtil().isEmpty(cp))
+				cp = "";
+			return cp + "/lucee/graph.cfm?img=" + name + "&type="
+					+ (eng.getListUtil().last(ImageUtil.getMimeTypeFromFormat(format), "/", true).trim());
 		}
 		return CommonUtil.ContractPath(pageContext, destination.getAbsolutePath());
 	}
 
 	private static void cleanOld(Resource folder) {
-		if (!folder.exists()) folder.mkdirs();
+		if (!folder.exists())
+			folder.mkdirs();
 		else if (folder.isDirectory() && CommonUtil.getRealSize(folder, null) > (1024 * 1024)) {
 
 			Resource[] children = folder.listResources();
 			long maxAge = System.currentTimeMillis() - (1000 * 60);
 			for (int i = 0; i < children.length; i++) {
-				if (children[i].lastModified() < maxAge) children[i].delete();
+				if (children[i].lastModified() < maxAge)
+					children[i].delete();
 			}
 		}
 	}
@@ -451,20 +495,25 @@ public final class Image extends TagImpl {
 			write();
 		}
 		// link destination
-		if (eng.getStringUtil().isEmpty(name)) writeLink(path);
+		if (eng.getStringUtil().isEmpty(name))
+			writeLink(path);
 	}
 
 	private void required(String label, Object value) throws PageException {
 		if (value == null)
-			throw eng.getExceptionUtil().createApplicationException("Missing attribute [" + label + "]. The action [" + strAction + "] requires the attribute [" + label + "].");
-		// throw new ApplicationException("missing attribute ["+label+"], for the action ["+strAction+"]
+			throw eng.getExceptionUtil().createApplicationException("Missing attribute [" + label + "]. The action ["
+					+ strAction + "] requires the attribute [" + label + "].");
+		// throw new ApplicationException("missing attribute ["+label+"], for the action
+		// ["+strAction+"]
 		// this attribute is required but was not passed in");
 	}
 
 	private void required(String label, int value, int nullValue) throws PageException {
 		if (value == nullValue)
-			throw eng.getExceptionUtil().createApplicationException("Missing attribute [" + label + "]. The action [" + strAction + "] requires the attribute [" + label + "].");
-		// throw new ApplicationException("missing attribute ["+label+"], for the action ["+strAction+"]
+			throw eng.getExceptionUtil().createApplicationException("Missing attribute [" + label + "]. The action ["
+					+ strAction + "] requires the attribute [" + label + "].");
+		// throw new ApplicationException("missing attribute ["+label+"], for the action
+		// ["+strAction+"]
 		// this attribute is required but was not passed in");
 	}
 
@@ -492,27 +541,32 @@ public final class Image extends TagImpl {
 		 * @throws PageException
 		 */
 		public Struct getStruct() throws PageException {
-			if (struct == null) struct = doActionInfo(img);
+			if (struct == null)
+				struct = doActionInfo(img);
 			return struct;
 		}
 	}
 
 	private int toDimension(String label, String dimension, Info info) throws PageException {
-		if (eng.getStringUtil().isEmpty(dimension)) return -1;
+		if (eng.getStringUtil().isEmpty(dimension))
+			return -1;
 		dimension = dimension.trim();
 		// int value
 		int i = eng.getCastUtil().toIntValue(dimension, -1);
-		if (i > -1) return i;
+		if (i > -1)
+			return i;
 
 		// percent value
 		if (dimension.endsWith("%")) {
 			float pro = eng.getCastUtil().toIntValue(dimension.substring(0, dimension.length() - 1).trim(), -1);
 			if (pro < 0 || pro > 100)
-				throw eng.getExceptionUtil().createExpressionException("attribute [" + label + "] value has an invalid percent definition [" + dimension + "]");
+				throw eng.getExceptionUtil().createExpressionException(
+						"attribute [" + label + "] value has an invalid percent definition [" + dimension + "]");
 			pro /= 100F;
 			return (int) (eng.getCastUtil().toFloatValue(info.getStruct().get(label)) * pro);
 		}
-		throw eng.getExceptionUtil().createExpressionException("attribute [" + label + "] value has an invalid definition [" + dimension + "]");
+		throw eng.getExceptionUtil().createExpressionException(
+				"attribute [" + label + "] value has an invalid definition [" + dimension + "]");
 
 	}
 
