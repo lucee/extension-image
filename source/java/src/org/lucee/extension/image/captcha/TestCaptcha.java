@@ -42,12 +42,13 @@ public class TestCaptcha {
 			);
 
 		// write out captcha image as a png file
-		FileOutputStream fos = new FileOutputStream(new File("/Users/mic/temp/captcha.png"));
-		Captcha.writeOut(image, fos, "png");
+		try (FileOutputStream fos = new FileOutputStream(new File("/Users/mic/temp/captcha.png"))) {
+			Captcha.writeOut(image, fos, "png");
+		}
 
 		// write out captcha image as a jpg file
-		fos = new FileOutputStream(new File("/Users/mic/temp/captcha.jpg"));
-		Captcha.writeOut(image, fos, "jpg");
-		
+		try (FileOutputStream fos = new FileOutputStream(new File("/Users/mic/temp/captcha.jpg"))) {
+			Captcha.writeOut(image, fos, "jpg");
+		}
 	}
 }
