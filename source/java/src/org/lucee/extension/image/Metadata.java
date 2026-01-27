@@ -59,16 +59,15 @@ public class Metadata {
 
 	public static void addExifInfoToStruct(final Resource res, Struct info, Log log) throws ImageReadException, IOException {
 		if (res == null) return;
+		InputStream is = null;
 		try {
 			ImageMetadata md;
 			if (res instanceof File) {
 				md = Imaging.getMetadata((File) res);
 			}
 			else {
-				// ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				// CFMLEngineFactory.getInstance().getIOUtil().copy(res.getInputStream(), baos, true, true);
-				// md = Imaging.getMetadata(baos.toByteArray());
-				md = Imaging.getMetadata(res.getInputStream(), res.getName());
+				is = res.getInputStream();
+				md = Imaging.getMetadata(is, res.getName());
 			}
 			if (md == null) return;
 
@@ -103,7 +102,9 @@ public class Metadata {
 		}
 		catch (Exception ex) {
 			if (log != null) log.error("imaging", ex);
-
+		}
+		finally {
+			Util.closeEL(is);
 		}
 	}
 

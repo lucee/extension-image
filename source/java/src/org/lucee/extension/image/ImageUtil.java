@@ -38,6 +38,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.lucee.extension.image.coder.Coder;
@@ -405,7 +406,14 @@ public class ImageUtil {
 		}
 		catch (Exception e) {
 		}
+	}
 
+	public static void closeEL(ImageOutputStream ios) {
+		try {
+			if (ios != null) ios.close();
+		}
+		catch (Exception e) {
+		}
 	}
 
 	public static BufferedImage createBufferedImage(BufferedImage image, int columns, int rows) {
@@ -574,11 +582,19 @@ public class ImageUtil {
 				if (outputQuality > 1f) outputQuality = 1f;
 
 				ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
-				JPEGImageWriteParam params = (JPEGImageWriteParam) writer.getDefaultWriteParam();
-				params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-				params.setCompressionQuality(outputQuality);
-				writer.setOutput(ImageIO.createImageOutputStream(bas));
-				writer.write(null, new IIOImage(bi, null, null), params);
+				ImageOutputStream ios = null;
+				try {
+					JPEGImageWriteParam params = (JPEGImageWriteParam) writer.getDefaultWriteParam();
+					params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+					params.setCompressionQuality(outputQuality);
+					ios = ImageIO.createImageOutputStream(bas);
+					writer.setOutput(ios);
+					writer.write(null, new IIOImage(bi, null, null), params);
+				}
+				finally {
+					closeEL(ios);
+					writer.dispose();
+				}
 
 			}
 
