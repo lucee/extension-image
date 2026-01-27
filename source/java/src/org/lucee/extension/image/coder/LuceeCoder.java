@@ -289,6 +289,7 @@ class LuceeCoder extends Coder implements FormatNames {
 					pe = CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 				}
 				finally {
+					eng().getIOUtil().closeSilent(fos);
 					if (!tmp.delete()) tmp.deleteOnExit();
 				}
 			}
