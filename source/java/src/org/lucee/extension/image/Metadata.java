@@ -85,7 +85,9 @@ public class Metadata {
 					info.setEL("exif", exif);
 					try {
 						TiffImageMetadata _exif = jpegMetadata.getExif();
-						set(_exif.getItems(), info, exif);
+						if (_exif != null) {
+							set(_exif.getItems(), info, exif);
+						}
 					}
 					catch (Exception e) {
 						if (log != null) log.error("imaging", e);
@@ -223,9 +225,10 @@ public class Metadata {
 
 	private static void set(List<? extends ImageMetadataItem> items, Struct data1, Struct data2) {
 		Iterator<? extends ImageMetadataItem> it = items.iterator();
-		GenericImageMetadataItem item;
 		while (it.hasNext()) {
-			item = (GenericImageMetadataItem) it.next();
+			ImageMetadataItem imdi = it.next();
+			if (!(imdi instanceof GenericImageMetadataItem)) continue;
+			GenericImageMetadataItem item = (GenericImageMetadataItem) imdi;
 			data1.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
 			if (data2 != null) {
 				data2.setEL(item.getKeyword(), CommonUtil.unwrap(item.getText()));
