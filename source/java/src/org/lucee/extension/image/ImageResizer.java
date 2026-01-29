@@ -210,7 +210,7 @@ public class ImageResizer {
 	private static Interpolation getInterpolation(int interpolation) throws PageException {
 		switch (interpolation) {
 
-		case 0:
+		case Image.IP_TRIANGLE:
 			return new Triangle();
 		case Image.IP_HERMITE:
 			return new Hermite();

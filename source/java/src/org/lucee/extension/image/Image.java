@@ -143,6 +143,14 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public static final int IP_MITCHELL = 115;
 	public static final int IP_QUADRATIC = 116;
 	public static final int IP_TRIANGLE = 117;
+	// TwelveMonkeys-only filters (blur not supported)
+	public static final int IP_GAUSSIAN = 118;
+	public static final int IP_CUBIC = 119;
+	public static final int IP_CATROM = 120;
+	public static final int IP_POINT = 121;
+	public static final int IP_BOX = 122;
+	public static final int IP_BLACKMAN_BESSEL = 123;
+	public static final int IP_BLACKMAN_SINC = 124;
 
 	private static final int ANTI_ALIAS_NONE = 0;
 	private static final int ANTI_ALIAS_ON = 1;
@@ -1623,56 +1631,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private void resize(BufferedImage bi, int width, int height, int interpolation, double blurFactor)
 			throws PageException {
+		// Calculate dimensions if -1 (preserve aspect ratio)
+		int h = bi.getHeight();
+		int w = bi.getWidth();
+		if ( height == -1 )
+			height = (int) Math.round( h * ( 1D / w * width ) );
+		if ( width == -1 )
+			width = (int) Math.round( w * ( 1D / h * height ) );
 
-		if (interpolation == IP_AUTOMATIC && blurFactor == 1) {
-			try {
-				image(ImageUtil.resize(bi, width, height, false));
-				return;
-			} catch (Exception e) {
-			}
-		}
-
-		ColorModel cm = bi.getColorModel();
-
-		if (interpolation == IP_HIGHESTPERFORMANCE) {
-			interpolation = IPC_BICUBIC;
-		}
-
-		if (cm.getColorSpace().getType() == ColorSpace.TYPE_GRAY && cm.getComponentSize()[0] == 8) {
-			if (interpolation == IP_AUTOMATIC || interpolation == IP_HIGHESTQUALITY
-					|| interpolation == IP_HIGHPERFORMANCE || interpolation == IP_HIGHQUALITY
-					|| interpolation == IP_MEDIUMPERFORMANCE || interpolation == IP_MEDIUMQUALITY) {
-				interpolation = IPC_BICUBIC;
-			}
-			if (interpolation != IPC_BICUBIC && interpolation != IPC_BILINEAR && interpolation != IPC_NEAREST) {
-				throw CFMLEngineFactory.getInstance().getExceptionUtil()
-						.createExpressionException("invalid grayscale interpolation");
-			}
-		}
-
-		Scalr.Method method = toMethod(interpolation);
-		if (blurFactor == 1D && method != null) {
-			if (width == -1)
-				image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_HEIGHT, 1, height, new BufferedImageOp[0]));
-			else if (height == -1)
-				image(Scalr.resize(image(), method, Scalr.Mode.FIT_TO_WIDTH, width, 1, new BufferedImageOp[0]));
-			else
-				image(Scalr.resize(image(), method, Scalr.Mode.FIT_EXACT, width, height, new BufferedImageOp[0]));
-		} else {
-			int h = bi.getHeight();
-			int w = bi.getWidth();
-			if (height == -1)
-				height = (int) Math.round(h * (1D / w * width));
-			if (width == -1)
-				width = (int) Math.round(w * (1D / h * height));
-
-			if (interpolation <= IPC_MAX) {
-				resizeImage(width, height, interpolation);
-			} else {
-				image(ImageResizer.resize(image(), width, height, interpolation, blurFactor));
-
-			}
-		}
+		// Route all resize operations through ResampleHelper
+		// - blur=1.0: Uses TwelveMonkeys ResampleOp (faster, better optimized)
+		// - blur!=1.0: Falls back to ImageResizer (for blur factor support)
+		image( ResampleHelper.resize( bi, width, height, interpolation, blurFactor ) );
 	}
 
 	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
@@ -2453,6 +2423,23 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			return IP_MITCHELL;
 		else if ("quadratic".equals(strInterpolation))
 			return IP_QUADRATIC;
+		else if ("triangle".equals(strInterpolation))
+			return IP_TRIANGLE;
+		// TwelveMonkeys-only filters (blur not supported)
+		else if ("gaussian".equals(strInterpolation))
+			return IP_GAUSSIAN;
+		else if ("cubic".equals(strInterpolation))
+			return IP_CUBIC;
+		else if ("catrom".equals(strInterpolation))
+			return IP_CATROM;
+		else if ("point".equals(strInterpolation))
+			return IP_POINT;
+		else if ("box".equals(strInterpolation))
+			return IP_BOX;
+		else if ("blackmanbessel".equals(strInterpolation))
+			return IP_BLACKMAN_BESSEL;
+		else if ("blackmansinc".equals(strInterpolation))
+			return IP_BLACKMAN_SINC;
 
 		throw CFMLEngineFactory.getInstance().getExceptionUtil()
 				.createExpressionException("interpolation definition [" + strInterpolation + "] is invalid");
