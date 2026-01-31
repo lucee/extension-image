@@ -55,6 +55,8 @@
 Built-Date: ${NOW}
 version: "${bundleversion}"
 id: "${id}"
+groupId: "${groupId}"
+artifactId: "${artifactId}"
 name: "${label}"
 description: "${description}"
 lucee-core-version: "${luceeCoreVersion}"
@@ -140,7 +142,7 @@ name="**/jsp-*"/>
       replace="${bundleversion}" 
       byline="true"/>
 
-    <!-- copy the flds necessary -->
+    <!-- copy the tlds necessary -->
     <copy file="${srcTld}/tag.tldx" tofile="${dist}/extension/tlds/image-tags.tldx" />
     <replaceregexp 
       file="${dist}/extension/tlds/image-tags.tldx" 

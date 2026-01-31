@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.lucee</groupId>
     <artifactId>image-extension</artifactId>
-    <version>3.0.0.9-SNAPSHOT</version>
+    <version>3.0.0.9</version>
     <packaging>pom</packaging>
     <name>Image Extension</name>
 
@@ -133,6 +133,8 @@
                                     <property name="bundleversion" value="${project.version}"/>
                                     <property name="bundlename" value="${bundlename}"/>
                                     <property name="filename" value="${project.artifactId}"/>
+                                    <property name="groupId" value="${project.groupId}"/>
+                                    <property name="artifactId" value="${project.artifactId}"/>
                                     <property name="id" value="${id}"/>
                                     <property name="luceeCoreVersion" value="${luceeCoreVersion}"/>
                                     <property name="releaseType" value="${releaseType}"/>
