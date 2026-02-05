@@ -258,7 +258,7 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 					writer.setOutput(stream);
 					IIOMetadata meta = noMeta ? null : img.getMetaData(null, format);
 					try {
-						writer.write(meta, new IIOImage(img.getBufferedImage(), null, null), param);
+						writer.write(meta, new IIOImage(img.getBufferedImage(), null, meta), param);
 					}
 					catch (IIOException iioe) {
 						throw iioe;
