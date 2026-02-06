@@ -53,10 +53,10 @@ jobs:
     env:
       testLabels: image
       testAdditional: ${{ github.workspace }}/tests
-      LUCEE_VERSIONS: ${{ vars.LUCEE_6_TEST_VERSIONS }}
+      LUCEE_6_TEST_VERSIONS: ${{ vars.LUCEE_6_TEST_VERSIONS }}
     strategy:
       matrix:
-        lucee: ${{ fromJSON(vars.LUCEE_VERSIONS) }}
+        lucee: ${{ fromJSON(vars.LUCEE_6_TEST_VERSIONS) }}
         java: [ 11, 21 ]
     services:
       minio:
