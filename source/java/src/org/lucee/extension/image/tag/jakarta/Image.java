@@ -1,4 +1,4 @@
-package org.lucee.extension.image.tag;
+package org.lucee.extension.image.tag.jakarta;
 
 import java.awt.Color;
 import java.io.IOException;

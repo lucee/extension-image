@@ -34,5 +34,6 @@
 	<classpathentry kind="lib" path="libs/org.lucee.xmpcore-6.1.11.jar"/>
 	<classpathentry kind="lib" path="libs/org.lucee.gotson-webp-0.2.2.jar"/>
 	<classpathentry kind="lib" path="libs/jakarta.jakartaee-api-10.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/javax.servlet.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -112,6 +112,7 @@ destdir="${build}" debug="true" debuglevel="lines,vars,source">
     <copy todir="${dist}/extension/jars">
       <fileset dir="${lib}">
         <include name="**/*.jar"/>
+        <exclude name="**/javax.*"/>
         <exclude name="**/javax.servlet-api-*"/>
         <exclude name="**/javax.el-api-*"/>
         <exclude name="**/jakarta*"/>

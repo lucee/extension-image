@@ -1,4 +1,4 @@
-package org.lucee.extension.image.tag;
+package org.lucee.extension.image.tag.jakarta;
 
 import jakarta.servlet.jsp.tagext.Tag;
 import lucee.loader.engine.CFMLEngine;
