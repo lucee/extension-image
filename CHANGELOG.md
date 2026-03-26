@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1.2 (2026-03-26)
+
+- [LDEV-5129](https://luceeserver.atlassian.net/browse/LDEV-5129) remove unused bundled jars: commons-io (CVE-2024-47554), xmpcore, apiguardian, hamcrest, opentest4j
+
 ## 3.0.1.1 (2026-03-19)
 
 - [LDEV-6157](https://luceeserver.atlassian.net/browse/LDEV-6157) fix jakarta/javax compat — `<cfimage action="writeToBrowser">` threw `NoSuchMethodError` on Lucee 6 because `touchDestination()` bytecode was bound to jakarta servlet API. Use `eng.getClassUtil().callMethod()` reflection instead.
