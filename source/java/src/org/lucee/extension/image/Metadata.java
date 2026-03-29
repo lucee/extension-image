@@ -90,7 +90,7 @@ public class Metadata {
 						}
 					}
 					catch (Exception e) {
-						if (log != null) log.error("imaging", e);
+						if (log != null) log.log(Log.LEVEL_WARN, "imaging", "failed to read EXIF metadata from [" + res + "], metadata is ignored", e);
 					}
 				}
 				// GPS
