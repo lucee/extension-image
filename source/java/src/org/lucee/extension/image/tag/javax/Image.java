@@ -365,8 +365,11 @@ public final class Image extends TagImpl {
 			destination = folder.getRealResource(name);
 			cleanOld(folder);
 
-			// create path
-			String cp = pageContext.getHttpServletRequest().getContextPath();
+			// create path (use reflection to avoid jakarta/javax bytecode binding)
+			Object req = eng.getClassUtil().callMethod(pageContext,
+				eng.getCastUtil().toKey("getHttpServletRequest"), new Object[] {});
+			String cp = (String) eng.getClassUtil().callMethod(req,
+				eng.getCastUtil().toKey("getContextPath"), new Object[] {});
 			if (eng.getStringUtil().isEmpty(cp)) cp = "";
 			return cp + "/lucee/graph.cfm?img=" + name + "&type=" + (eng.getListUtil().last(ImageUtil.getMimeTypeFromFormat(format), "/", true).trim());
 		}

@@ -28,3 +28,4 @@ WEB-INF
 *.iml
 *.ipr
 *.iws
+test-output/
