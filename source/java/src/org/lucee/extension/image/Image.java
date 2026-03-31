@@ -84,6 +84,7 @@ import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
+import org.lucee.extension.image.metadata.TwelveMonkeysMetadataExtractor;
 import org.lucee.extension.image.util.ArrayUtil;
 import org.lucee.extension.image.util.CommonUtil;
 import org.lucee.extension.image.util.CommonUtil.Coll;
@@ -488,6 +489,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		Struct sctInfo = eng().getCreationUtil().createStruct(), sct;
 		ImageMetaDrew.addInfo(format, source, sctInfo);
+
+		// Check if EXIF data exists before flattening
+		boolean hasExif = false;
+		Iterator preCheckIt = sctInfo.keyIterator();
+		while (preCheckIt.hasNext()) {
+			String key = preCheckIt.next().toString();
+			if (key.startsWith("Exif") || "gps".equalsIgnoreCase(key)) {
+				hasExif = true;
+				break;
+			}
+		}
+
 		sctInfo = ImageGetEXIFMetadata.flatten(sctInfo);
 		sctInfo.setEL("height", Double.valueOf(getHeight()));
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
@@ -543,19 +556,34 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				sctInfo.setEL("jpeg_color_type", ct);
 			}
 		}
-		try {
-			Log log = null;
-			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
-			if (c != null)
-				log = c.getLog("application");
-			Metadata.addExifInfoToStruct(source, sctInfo, log);
-		} catch (Exception e) {
-			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+
+		// Create exif struct only if EXIF data was found (matches Commons Imaging behavior)
+		if (hasExif) {
+			Struct exif = eng().getCreationUtil().createStruct();
+			Iterator it = sctInfo.keyIterator();
+			while (it.hasNext()) {
+				Object keyObj = it.next();
+				String key = keyObj.toString();
+				// Skip non-EXIF fields
+				if ("width".equalsIgnoreCase(key) || "height".equalsIgnoreCase(key) ||
+					"source".equalsIgnoreCase(key) || "colormodel".equalsIgnoreCase(key) ||
+					"metadata".equalsIgnoreCase(key) || "jpeg_color_type".equalsIgnoreCase(key) ||
+					"gps".equalsIgnoreCase(key)) {
+					continue;
+				}
+				// Copy EXIF field to exif struct
+				exif.setEL(eng().getCastUtil().toKey(key), sctInfo.get(keyObj));
+			}
+			if (!exif.isEmpty()) {
+				sctInfo.setEL("exif", exif);
+			}
 		}
+
 		return this.sctInfo = sctInfo;
 	}
 
 	public IIOMetadata getMetaData(Struct parent, String format) {
+		//org.lucee.extension.image.util.aprint.e("[Image.getMetaData] fromNew=" + fromNew + ", source=" + (source == null ? "null" : source.getClass().getName()) + ", format=" + format);
 		if (fromNew)
 			return null;
 
@@ -588,6 +616,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
 					reader.reset();
 				}
+				// org.lucee.extension.image.util.aprint.e("[Image.getMetaData] meta retrieved: " + (meta == null ? "null" : meta.getClass().getName()));
 				// generating dump
 				if (parent != null) {
 					String[] formatNames = meta.getMetadataFormatNames();
@@ -598,8 +627,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					}
 				}
 				return meta;
+			} else {
+				org.lucee.extension.image.util.aprint.e("[Image.getMetaData] no readers found");
 			}
 		} catch (Exception e) {
+			org.lucee.extension.image.util.aprint.e("[Image.getMetaData] exception: " + e.getMessage());
+			org.lucee.extension.image.util.aprint.printST(e);
 		} finally {
 			ImageUtil.closeEL(iis);
 			eng().getIOUtil().closeSilent(is);
@@ -608,60 +641,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Struct getIPTCMetadata() throws PageException {
-		ImageMetadata md;
-		Struct rtn = eng().getCreationUtil().createStruct();
 		try {
-			if (source instanceof File)
-				md = Imaging.getMetadata((File) source);
-			else
-				md = Imaging.getMetadata(getImageBytes(format, true));
+			TwelveMonkeysMetadataExtractor extractor = new TwelveMonkeysMetadataExtractor();
 
-			// not jpeg
-			if (!(md instanceof JpegImageMetadata))
-				return rtn;
-
-			// fill to struct
-			Key KEYWORDS = eng().getCreationUtil().createKey("Keywords");
-			Key SUBJECT_REFERENCE = eng().getCreationUtil().createKey("Subject Reference");
-
-			JpegImageMetadata jmd = (JpegImageMetadata) md;
-			JpegPhotoshopMetadata jpmd = jmd.getPhotoshop(); // selects IPTC metadata
-			if (jpmd == null)
-				return rtn;
-			Iterator<? extends ImageMetadataItem> it = jpmd.getItems().iterator();
-			ImageMetadataItem item;
-			GenericImageMetadataItem i = null;
-			Collection.Key k;
-			Object v;
-			Array arr;
-			while (it.hasNext()) {
-				item = it.next();
-				if (item instanceof GenericImageMetadataItem) {
-					i = (GenericImageMetadataItem) item;
-					k = eng().getCreationUtil().createKey(i.getKeyword());
-					v = rtn.get(k, null);
-					if (v != null) {
-						if (KEYWORDS.equals(k)) {
-							rtn.set(k, v + ";" + i.getText());
-						} else if (SUBJECT_REFERENCE.equals(k)) {
-							rtn.set(k, v + " " + i.getText());
-						} else if (v instanceof Array) {
-							arr = (Array) v;
-							arr.append(i.getText());
-						} else {
-							arr = eng().getCreationUtil().createArray();
-							arr.append(v);
-							arr.append(i.getText());
-							rtn.set(k, arr);
-						}
-					} else
-						rtn.set(k, i.getText());
-				}
+			if (source instanceof File) {
+				return extractor.extractIPTC((File) source, format);
+			} else if (source != null) {
+				return extractor.extractIPTC(source, format);
+			} else {
+				return extractor.extractIPTC(getImageBytes(format, true), format);
 			}
 		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
-		return rtn;
 	}
 
 	private void addMetaddata(Struct parent, String name, Node node) {

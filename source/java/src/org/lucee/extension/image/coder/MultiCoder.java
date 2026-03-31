@@ -192,6 +192,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 		boolean success = false;
 		for (Coder coder: coders) {
 			if (coder instanceof FormatNames && !_supported(((FormatNames) coder).getWriterFormatNames(), format)) continue;
+			org.lucee.extension.image.util.aprint.e("[MultiCoder.write] trying coder: " + coder.getClass().getName());
 			try {
 				if (detail != null) {
 					Creation cre = CFMLEngineFactory.getInstance().getCreationUtil();
@@ -202,6 +203,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 					destination = tmp = ImageUtil.createTempFile(format);
 				}
 				coder.write(img, destination, format, quality, noMeta);
+				//org.lucee.extension.image.util.aprint.e("[MultiCoder.write] SUCCESS with coder: " + coder.getClass().getName());
 				success = true;
 				if (detail != null) {
 					data.set("time", System.currentTimeMillis() - start);
@@ -210,6 +212,7 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			}
 			catch (Throwable t) {
 				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				org.lucee.extension.image.util.aprint.e("[MultiCoder.write] FAILED with coder: " + coder.getClass().getName() + " - " + t.getMessage());
 				if (detail != null) {
 					data.setEL("exception", toCatchBlock(t));
 				}
