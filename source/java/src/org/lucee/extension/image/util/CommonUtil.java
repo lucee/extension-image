@@ -38,7 +38,6 @@ public class CommonUtil {
 
 	private static volatile Map<Collection.Key, Coll> members;
 	private static final Object membersLock = new Object();
-	private static BIF GetApplicationSettings;
 
 	public static String unwrap(String str) {
 		if (str == null) return "";
@@ -272,22 +271,34 @@ public class CommonUtil {
 		}
 	}
 
+	private static Method getCustomMethod;
+
 	public static Set<String> getCoders(StringBuilder sb, PageContext pc) {
 		Set<String> result = null;
 		try {
 			CFMLEngine eng = CFMLEngineFactory.getInstance();
 			if (pc == null) pc = eng.getThreadPageContext();
 			if (pc == null) return null;
-			if (GetApplicationSettings == null) {
-				GetApplicationSettings = eng.getClassUtil().loadBIF(pc, "lucee.runtime.functions.system.GetApplicationSettings");
+
+			Object ac = pc.getApplicationContext();
+			if (ac == null) return null;
+
+			// read this.image from ApplicationContext via getCustom(Key)
+			Object o = null;
+			if (getCustomMethod == null || getCustomMethod.getDeclaringClass() != ac.getClass()) {
+				try {
+					getCustomMethod = ac.getClass().getMethod("getCustom", new Class[] { Collection.Key.class });
+				}
+				catch (NoSuchMethodException e) {
+					return null;
+				}
 			}
-			Struct sct = (Struct) GetApplicationSettings.invoke(pc, new Object[] { Boolean.TRUE });
-			Object o = sct.get("image", null);
+			o = getCustomMethod.invoke(ac, new Object[] { eng.getCastUtil().toKey("image") });
+
 			if (o instanceof Struct) {
 				Struct image = (Struct) o;
-				// type
 				o = image.get("coder", null);
-				if (o == null) image.get("coders", null);
+				if (o == null) o = image.get("coders", null);
 
 				if (o != null && eng.getDecisionUtil().isCastableToArray(o)) {
 					String[] coders = eng.getListUtil().toStringArray(eng.getCastUtil().toArray(o));
@@ -299,7 +310,6 @@ public class CommonUtil {
 					}
 				}
 			}
-
 		}
 		catch (Exception e) {
 			Coder.log(pc);
