@@ -36,7 +36,8 @@ public class CommonUtil {
 	public static final short UNDEFINED_NODE = -1;
 	private static final String _8220 = String.valueOf((char) 8220);
 
-	private static Map<Collection.Key, Coll> members;
+	private static volatile Map<Collection.Key, Coll> members;
+	private static final Object membersLock = new Object();
 	private static BIF GetApplicationSettings;
 
 	public static String unwrap(String str) {
@@ -156,31 +157,34 @@ public class CommonUtil {
 
 	public static Map<Collection.Key, Coll> getMembers(PageContext pc) throws PageException {
 		if (members == null) {
-			Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
-			members = new HashMap<Collection.Key, Coll>();
-			ConfigWeb config = pc.getConfig();
-			Object[] flds = getFLDs(config, 1);
-			Map funcs;
-			Iterator it;
-			Object func;
-			String[] names;
-			boolean chaining;
-			BIF bif;
-			Coll coll;
-			for (int i = 0; i < flds.length; i++) {
-				funcs = getFunctions(flds[i]);
-				it = funcs.values().iterator();
-				while (it.hasNext()) {
-					func = it.next();
-					if (getMemberType(func) == Image.TYPE_IMAGE) {
-						names = getMemberNames(func);
-						if (names != null && names.length > 0) {
-							coll = new Coll(getBIF(func), getMemberChaining(func));
-							for (String name: names) {
-								members.put(cast.toKey(name), coll);
+			synchronized (membersLock) {
+				if (members == null) {
+					Cast cast = CFMLEngineFactory.getInstance().getCastUtil();
+					Map<Collection.Key, Coll> local = new HashMap<>();
+					ConfigWeb config = pc.getConfig();
+					Object[] flds = getFLDs(config, 1);
+					Map funcs;
+					Iterator it;
+					Object func;
+					String[] names;
+					Coll coll;
+					for (int i = 0; i < flds.length; i++) {
+						funcs = getFunctions(flds[i]);
+						it = funcs.values().iterator();
+						while (it.hasNext()) {
+							func = it.next();
+							if (getMemberType(func) == Image.TYPE_IMAGE) {
+								names = getMemberNames(func);
+								if (names != null && names.length > 0) {
+									coll = new Coll(getBIF(func), getMemberChaining(func));
+									for (String name: names) {
+										local.put(cast.toKey(name), coll);
+									}
+								}
 							}
 						}
 					}
+					members = local;
 				}
 			}
 		}
