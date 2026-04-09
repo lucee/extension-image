@@ -152,24 +152,20 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 	private String getFormatbyMimeType(String mimeType, String defaultValue) {
 		if (!Util.isEmpty(mimeType)) {
 			try {
-				return getFormatbyMimeType(mimeType);
+				Iterator<ImageReader> it = ImageIO.getImageReadersByMIMEType(mimeType);
+				while (it != null && it.hasNext()) {
+					return it.next().getFormatName();
+				}
 			}
-			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			catch (IOException e) {
 			}
 		}
 		return defaultValue;
 	}
 
 	private String getFormatbyMimeType(String mimeType) throws IOException {
-		if (!Util.isEmpty(mimeType)) {
-			Iterator<ImageReader> it = ImageIO.getImageReadersByMIMEType(mimeType);
-			while (it != null && it.hasNext()) {
-				String fn = it.next().getFormatName();
-				return fn;
-			}
-
-		}
+		String result = getFormatbyMimeType(mimeType, null);
+		if (result != null) return result;
 		throw new IOException("no matching format found for mimetype [" + mimeType + "]");
 	}
 
