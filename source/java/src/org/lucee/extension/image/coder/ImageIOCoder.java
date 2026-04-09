@@ -140,6 +140,14 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 	}
 
 	@Override
+	public String getFormat(Resource res, String mimeType, String defaultValue) {
+		if (!Util.isEmpty(mimeType)) {
+			return getFormatbyMimeType(mimeType, defaultValue);
+		}
+		return getFormat(res, defaultValue);
+	}
+
+	@Override
 	public String getFormat(byte[] bytes) throws IOException {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null));
 	}
@@ -149,27 +157,31 @@ class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null), defaultValue);
 	}
 
+	@Override
+	public String getFormat(byte[] bytes, String mimeType, String defaultValue) {
+		if (!Util.isEmpty(mimeType)) {
+			return getFormatbyMimeType(mimeType, defaultValue);
+		}
+		return getFormat(bytes, defaultValue);
+	}
+
 	private String getFormatbyMimeType(String mimeType, String defaultValue) {
 		if (!Util.isEmpty(mimeType)) {
 			try {
-				return getFormatbyMimeType(mimeType);
+				Iterator<ImageReader> it = ImageIO.getImageReadersByMIMEType(mimeType);
+				while (it != null && it.hasNext()) {
+					return it.next().getFormatName();
+				}
 			}
-			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			catch (IOException e) {
 			}
 		}
 		return defaultValue;
 	}
 
 	private String getFormatbyMimeType(String mimeType) throws IOException {
-		if (!Util.isEmpty(mimeType)) {
-			Iterator<ImageReader> it = ImageIO.getImageReadersByMIMEType(mimeType);
-			while (it != null && it.hasNext()) {
-				String fn = it.next().getFormatName();
-				return fn;
-			}
-
-		}
+		String result = getFormatbyMimeType(mimeType, null);
+		if (result != null) return result;
 		throw new IOException("no matching format found for mimetype [" + mimeType + "]");
 	}
 

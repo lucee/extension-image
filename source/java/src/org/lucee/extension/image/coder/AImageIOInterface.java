@@ -110,7 +110,10 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		if (destination instanceof File) writeImage(img, destination, format, quality, noMeta);
+		if (destination instanceof File) {
+			writeImage(img, destination, format, quality, noMeta);
+			return;
+		}
 		OutputStream os = null;
 		try {
 			os = destination.getOutputStream();
@@ -170,6 +173,14 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 	}
 
 	@Override
+	public String getFormat(Resource res, String mimeType, String defaultValue) {
+		if (!Util.isEmpty(mimeType)) {
+			return getFormatbyMimeType(mimeType, defaultValue);
+		}
+		return getFormat(res, defaultValue);
+	}
+
+	@Override
 	public String getFormat(byte[] bytes) throws IOException {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null));
 	}
@@ -179,30 +190,30 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null), defaultValue);
 	}
 
-	private String getFormatbyMimeType(String mimeType, String defaultValue) {
+	@Override
+	public String getFormat(byte[] bytes, String mimeType, String defaultValue) {
 		if (!Util.isEmpty(mimeType)) {
-			try {
-				return getFormatbyMimeType(mimeType);
-			}
-			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
-			}
+			return getFormatbyMimeType(mimeType, defaultValue);
 		}
-		return defaultValue;
+		return getFormat(bytes, defaultValue);
 	}
 
-	private String getFormatbyMimeType(String mimeType) throws IOException {
+	private String getFormatbyMimeType(String mimeType, String defaultValue) {
 		if (!Util.isEmpty(mimeType)) {
-
 			for (Map.Entry<String, Codec> e: codecs.entrySet()) {
 				for (String mt: e.getValue().mimeTypes) {
-
 					if (mimeType.equalsIgnoreCase(mt)) {
 						return e.getKey();
 					}
 				}
 			}
 		}
+		return defaultValue;
+	}
+
+	private String getFormatbyMimeType(String mimeType) throws IOException {
+		String result = getFormatbyMimeType(mimeType, null);
+		if (result != null) return result;
 		throw new IOException("no matching format found for mimetype [" + mimeType + "]");
 	}
 

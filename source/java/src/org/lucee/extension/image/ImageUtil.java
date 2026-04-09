@@ -54,8 +54,6 @@ import lucee.loader.util.Util;
 
 public class ImageUtil {
 
-	private static Coder _coder;
-
 	private static final boolean useSunCodec = getSunCodec();
 	private static Class JPEGCodec;
 	private static Class JPEGEncodeParam;
@@ -63,10 +61,7 @@ public class ImageUtil {
 	private static int counter = 0;
 
 	private static Coder getCoder() {
-		if (true || _coder == null) {
-			_coder = Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
-		}
-		return _coder;
+		return Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
 	}
 
 	public static String getOneWriterFormatName(String... preferences) throws IOException {
@@ -179,23 +174,34 @@ public class ImageUtil {
 		return Base64.decodeBase64(b64str.getBytes());
 	}
 
+	/**
+	 * Detect the image format for a resource. The detection order is:
+	 * 1. Coder-specific magic byte detection (JDeli, TwelveMonkeys etc) — handles misnamed files
+	 * 2. MIME type detection via Tika (content-based) — fallback for formats coders don't recognise
+	 * 3. File extension — last resort, trusts the filename
+	 *
+	 * MIME type (Tika) is resolved once and passed to all coders to avoid repeated detection.
+	 * This is critical for performance — Tika's magic byte scanning is expensive (~600k allocations
+	 * per 5k image ops when called per-coder).
+	 *
+	 * Misnamed files (e.g. a JPEG saved as .png) are handled by steps 1 and 2 which inspect
+	 * actual file content, not the extension.
+	 */
 	public static String getFormat(Resource res) throws IOException {
 		long len = res.length();
+		// resolve MIME type once and pass to coders — avoids repeated Tika detection
+		String mt = len > 0 ? getMimeType(res, null) : null;
 		Coder c = getCoder();
 		if (c instanceof FormatExtract) {
-			String format = ((FormatExtract) c).getFormat(res, null);
+			String format = ((FormatExtract) c).getFormat(res, mt, null);
 			if (!Util.isEmpty(format, true)) {
 				return format;
 			}
 		}
-		// there is no need to check the mime type if the file is empty
-		if (len > 0) {
-			String mt = getMimeType(res, null);
-			if (!Util.isEmpty(mt)) {
-				String format = getImageFormatFromMimeType(mt, null);
-				if (!Util.isEmpty(format)) {
-					return format;
-				}
+		if (!Util.isEmpty(mt)) {
+			String format = getImageFormatFromMimeType(mt, null);
+			if (!Util.isEmpty(format)) {
+				return format;
 			}
 		}
 		return getFormatFromExtension(res, null);
@@ -210,21 +216,23 @@ public class ImageUtil {
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
+		String mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, "");
 		Coder c = getCoder();
 		if (c instanceof FormatExtract) {
-			String format = ((FormatExtract) c).getFormat(binary, null);
+			String format = ((FormatExtract) c).getFormat(binary, mt, null);
 			if (!Util.isEmpty(format, true)) return format;
 		}
-		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""));
+		return getFormatFromMimeType(mt);
 	}
 
 	public static String getFormat(byte[] binary, String defaultValue) {
+		String mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, "");
 		Coder c = getCoder();
 		if (c instanceof FormatExtract) {
-			String format = ((FormatExtract) c).getFormat(binary, null);
+			String format = ((FormatExtract) c).getFormat(binary, mt, null);
 			if (!Util.isEmpty(format, true)) return format;
 		}
-		return getImageFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""), defaultValue);
+		return getImageFormatFromMimeType(mt, defaultValue);
 	}
 
 	public static String toFormat(String format) {
