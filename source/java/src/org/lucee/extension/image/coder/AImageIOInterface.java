@@ -173,6 +173,14 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 	}
 
 	@Override
+	public String getFormat(Resource res, String mimeType, String defaultValue) {
+		if (!Util.isEmpty(mimeType)) {
+			return getFormatbyMimeType(mimeType, defaultValue);
+		}
+		return getFormat(res, defaultValue);
+	}
+
+	@Override
 	public String getFormat(byte[] bytes) throws IOException {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null));
 	}
@@ -180,6 +188,14 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 	@Override
 	public String getFormat(byte[] bytes, String defaultValue) {
 		return getFormatbyMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(bytes, null), defaultValue);
+	}
+
+	@Override
+	public String getFormat(byte[] bytes, String mimeType, String defaultValue) {
+		if (!Util.isEmpty(mimeType)) {
+			return getFormatbyMimeType(mimeType, defaultValue);
+		}
+		return getFormat(bytes, defaultValue);
 	}
 
 	private String getFormatbyMimeType(String mimeType, String defaultValue) {

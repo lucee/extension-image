@@ -276,9 +276,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 
 	@Override
 	public String getFormat(Resource res, String defaultValue) {
+		return getFormat(res, null, defaultValue);
+	}
+
+	@Override
+	public String getFormat(Resource res, String mimeType, String defaultValue) {
 		for (Coder coder: coders) {
 			if (!(coder instanceof FormatExtract)) continue;
-			String format = ((FormatExtract) coder).getFormat(res, null);
+			String format = ((FormatExtract) coder).getFormat(res, mimeType, null);
 			if (!Util.isEmpty(format)) {
 				return format;
 			}
@@ -288,9 +293,14 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 
 	@Override
 	public String getFormat(byte[] bytes, String defaultValue) {
+		return getFormat(bytes, null, defaultValue);
+	}
+
+	@Override
+	public String getFormat(byte[] bytes, String mimeType, String defaultValue) {
 		for (Coder coder: coders) {
 			if (!(coder instanceof FormatExtract)) continue;
-			String format = ((FormatExtract) coder).getFormat(bytes, null);
+			String format = ((FormatExtract) coder).getFormat(bytes, mimeType, null);
 			if (!Util.isEmpty(format)) return format;
 		}
 		return defaultValue;
