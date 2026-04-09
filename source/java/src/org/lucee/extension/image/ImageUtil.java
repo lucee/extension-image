@@ -54,8 +54,6 @@ import lucee.loader.util.Util;
 
 public class ImageUtil {
 
-	private static Coder _coder;
-
 	private static final boolean useSunCodec = getSunCodec();
 	private static Class JPEGCodec;
 	private static Class JPEGEncodeParam;
@@ -63,10 +61,7 @@ public class ImageUtil {
 	private static int counter = 0;
 
 	private static Coder getCoder() {
-		if (true || _coder == null) {
-			_coder = Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
-		}
-		return _coder;
+		return Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
 	}
 
 	public static String getOneWriterFormatName(String... preferences) throws IOException {
