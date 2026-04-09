@@ -184,28 +184,20 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 	private String getFormatbyMimeType(String mimeType, String defaultValue) {
 		if (!Util.isEmpty(mimeType)) {
-			try {
-				return getFormatbyMimeType(mimeType);
-			}
-			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
-			}
-		}
-		return defaultValue;
-	}
-
-	private String getFormatbyMimeType(String mimeType) throws IOException {
-		if (!Util.isEmpty(mimeType)) {
-
 			for (Map.Entry<String, Codec> e: codecs.entrySet()) {
 				for (String mt: e.getValue().mimeTypes) {
-
 					if (mimeType.equalsIgnoreCase(mt)) {
 						return e.getKey();
 					}
 				}
 			}
 		}
+		return defaultValue;
+	}
+
+	private String getFormatbyMimeType(String mimeType) throws IOException {
+		String result = getFormatbyMimeType(mimeType, null);
+		if (result != null) return result;
 		throw new IOException("no matching format found for mimetype [" + mimeType + "]");
 	}
 
