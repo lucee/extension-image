@@ -110,7 +110,10 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 
 	@Override
 	public void write(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
-		if (destination instanceof File) writeImage(img, destination, format, quality, noMeta);
+		if (destination instanceof File) {
+			writeImage(img, destination, format, quality, noMeta);
+			return;
+		}
 		OutputStream os = null;
 		try {
 			os = destination.getOutputStream();
