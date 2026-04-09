@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1.3
+
+- [LDEV-6243](https://luceeserver.atlassian.net/browse/LDEV-6243) fix member function race condition under concurrent requests
+- [LDEV-6244](https://luceeserver.atlassian.net/browse/LDEV-6244) replace GetApplicationSettings BIF with getCustom() to avoid DummyWSHandler exception spam
+- [LDEV-6245](https://luceeserver.atlassian.net/browse/LDEV-6245) performance: remove redundant coder cache, fix double write, reduce Tika MIME detection calls, eliminate exception-driven format matching
+
 ## 3.0.1.2 (2026-03-26)
 
 - [LDEV-5129](https://luceeserver.atlassian.net/browse/LDEV-5129) remove unused bundled jars: commons-io (CVE-2024-47554), xmpcore, apiguardian, hamcrest, opentest4j
