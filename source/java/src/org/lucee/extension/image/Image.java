@@ -196,7 +196,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private int orientation = Metadata.ORIENTATION_UNDEFINED;
 
 	private static CFMLEngine _eng;
-	private static Object sync = new Object();
 	private final boolean fromNew;
 	private Struct sctInfo;
 
@@ -606,15 +605,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				// pick the first available ImageReader
 				ImageReader reader = readers.next();
 				IIOMetadata meta = null;
-				synchronized (sync) {
-					// attach source to the reader
-					reader.setInput(iis, true);
-
-					// read metadata of first image
-					meta = reader.getImageMetadata(0);
-					meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
-					reader.reset();
-				}
+				// reader + iis are per-call instances; no shared state to protect
+				reader.setInput(iis, true);
+				meta = reader.getImageMetadata(0);
+				meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
+				reader.reset();
 				// generating dump
 				if (parent != null) {
 					String[] formatNames = meta.getMetadataFormatNames();
