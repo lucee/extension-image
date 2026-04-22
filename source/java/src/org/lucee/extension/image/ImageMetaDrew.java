@@ -18,18 +18,16 @@
  **/
 package org.lucee.extension.image;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
 import org.lucee.extension.image.util.CommonUtil;
 
-import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.imaging.jpeg.JpegProcessingException;
-import com.drew.imaging.tiff.TiffMetadataReader;
+import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
 import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
@@ -39,65 +37,39 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
 public class ImageMetaDrew {
 
 	/**
 	 * adds information about a image to the given struct
-	 * 
-	 * @param info
-	 * @throws PageException
-	 * @throws IOException
-	 * @throws MetadataException
-	 * @throws JpegProcessingException
 	 */
 	public static void addInfo(String format, Resource res, Struct info) {
 		try {
-			if (ImageUtil.isJPEG(format)) jpg(res, info);
-			else if ("tiff".equalsIgnoreCase(format)) tiff(res, info);
+			extractAll(res, info);
 		}
 		catch (Exception ex) {
 			try {
 				Log log = null;
 				Config c = CFMLEngineFactory.getInstance().getThreadConfig();
 				if (c != null) log = c.getLog("application");
-				org.lucee.extension.image.Metadata.addExifInfoToStruct(res, info, log);
+				if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read metadata from [" + res + "], metadata is ignored", ex);
 			}
 			catch (Exception e) {
 			}
-
-		}
-
-		// Metadata.addInfo(format,source,sctInfo);
-
-	}
-
-	private static void jpg(Resource res, Struct info) {
-		InputStream is = null;
-		try {
-			is = res.getInputStream();
-			fill(info, JpegMetadataReader.readMetadata(is));
-		}
-		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
-		}
-		finally {
-			Util.closeEL(is);
 		}
 	}
 
-	private static void tiff(Resource res, Struct info) {
+	private static void extractAll(Resource res, Struct info) throws IOException, com.drew.imaging.ImageProcessingException {
 		InputStream is = null;
+		BufferedInputStream bis = null;
 		try {
 			is = res.getInputStream();
-			fill(info, TiffMetadataReader.readMetadata(is));
-		}
-		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			bis = new BufferedInputStream(is);
+			fill(info, ImageMetadataReader.readMetadata(bis));
 		}
 		finally {
+			Util.closeEL(bis);
 			Util.closeEL(is);
 		}
 	}

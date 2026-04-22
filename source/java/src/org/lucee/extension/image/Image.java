@@ -583,7 +583,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public IIOMetadata getMetaData(Struct parent, String format) {
-		//org.lucee.extension.image.util.aprint.e("[Image.getMetaData] fromNew=" + fromNew + ", source=" + (source == null ? "null" : source.getClass().getName()) + ", format=" + format);
 		if (fromNew)
 			return null;
 
@@ -616,7 +615,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
 					reader.reset();
 				}
-				// org.lucee.extension.image.util.aprint.e("[Image.getMetaData] meta retrieved: " + (meta == null ? "null" : meta.getClass().getName()));
 				// generating dump
 				if (parent != null) {
 					String[] formatNames = meta.getMetadataFormatNames();
@@ -627,12 +625,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 					}
 				}
 				return meta;
-			} else {
-				org.lucee.extension.image.util.aprint.e("[Image.getMetaData] no readers found");
 			}
 		} catch (Exception e) {
-			org.lucee.extension.image.util.aprint.e("[Image.getMetaData] exception: " + e.getMessage());
-			org.lucee.extension.image.util.aprint.printST(e);
+			Log log = null;
+			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+			if (c != null) log = c.getLog("application");
+			if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read IIOMetadata from [" + source + "]", e);
 		} finally {
 			ImageUtil.closeEL(iis);
 			eng().getIOUtil().closeSilent(is);
