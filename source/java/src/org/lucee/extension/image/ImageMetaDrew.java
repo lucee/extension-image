@@ -19,6 +19,7 @@
 package org.lucee.extension.image;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -57,6 +58,50 @@ public class ImageMetaDrew {
 			}
 			catch (Exception e) {
 			}
+		}
+	}
+
+	/**
+	 * Read EXIF orientation via Drew, without decoding pixels. Covers every format Drew parses
+	 * (JPEG/PNG/WebP/TIFF/HEIC/BMP/GIF/PSD/etc). Returns {@link Metadata#ORIENTATION_UNDEFINED}
+	 * on read failure or when no orientation tag is present.
+	 */
+	public static int readOrientation(Resource res) {
+		InputStream is = null;
+		BufferedInputStream bis = null;
+		try {
+			is = res.getInputStream();
+			bis = new BufferedInputStream(is);
+			return orientationFromMetadata(ImageMetadataReader.readMetadata(bis));
+		}
+		catch (Exception e) {
+			return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
+		}
+		finally {
+			Util.closeEL(bis);
+			Util.closeEL(is);
+		}
+	}
+
+	public static int readOrientation(byte[] bytes) {
+		try {
+			return orientationFromMetadata(ImageMetadataReader.readMetadata(new ByteArrayInputStream(bytes)));
+		}
+		catch (Exception e) {
+			return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
+		}
+	}
+
+	private static int orientationFromMetadata(Metadata metadata) {
+		if (metadata == null) return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
+		ExifIFD0Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		if (dir == null) return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
+		if (!dir.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
+		try {
+			return dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+		}
+		catch (Exception e) {
+			return org.lucee.extension.image.Metadata.ORIENTATION_UNDEFINED;
 		}
 	}
 

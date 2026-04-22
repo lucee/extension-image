@@ -35,6 +35,7 @@ import javax.imageio.stream.ImageOutputStream;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
+import org.lucee.extension.image.format.LazyReader;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -42,7 +43,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 
-public abstract class AImageIOInterface extends Coder implements FormatNames, FormatExtract {
+public abstract class AImageIOInterface extends Coder implements FormatNames, FormatExtract, LazyReader {
 
 	private static final Class<?>[] READ_CONSTR0 = new Class[] {};
 	private static final Class<?>[] READ_CONSTR1 = new Class[] { ImageReaderSpi.class };
@@ -307,6 +308,30 @@ public abstract class AImageIOInterface extends Coder implements FormatNames, Fo
 			}
 		}
 		throw new IOException("no format for extension [" + ext + "] found in the TwelveMonkeysCoder");
+	}
+
+	@Override
+	public ImageReader getReader(String format, ImageInputStream iis) throws IOException {
+		if (Util.isEmpty(format, true)) return null;
+		Codec codec = codecs.get(format.toUpperCase());
+		if (codec == null || !codec.hasReader()) return null;
+		ImageReader reader;
+		try {
+			if (codec.readerSpi != null) {
+				ImageReaderSpi spi = codec.readerSpi.newInstance();
+				reader = spi.createReaderInstance();
+			}
+			else {
+				ImageReaderSpiImpl readerSpi = loadReaderSpi(codec._reader, codec);
+				reader = readerSpi.createReaderInstance();
+				readerSpi.setType(iis.getClass());
+			}
+		}
+		catch (Exception e) {
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
+		}
+		reader.setInput(iis, true, true);
+		return reader;
 	}
 
 	private BufferedImage createBufferedImage(Object input, String format) throws IOException {
