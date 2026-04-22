@@ -90,7 +90,7 @@ public class Metadata {
 						}
 					}
 					catch (Exception e) {
-						if (log != null) log.log(Log.LEVEL_WARN, "imaging", "failed to read EXIF metadata from [" + res + "], metadata is ignored", e);
+						if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read EXIF metadata from [" + res + "], metadata is ignored", e);
 					}
 				}
 				// GPS
@@ -98,12 +98,12 @@ public class Metadata {
 					gps(jpegMetadata, info);
 				}
 				catch (Exception e) {
-					if (log != null) log.error("imaging", e);
+					if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read GPS metadata from [" + res + "], metadata is ignored", e);
 				}
 			}
 		}
 		catch (Exception ex) {
-			if (log != null) log.error("imaging", ex);
+			if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read EXIF metadata from [" + res + "], metadata is ignored", ex);
 		}
 		finally {
 			Util.closeEL(is);
