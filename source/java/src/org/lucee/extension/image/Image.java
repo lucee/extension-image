@@ -1274,6 +1274,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		sctInfo = null;
 	}
 
+	public boolean isDecoded() {
+		return _image != null;
+	}
+
 	private Graphics2D getGraphics() throws PageException {
 		if (graphics == null) {
 			graphics = image().createGraphics();
