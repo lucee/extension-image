@@ -63,27 +63,16 @@ import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.imaging.ImageReadException;
-import org.apache.commons.imaging.ImageWriteException;
-import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.GenericImageMetadata.GenericImageMetadataItem;
-import org.apache.commons.imaging.common.ImageMetadata;
-import org.apache.commons.imaging.common.ImageMetadata.ImageMetadataItem;
-import org.apache.commons.imaging.common.RationalNumber;
-import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
-import org.apache.commons.imaging.formats.jpeg.JpegPhotoshopMetadata;
-import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
-import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
-import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
-import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
+import org.lucee.extension.image.metadata.TwelveMonkeysMetadataExtractor;
 import org.lucee.extension.image.util.ArrayUtil;
 import org.lucee.extension.image.util.CommonUtil;
 import org.lucee.extension.image.util.CommonUtil.Coll;
@@ -174,8 +163,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	public static final int SHEAR_HORIZONTAL = 1;
 	public static final int SHEAR_VERTICAL = 2;
 
-	private BufferedImage _image;
+	private volatile BufferedImage _image;
+	private final Object decodeLock = new Object();
 	private Resource source = null;
+	private byte[] sourceBytes = null;
 	private String format;
 
 	private Graphics2D graphics;
@@ -193,9 +184,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	private Composite composite;
 	private int orientation = Metadata.ORIENTATION_UNDEFINED;
+	private int pendingOrientation = Metadata.ORIENTATION_UNDEFINED;
 
 	private static CFMLEngine _eng;
-	private static Object sync = new Object();
 	private final boolean fromNew;
 	private Struct sctInfo;
 
@@ -203,38 +194,40 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ImageIO.scanForPlugins();
 	}
 
-	public Image(byte[] binary) throws IOException, ImageReadException, PageException {
+	public Image(byte[] binary) throws IOException, PageException {
 		this(binary, null);
 	}
 
-	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
+	public Image(byte[] binary, String format) throws IOException, PageException {
+		if (binary == null || binary.length == 0)
+			throw new IOException("Unable to read binary image file");
 		if (eng().getStringUtil().isEmpty(format))
 			format = ImageUtil.getFormat(binary, null);
+		if (eng().getStringUtil().isEmpty(format))
+			throw new IOException("Unable to detect image format from binary data");
 		this.format = format;
-		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null)
-			throw new IOException("Unable to read binary image file");
-
+		this.sourceBytes = binary;
 		checkOrientation(binary);
 		fromNew = false;
 	}
 
-	public Image(Resource res) throws IOException, ImageReadException, PageException {
+	public Image(Resource res) throws IOException, PageException {
 		this(res, null);
 	}
 
-	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
+	public Image(Resource res, String format) throws IOException, PageException {
+		if (res == null || !res.isFile())
+			throw new IOException("Unable to read image file [" + res + "]");
+		if (res.length() == 0)
+			throw new IOException("Unable to read image file [" + res + "]: file is empty");
 		if (eng().getStringUtil().isEmpty(format))
 			format = ImageUtil.getFormat(res);
+		if (eng().getStringUtil().isEmpty(format))
+			throw new IOException("Unable to detect image format for [" + res + "]");
 		this.format = format;
-		_image = ImageUtil.toBufferedImage(res, format);
 		this.source = res;
-		if (_image == null)
-			throw new IOException("Unable to read image file [" + res + "]");
-
 		checkOrientation(res);
 		fromNew = false;
-
 	}
 
 	public Image(BufferedImage image) {
@@ -244,7 +237,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public static Image getInstance(PageContext pc, String str, String format)
-			throws IOException, ImageReadException, PageException {
+			throws IOException, PageException {
 
 		if (str.length() < 4000) {
 			if (pc == null)
@@ -260,21 +253,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	}
 
-	private Image(String b64str, String format) throws IOException, ImageReadException, PageException {
+	private Image(String b64str, String format) throws IOException, PageException {
 
 		// load binary from base64 string and get format
 		StringBuilder mimetype = new StringBuilder();
 		byte[] binary = ImageUtil.readBase64(b64str, mimetype);
+		if (binary == null || binary.length == 0)
+			throw new IOException("Unable to decode image from base64 string");
 		if (eng().getStringUtil().isEmpty(format) && !eng().getStringUtil().isEmpty(mimetype.toString())) {
 			format = ImageUtil.getFormatFromMimeType(mimetype.toString());
 		}
 		if (eng().getStringUtil().isEmpty(format))
 			format = ImageUtil.getFormat(binary, null);
+		if (eng().getStringUtil().isEmpty(format))
+			throw new IOException("Unable to detect image format from base64 string");
 		this.format = format;
-		_image = ImageUtil.toBufferedImage(binary, format);
-		if (_image == null)
-			throw new IOException("Unable to decode image from base64 string");
-
+		this.sourceBytes = binary;
 		checkOrientation(binary);
 		fromNew = false;
 	}
@@ -488,6 +482,18 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		Struct sctInfo = eng().getCreationUtil().createStruct(), sct;
 		ImageMetaDrew.addInfo(format, source, sctInfo);
+
+		// Check if EXIF data exists before flattening
+		boolean hasExif = false;
+		Iterator preCheckIt = sctInfo.keyIterator();
+		while (preCheckIt.hasNext()) {
+			String key = preCheckIt.next().toString();
+			if (key.startsWith("Exif") || "gps".equalsIgnoreCase(key)) {
+				hasExif = true;
+				break;
+			}
+		}
+
 		sctInfo = ImageGetEXIFMetadata.flatten(sctInfo);
 		sctInfo.setEL("height", Double.valueOf(getHeight()));
 		sctInfo.setEL("width", Double.valueOf(getWidth()));
@@ -503,7 +509,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		// }
 		// sct.setEL("mime_type",getMimeType());
 
-		ColorModel cm = image().getColorModel();
+		ColorModel cm = getColorModelLazy();
 		sct = eng().getCreationUtil().createStruct();
 		sctInfo.setEL("colormodel", sct);
 		int numComponents = cm.getNumComponents();
@@ -538,20 +544,34 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		IIOMetadata metadata = getMetaData(sctInfo, null);
 		if (ImageUtil.isJPEG(getFormat())) {
-			String ct = ImageUtil.getColorType(image(), metadata, "");
+			String ct = ImageUtil.getColorType(cm, metadata, "");
 			if (ct != null) {
 				sctInfo.setEL("jpeg_color_type", ct);
 			}
 		}
-		try {
-			Log log = null;
-			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
-			if (c != null)
-				log = c.getLog("application");
-			Metadata.addExifInfoToStruct(source, sctInfo, log);
-		} catch (Exception e) {
-			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+
+		// Create exif struct only if EXIF data was found (matches Commons Imaging behavior)
+		if (hasExif) {
+			Struct exif = eng().getCreationUtil().createStruct();
+			Iterator it = sctInfo.keyIterator();
+			while (it.hasNext()) {
+				Object keyObj = it.next();
+				String key = keyObj.toString();
+				// Skip non-EXIF fields
+				if ("width".equalsIgnoreCase(key) || "height".equalsIgnoreCase(key) ||
+					"source".equalsIgnoreCase(key) || "colormodel".equalsIgnoreCase(key) ||
+					"metadata".equalsIgnoreCase(key) || "jpeg_color_type".equalsIgnoreCase(key) ||
+					"gps".equalsIgnoreCase(key)) {
+					continue;
+				}
+				// Copy EXIF field to exif struct
+				exif.setEL(eng().getCastUtil().toKey(key), sctInfo.get(keyObj));
+			}
+			if (!exif.isEmpty()) {
+				sctInfo.setEL("exif", exif);
+			}
 		}
+
 		return this.sctInfo = sctInfo;
 	}
 
@@ -568,10 +588,12 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 			if (source instanceof File) {
 				iis = new FileImageInputStream((File) source);
-			} else if (source == null) {
-				iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes(format, true)));
-			} else {
+			} else if (source != null) {
 				iis = new MemoryCacheImageInputStream(is = source.getInputStream());
+			} else if (sourceBytes != null) {
+				iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(sourceBytes));
+			} else {
+				iis = new MemoryCacheImageInputStream(new ByteArrayInputStream(getImageBytes(format, true)));
 			}
 
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
@@ -579,15 +601,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				// pick the first available ImageReader
 				ImageReader reader = readers.next();
 				IIOMetadata meta = null;
-				synchronized (sync) {
-					// attach source to the reader
-					reader.setInput(iis, true);
-
-					// read metadata of first image
-					meta = reader.getImageMetadata(0);
-					meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
-					reader.reset();
-				}
+				// reader + iis are per-call instances; no shared state to protect
+				reader.setInput(iis, true);
+				meta = reader.getImageMetadata(0);
+				meta.setFromTree(FORMAT, meta.getAsTree(FORMAT));
+				reader.reset();
 				// generating dump
 				if (parent != null) {
 					String[] formatNames = meta.getMetadataFormatNames();
@@ -600,6 +618,10 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				return meta;
 			}
 		} catch (Exception e) {
+			Log log = null;
+			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+			if (c != null) log = c.getLog("application");
+			if (log != null) log.log(Log.LEVEL_DEBUG, "imaging", "failed to read IIOMetadata from [" + source + "]", e);
 		} finally {
 			ImageUtil.closeEL(iis);
 			eng().getIOUtil().closeSilent(is);
@@ -608,60 +630,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public Struct getIPTCMetadata() throws PageException {
-		ImageMetadata md;
-		Struct rtn = eng().getCreationUtil().createStruct();
 		try {
-			if (source instanceof File)
-				md = Imaging.getMetadata((File) source);
-			else
-				md = Imaging.getMetadata(getImageBytes(format, true));
+			TwelveMonkeysMetadataExtractor extractor = new TwelveMonkeysMetadataExtractor();
 
-			// not jpeg
-			if (!(md instanceof JpegImageMetadata))
-				return rtn;
-
-			// fill to struct
-			Key KEYWORDS = eng().getCreationUtil().createKey("Keywords");
-			Key SUBJECT_REFERENCE = eng().getCreationUtil().createKey("Subject Reference");
-
-			JpegImageMetadata jmd = (JpegImageMetadata) md;
-			JpegPhotoshopMetadata jpmd = jmd.getPhotoshop(); // selects IPTC metadata
-			if (jpmd == null)
-				return rtn;
-			Iterator<? extends ImageMetadataItem> it = jpmd.getItems().iterator();
-			ImageMetadataItem item;
-			GenericImageMetadataItem i = null;
-			Collection.Key k;
-			Object v;
-			Array arr;
-			while (it.hasNext()) {
-				item = it.next();
-				if (item instanceof GenericImageMetadataItem) {
-					i = (GenericImageMetadataItem) item;
-					k = eng().getCreationUtil().createKey(i.getKeyword());
-					v = rtn.get(k, null);
-					if (v != null) {
-						if (KEYWORDS.equals(k)) {
-							rtn.set(k, v + ";" + i.getText());
-						} else if (SUBJECT_REFERENCE.equals(k)) {
-							rtn.set(k, v + " " + i.getText());
-						} else if (v instanceof Array) {
-							arr = (Array) v;
-							arr.append(i.getText());
-						} else {
-							arr = eng().getCreationUtil().createArray();
-							arr.append(v);
-							arr.append(i.getText());
-							rtn.set(k, arr);
-						}
-					} else
-						rtn.set(k, i.getText());
-				}
+			if (source instanceof File) {
+				return extractor.extractIPTC((File) source, format);
+			} else if (source != null) {
+				return extractor.extractIPTC(source, format);
+			} else {
+				return extractor.extractIPTC(getImageBytes(format, true), format);
 			}
 		} catch (Exception e) {
 			throw eng().getCastUtil().toPageException(e);
 		}
-		return rtn;
 	}
 
 	private void addMetaddata(Struct parent, String name, Node node) {
@@ -1276,17 +1257,38 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public BufferedImage image() throws PageException {
-		if (_image == null)
-			throw (CFMLEngineFactory.getInstance().getExceptionUtil()
-					.createExpressionException("image is not initialized"));
-		return _image;
+		BufferedImage img = _image;
+		if (img != null) return img;
+		synchronized (decodeLock) {
+			img = _image;
+			if (img != null) return img;
+			try {
+				if (source != null) {
+					img = ImageUtil.toBufferedImage(source, format);
+				} else if (sourceBytes != null) {
+					img = ImageUtil.toBufferedImage(sourceBytes, format);
+				}
+			} catch (Exception e) {
+				throw eng().getCastUtil().toPageException(e);
+			}
+			if (img == null)
+				throw (CFMLEngineFactory.getInstance().getExceptionUtil()
+						.createExpressionException("image is not initialized"));
+			_image = img;
+			applyPendingOrientation();
+			return _image;
+		}
 	}
 
 	public void image(BufferedImage image) {
 		this._image = image;
 		graphics = null;
-
+		cachedDimensions = null;
 		sctInfo = null;
+	}
+
+	public boolean isDecoded() {
+		return _image != null;
 	}
 
 	private Graphics2D getGraphics() throws PageException {
@@ -1645,29 +1647,22 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		image( ResampleHelper.resize( bi, width, height, interpolation, blurFactor ) );
 	}
 
-	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
-		try {
-			ImageMetadata metadata;
-			if (input instanceof Resource)
-				metadata = Metadata.getMetadata((Resource) input);
-			else
-				metadata = Imaging.getMetadata((byte[]) input);
-
-			int ori = Metadata.getOrientation(metadata);
-			if (ori > 0) {
-				changeOrientation(metadata, ori);
-				orientation = Metadata.ORIENTATION_NORMAL;
-				// if (input instanceof Resource) changeExifMetadata(metadata, (Resource)
-				// input);
-
-				// IImageMetadata metadata
-			}
-		} catch (Exception e) {
-
-		}
+	private void checkOrientation(Object input) {
+		int ori;
+		if (input instanceof Resource) ori = ImageMetaDrew.readOrientation((Resource) input);
+		else ori = ImageMetaDrew.readOrientation((byte[]) input);
+		if (ori > 0) pendingOrientation = ori;
 	}
 
-	private void changeOrientation(ImageMetadata metadata, int orientation) throws PageException {
+	private void applyPendingOrientation() throws PageException {
+		if (pendingOrientation == Metadata.ORIENTATION_UNDEFINED) return;
+		int ori = pendingOrientation;
+		pendingOrientation = Metadata.ORIENTATION_UNDEFINED;
+		changeOrientation(ori);
+		orientation = Metadata.ORIENTATION_NORMAL;
+	}
+
+	private void changeOrientation(int orientation) throws PageException {
 		if (orientation == Metadata.ORIENTATION_ROTATE_90) {
 			rotateClockwise90();
 			return;
@@ -1739,86 +1734,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		g2.drawImage(src, width, 0, -width, height, null);
 		image(dest);
-	}
-
-	public void changeExifMetadata(ImageMetadata metadata, final Resource dst)
-			throws IOException, ImageReadException, ImageWriteException {
-		OutputStream os = null;
-		boolean canThrow = false;
-		try {
-			TiffOutputSet outputSet = null;
-
-			// note that metadata might be null if no metadata is found.
-			final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-			if (null != jpegMetadata) {
-				// note that exif might be null if no Exif metadata is found.
-				final TiffImageMetadata exif = jpegMetadata.getExif();
-
-				if (null != exif) {
-					// TiffImageMetadata class is immutable (read-only).
-					// TiffOutputSet class represents the Exif data to write.
-					//
-					// Usually, we want to update existing Exif metadata by
-					// changing
-					// the values of a few fields, or adding a field.
-					// In these cases, it is easiest to use getOutputSet() to
-					// start with a "copy" of the fields read from the image.
-					outputSet = exif.getOutputSet();
-				}
-			}
-
-			// if file does not contain any exif metadata, we create an empty
-			// set of exif metadata. Otherwise, we keep all of the other
-			// existing tags.
-			if (null == outputSet) {
-				outputSet = new TiffOutputSet();
-			}
-
-			{
-				// Example of how to add a field/tag to the output set.
-				//
-				// Note that you should first remove the field/tag if it already
-				// exists in this directory, or you may end up with duplicate
-				// tags. See above.
-				//
-				// Certain fields/tags are expected in certain Exif directories;
-				// Others can occur in more than one directory (and often have a
-				// different meaning in different directories).
-				//
-				// TagInfo constants often contain a description of what
-				// directories are associated with a given tag.
-				//
-				final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
-				// make sure to remove old value if present (this method will
-				// not fail if the tag does not exist).
-				exifDirectory.removeField(ExifTagConstants.EXIF_TAG_APERTURE_VALUE);
-				exifDirectory.add(ExifTagConstants.EXIF_TAG_APERTURE_VALUE, new RationalNumber(3, 10));
-			}
-
-			{
-				// Example of how to add/update GPS info to output set.
-
-				// New York City
-				final double longitude = -74.0; // 74 degrees W (in Degrees East)
-				final double latitude = 40 + 43 / 60.0; // 40 degrees N (in Degrees
-				// North)
-
-				outputSet.setGPSInDegrees(longitude, latitude);
-			}
-
-			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateRootDirectory();
-			exifDirectory.removeField(ExifTagConstants.EXIF_TAG_SOFTWARE);
-			exifDirectory.add(ExifTagConstants.EXIF_TAG_SOFTWARE, "SomeKind");
-
-			os = dst.getOutputStream();
-			os = new BufferedOutputStream(os);
-
-			// new ExifRewriter().updateExifMetadataLossless(jpegImageFile, os, outputSet);
-
-			canThrow = true;
-		} finally {
-			Util.closeEL(os);
-		}
 	}
 
 	public void rotate(float x, float y, float angle, int interpolation) throws PageException {
@@ -2114,11 +2029,122 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public int getWidth() throws PageException {
-		return image().getWidth();
+		int[] dims = readDimensionsLazy();
+		return dims[0];
 	}
 
 	public int getHeight() throws PageException {
-		return image().getHeight();
+		int[] dims = readDimensionsLazy();
+		return dims[1];
+	}
+
+	private volatile int[] cachedDimensions;
+
+	private int[] readDimensionsLazy() throws PageException {
+		BufferedImage img = _image;
+		if (img != null) return new int[] { img.getWidth(), img.getHeight() };
+		int[] cached = cachedDimensions;
+		if (cached != null) return cached;
+		int[] dims = readDimensionsFromSource();
+		if (dims != null) {
+			if (pendingOrientation == Metadata.ORIENTATION_ROTATE_90
+					|| pendingOrientation == Metadata.ORIENTATION_ROTATE_270) {
+				dims = new int[] { dims[1], dims[0] };
+			}
+			cachedDimensions = dims;
+			return dims;
+		}
+		img = image();
+		return new int[] { img.getWidth(), img.getHeight() };
+	}
+
+	private int[] readDimensionsFromSource() {
+		InputStream is = null;
+		javax.imageio.stream.ImageInputStreamImpl iis = null;
+		try {
+			iis = openLazyInputStream();
+			if (iis == null) return null;
+			ImageReader reader = findLazyReader(iis);
+			if (reader != null) {
+				try {
+					return new int[] { reader.getWidth(0), reader.getHeight(0) };
+				} finally {
+					reader.dispose();
+				}
+			}
+		} catch (Exception e) {
+			Log log = null;
+			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+			if (c != null) log = c.getLog("application");
+			if (log != null) log.log(Log.LEVEL_DEBUG, "imaging",
+					"failed to read dimensions [" + describeSource() + "], falling back to decode", e);
+		} finally {
+			ImageUtil.closeEL(iis);
+			eng().getIOUtil().closeSilent(is);
+		}
+		return null;
+	}
+
+	private ImageReader findLazyReader(javax.imageio.stream.ImageInputStream iis) throws IOException {
+		Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+		if (readers.hasNext()) {
+			ImageReader reader = readers.next();
+			reader.setInput(iis, true);
+			return reader;
+		}
+		iis.seek(0);
+		return ImageUtil.getLazyReader(format, iis);
+	}
+
+	private javax.imageio.stream.ImageInputStreamImpl openLazyInputStream() throws IOException {
+		if (source instanceof File) return new FileImageInputStream((File) source);
+		if (source != null) return new MemoryCacheImageInputStream(source.getInputStream());
+		if (sourceBytes != null) return new MemoryCacheImageInputStream(new ByteArrayInputStream(sourceBytes));
+		return null;
+	}
+
+	private String describeSource() {
+		if (source != null) return source.toString();
+		if (sourceBytes != null) return "byte[" + sourceBytes.length + "]";
+		return "null";
+	}
+
+	private ColorModel getColorModelLazy() throws PageException {
+		BufferedImage img = _image;
+		if (img != null) return img.getColorModel();
+		ColorModel cm = readColorModelFromSource();
+		if (cm != null) return cm;
+		return image().getColorModel();
+	}
+
+	private ColorModel readColorModelFromSource() {
+		InputStream is = null;
+		javax.imageio.stream.ImageInputStreamImpl iis = null;
+		try {
+			iis = openLazyInputStream();
+			if (iis == null) return null;
+			ImageReader reader = findLazyReader(iis);
+			if (reader != null) {
+				try {
+					Iterator<ImageTypeSpecifier> types = reader.getImageTypes(0);
+					if (types != null && types.hasNext()) {
+						return types.next().getColorModel();
+					}
+				} finally {
+					reader.dispose();
+				}
+			}
+		} catch (Exception e) {
+			Log log = null;
+			Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+			if (c != null) log = c.getLog("application");
+			if (log != null) log.log(Log.LEVEL_DEBUG, "imaging",
+					"failed to read colormodel [" + describeSource() + "], falling back to decode", e);
+		} finally {
+			ImageUtil.closeEL(iis);
+			eng().getIOUtil().closeSilent(is);
+		}
+		return null;
 	}
 
 	public String getFormat() {

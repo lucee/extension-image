@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var img = imageRead( srcImage );
 				var meta = ImageGetIptcMetadata( img );
 				expect( meta ).toBeStruct();
-				expect( meta ).toHaveLength( 8 );
+				expect( meta ).toHaveLength( 9 );
 				expect( meta ).toHaveKey( "By-line" );
 				expect( meta["By-line"] ).toBe( "Jane Photosty" );
 			});
@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var img = imageRead( srcImage );
 				var meta = img.getIptcMetadata();
 				expect( meta ).toBeStruct();
-				expect( meta ).toHaveLength( 8 );
+				expect( meta ).toHaveLength( 9 );
 				expect( meta ).toHaveKey( "Headline" );
 				expect( meta[ "Headline" ] ).toBe( "The railway and the cars" );
 			});

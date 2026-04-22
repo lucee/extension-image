@@ -64,6 +64,14 @@ public class ImageUtil {
 		return Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
 	}
 
+	public static javax.imageio.ImageReader getLazyReader(String format, javax.imageio.stream.ImageInputStream iis) throws IOException {
+		Coder c = getCoder();
+		if (c instanceof org.lucee.extension.image.format.LazyReader) {
+			return ((org.lucee.extension.image.format.LazyReader) c).getReader(format, iis);
+		}
+		return null;
+	}
+
 	public static String getOneWriterFormatName(String... preferences) throws IOException {
 		Set<String> pref = new HashSet<>();
 
@@ -672,9 +680,7 @@ public class ImageUtil {
 		return (++counter) + "x" + System.currentTimeMillis();
 	}
 
-	public static String getColorType(BufferedImage image, IIOMetadata meta, String defaultValue) {
-		ColorModel cm = image.getColorModel();
-
+	public static String getColorType(ColorModel cm, IIOMetadata meta, String defaultValue) {
 		int type = cm.getColorSpace().getType();
 
 		if (type == ColorSpace.TYPE_CMYK && meta != null && isAdobeEncoded(meta)) {
