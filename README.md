@@ -105,6 +105,6 @@ Since Version 2, you can limit the image codecs being used via `this.image.coder
 
 Supported codecs are:
 
-`["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI"]`
+`["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging"]`
 
 To test and profile codec support and performance, there is a new function `ImageCoderInfo(image)`

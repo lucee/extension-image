@@ -136,14 +136,6 @@
             <include name="**/*.pom"/>
         </fileset>
     </copy>
-
-    <!-- Copy system-scoped JAI libraries -->
-    <mkdir dir="${dist}/extension/maven/org/lucee/jai-core/1.2.1.0003L"/>
-    <copy file="source/java/libs/sun.jai.core-1.2.1.0003L.jar"
-          tofile="${dist}/extension/maven/org/lucee/jai-core/1.2.1.0003L/jai-core-1.2.1.0003L.jar"/>
-    <mkdir dir="${dist}/extension/maven/org/lucee/jai-codec/1.1.2.0003L"/>
-    <copy file="source/java/libs/sun.jai.codec-1.1.2.0003L.jar"
-          tofile="${dist}/extension/maven/org/lucee/jai-codec/1.1.2.0003L/jai-codec-1.1.2.0003L.jar"/>
 </target>
 
 

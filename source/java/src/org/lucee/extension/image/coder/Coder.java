@@ -74,8 +74,6 @@ public abstract class Coder {
 				add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
 			if (coderAllowed(coders, "ApacheImaging"))
 				add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
-			if (coderAllowed(coders, "JAI"))
-				add(mc, "org.lucee.extension.image.coder.jai.JAICoder", log);
 			instances.put(hash, instance = mc);
 		}
 		return instance;

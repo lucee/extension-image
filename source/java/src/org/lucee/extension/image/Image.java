@@ -80,7 +80,6 @@ import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
-import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
 import org.lucee.extension.image.util.ArrayUtil;
@@ -2442,33 +2441,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		throw CFMLEngineFactory.getInstance().getExceptionUtil()
 				.createExpressionException("interpolation definition [" + strInterpolation + "] is invalid");
-	}
-
-	private Scalr.Method toMethod(int ip) {
-		if (IP_AUTOMATIC == ip)
-			return Scalr.Method.AUTOMATIC;
-
-		else if (IP_HIGHESTQUALITY == ip)
-			return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_HIGHQUALITY == ip)
-			return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_MEDIUMQUALITY == ip)
-			return Scalr.Method.QUALITY;
-		else if (IP_MEDIUMPERFORMANCE == ip)
-			return Scalr.Method.QUALITY;
-		else if (IP_HIGHPERFORMANCE == ip)
-			return Scalr.Method.SPEED;
-		else if (IP_HIGHESTPERFORMANCE == ip)
-			return Scalr.Method.SPEED;
-
-		else if (IPC_NEAREST == ip)
-			return Scalr.Method.SPEED;
-		else if (IPC_BILINEAR == ip)
-			return Scalr.Method.BALANCED;
-		else if (IPC_BICUBIC == ip)
-			return Scalr.Method.QUALITY;
-
-		return null;
 	}
 
 	/**
