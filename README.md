@@ -105,6 +105,8 @@ Since Version 2, you can limit the image codecs being used via `this.image.coder
 
 Supported codecs are:
 
-`["JDeli","Gotson","Aspose","Lucee","TwelveMonkeys","ImageIO","ApacheImaging"]`
+`["JDeli","Gotson","NightMonkeys","Aspose","Lucee","TwelveMonkeys","ImageIO","ApacheImaging"]`
+
+**NightMonkeys** (HEIF/HEIC/AVIF read, JPEG XL read) is bundled but only active on **Java 22+** with native libraries installed (`libheif`, `libjxl`) and JVM flag `--enable-native-access=ALL-UNNAMED`. On Java 11–21 the coder is skipped automatically.
 
 To test and profile codec support and performance, there is a new function `ImageCoderInfo(image)`

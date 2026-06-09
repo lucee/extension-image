@@ -61,12 +61,15 @@ public abstract class Coder {
 			Log log = config == null ? null : config.getLog("application");
 			MultiCoder mc = new MultiCoder();
 			// Order matters: first successful coder wins. Optional commercial libs first,
-			// then Gotson (WebP write), Lucee (CMYK JPEG / native GIF / legacy PSD),
-			// then broad ImageIO stacks, ApacheImaging last as fallback.
+			// then Gotson (WebP write), NightMonkeys (HEIF/AVIF/JXL on Java 22+),
+			// Lucee (CMYK JPEG / native GIF / legacy PSD), then broad ImageIO stacks,
+			// ApacheImaging last as fallback.
 			if (coderAllowed(coders, "JDeli"))
 				add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
 			if (coderAllowed(coders, "Gotson"))
 				add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
+			if (coderAllowed(coders, "NightMonkeys"))
+				add(mc, "org.lucee.extension.image.coder.NightMonkeysCoder", log);
 			if (coderAllowed(coders, "Aspose"))
 				add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
 			if (coderAllowed(coders, "Lucee"))

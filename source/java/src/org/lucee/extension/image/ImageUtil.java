@@ -284,6 +284,8 @@ public class ImageUtil {
 		if ("psd".equalsIgnoreCase(ext)) return "psd";
 		if ("heic".equalsIgnoreCase(ext)) return "heic";
 		if ("heif".equalsIgnoreCase(ext)) return "heif";
+		if ("avif".equalsIgnoreCase(ext)) return "avif";
+		if ("jxl".equalsIgnoreCase(ext)) return "jxl";
 		return defaultValue;
 	}
 
@@ -377,6 +379,8 @@ public class ImageUtil {
 		if ("image/heic".equals(mt)) return "heic";
 		if ("image/heif-sequence".equals(mt)) return "heif";
 		if ("image/heic-sequence".equals(mt)) return "heic";
+		if ("image/avif".equals(mt)) return "avif";
+		if ("image/jxl".equals(mt)) return "jxl";
 		if ("image/webp".equals(mt)) return "webp";
 
 		return defaultValue;

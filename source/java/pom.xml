@@ -203,6 +203,18 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>com.github.gotson.nightmonkeys</groupId>
+      <artifactId>imageio-heif</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.gotson.nightmonkeys</groupId>
+      <artifactId>imageio-jxl</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>com.twelvemonkeys.common</groupId>
       <artifactId>common-lang</artifactId>
       <version>3.13.1</version>
