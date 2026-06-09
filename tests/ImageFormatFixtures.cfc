@@ -24,7 +24,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		registerFileFixture( "tiff-alt", "sample.tiff", 64, 48 );
 		registerFileFixture( "ico", "sample.ico", 32, 32 );
 		registerFileFixture( "psd", "sample.psd", 5, 5 );
-		registerFileFixture( "heic", "sample.heic", 0, 0, true );
+		registerFileFixture( "heic", "sample.heic", 1440, 960, true );
+		registerFileFixture( "heif", "sample.heif", 640, 427, true );
+		registerFileFixture( "avif", "sample.avif", 0, 0, true );
+		registerFileFixture( "jxl", "sample.jxl", 0, 0, true );
 
 		// Legacy fixtures used elsewhere in the suite
 		registerFileFixture( "jpeg-bigben", "BigBen.jpg" );
@@ -174,6 +177,42 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var img = imageRead( fixtures[ "webp-large" ].path );
 				expect( imageGetWidth( img ) ).toBe( 2560 );
 				expect( imageGetHeight( img ) ).toBe( 1920 );
+			});
+
+			it( title="HEIC sample reads with expected dimensions when a codec is available", body=function(){
+				if ( !structKeyExists( fixtures, "heic" ) || !canReadFixture( fixtures.heic ) ) {
+					return;
+				}
+				var img = imageRead( fixtures.heic.path );
+				expect( imageGetWidth( img ) ).toBe( 1440 );
+				expect( imageGetHeight( img ) ).toBe( 960 );
+			});
+
+			it( title="HEIF sample reads with expected dimensions when a codec is available", body=function(){
+				if ( !structKeyExists( fixtures, "heif" ) || !canReadFixture( fixtures.heif ) ) {
+					return;
+				}
+				var img = imageRead( fixtures.heif.path );
+				expect( imageGetWidth( img ) ).toBe( 640 );
+				expect( imageGetHeight( img ) ).toBe( 427 );
+			});
+
+			it( title="AVIF sample reads when NightMonkeys is available", body=function(){
+				if ( !structKeyExists( fixtures, "avif" ) || !canReadFixture( fixtures.avif ) ) {
+					return;
+				}
+				var img = imageRead( fixtures.avif.path );
+				expect( imageGetWidth( img ) ).toBeGT( 0 );
+				expect( imageGetHeight( img ) ).toBeGT( 0 );
+			});
+
+			it( title="JPEG XL sample reads when NightMonkeys is available", body=function(){
+				if ( !structKeyExists( fixtures, "jxl" ) || !canReadFixture( fixtures.jxl ) ) {
+					return;
+				}
+				var img = imageRead( fixtures.jxl.path );
+				expect( imageGetWidth( img ) ).toBeGT( 0 );
+				expect( imageGetHeight( img ) ).toBeGT( 0 );
 			});
 
 			it( title="cross-format write PNG to JPEG and TIFF", body=function(){
