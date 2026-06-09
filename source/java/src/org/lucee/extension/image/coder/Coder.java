@@ -62,7 +62,7 @@ public abstract class Coder {
 			MultiCoder mc = new MultiCoder();
 			// Order matters: first successful coder wins. Optional commercial libs first,
 			// then Gotson (WebP write), NightMonkeys (HEIF/AVIF/JXL on Java 22+),
-			// Lucee (CMYK JPEG / native GIF / legacy PSD), then broad ImageIO stacks,
+			// OpenizeHeic (HEIC/HEIF read on Java 11–21), Lucee (CMYK JPEG / native GIF / legacy PSD),
 			// ApacheImaging last as fallback.
 			if (coderAllowed(coders, "JDeli"))
 				add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
@@ -70,6 +70,8 @@ public abstract class Coder {
 				add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
 			if (coderAllowed(coders, "NightMonkeys"))
 				add(mc, "org.lucee.extension.image.coder.NightMonkeysCoder", log);
+			if (coderAllowed(coders, "OpenizeHeic"))
+				add(mc, "org.lucee.extension.image.coder.OpenizeHeicCoder", log);
 			if (coderAllowed(coders, "Aspose"))
 				add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
 			if (coderAllowed(coders, "Lucee"))

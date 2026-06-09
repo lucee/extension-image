@@ -30,6 +30,14 @@
     </developer>
   </developers>
 
+  <repositories>
+    <repository>
+      <id>AsposeJavaRepo</id>
+      <name>Aspose Java Repository</name>
+      <url>https://releases.aspose.com/java/repo/</url>
+    </repository>
+  </repositories>
+
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -200,6 +208,12 @@
       <groupId>com.github.gotson</groupId>
       <artifactId>webp-imageio</artifactId>
       <version>0.2.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>openize</groupId>
+      <artifactId>openize-heic</artifactId>
+      <version>25.9</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
