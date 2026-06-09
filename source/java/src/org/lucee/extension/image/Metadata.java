@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImagingException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.GenericImageMetadata.GenericImageMetadataItem;
 import org.apache.commons.imaging.common.ImageMetadata;
@@ -57,7 +57,7 @@ public class Metadata {
 	public static final int ORIENTATION_TRANSVERSE = 7;
 	public static final int ORIENTATION_ROTATE_270 = 8; // rotate 270 to right it
 
-	public static void addExifInfoToStruct(final Resource res, Struct info, Log log) throws ImageReadException, IOException {
+	public static void addExifInfoToStruct(final Resource res, Struct info, Log log) throws ImagingException, IOException {
 		if (res == null) return;
 		InputStream is = null;
 		try {
@@ -110,7 +110,7 @@ public class Metadata {
 		}
 	}
 
-	public static ImageMetadata getMetadata(Resource res) throws ImageReadException, IOException {
+	public static ImageMetadata getMetadata(Resource res) throws ImagingException, IOException {
 		if (res instanceof File) {
 			return Imaging.getMetadata((File) res);
 		}
@@ -143,7 +143,7 @@ public class Metadata {
 		return ORIENTATION_UNDEFINED;
 	}
 
-	private static void gps(JpegImageMetadata jpegMetadata, Struct info) throws ImageReadException {
+	private static void gps(JpegImageMetadata jpegMetadata, Struct info) throws ImagingException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		Struct gps = eng.getCreationUtil().createStruct();
 		info.setEL("gps", gps);
@@ -152,7 +152,7 @@ public class Metadata {
 		Double longitude = null;
 		Double latitude = null;
 		if (null != exifMetadata) {
-			final TiffImageMetadata.GPSInfo gpsInfo = exifMetadata.getGPS();
+			final TiffImageMetadata.GpsInfo gpsInfo = exifMetadata.getGpsInfo();
 			if (null != gpsInfo) {
 				// final String gpsDescription = gpsInfo.toString();
 				longitude = gpsInfo.getLongitudeAsDegreesEast();
@@ -162,10 +162,10 @@ public class Metadata {
 		}
 
 		// more specific example of how to manually access GPS values
-		final TiffField gpsLatitudeRefField = jpegMetadata.findEXIFValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LATITUDE_REF);
-		final TiffField gpsLatitudeField = jpegMetadata.findEXIFValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LATITUDE);
-		final TiffField gpsLongitudeRefField = jpegMetadata.findEXIFValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LONGITUDE_REF);
-		final TiffField gpsLongitudeField = jpegMetadata.findEXIFValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LONGITUDE);
+		final TiffField gpsLatitudeRefField = jpegMetadata.findExifValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LATITUDE_REF);
+		final TiffField gpsLatitudeField = jpegMetadata.findExifValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LATITUDE);
+		final TiffField gpsLongitudeRefField = jpegMetadata.findExifValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LONGITUDE_REF);
+		final TiffField gpsLongitudeField = jpegMetadata.findExifValueWithExactMatch(GpsTagConstants.GPS_TAG_GPS_LONGITUDE);
 		if (gpsLatitudeRefField != null && gpsLatitudeField != null && gpsLongitudeRefField != null && gpsLongitudeField != null) {
 			// all of these values are strings.
 			final String gpsLatitudeRef = (String) gpsLatitudeRefField.getValue();
@@ -236,8 +236,8 @@ public class Metadata {
 		}
 	}
 
-	private static void set(final JpegImageMetadata jpegMetadata, final TagInfo tagInfo, Struct info) throws ImageReadException {
-		final TiffField field = jpegMetadata.findEXIFValueWithExactMatch(tagInfo);
+	private static void set(final JpegImageMetadata jpegMetadata, final TagInfo tagInfo, Struct info) throws ImagingException {
+		final TiffField field = jpegMetadata.findExifValueWithExactMatch(tagInfo);
 		if (field != null) {
 			if (!info.containsKey(tagInfo.name)) {
 				Object val = val(field.getValue());

@@ -18,14 +18,12 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
-import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImagingException;
 import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.bytesource.ByteSource;
-import org.apache.commons.imaging.common.bytesource.ByteSourceArray;
-import org.apache.commons.imaging.common.bytesource.ByteSourceFile;
+import org.apache.commons.imaging.bytesource.ByteSource;
 import org.apache.commons.imaging.formats.jpeg.JpegImageParser;
-import org.apache.commons.imaging.formats.jpeg.segments.GenericSegment;
-import org.apache.commons.imaging.formats.jpeg.segments.Segment;
+import org.apache.commons.imaging.formats.jpeg.segments.AbstractGenericSegment;
+import org.apache.commons.imaging.formats.jpeg.segments.AbstractSegment;
 import org.lucee.extension.image.util.CommonUtil;
 
 public class JPEGDecoder {
@@ -40,15 +38,15 @@ public class JPEGDecoder {
 	public JPEGDecoder() {
 	}
 
-	public BufferedImage readImage(File file) throws IOException, ImageReadException {
+	public BufferedImage readImage(File file) throws IOException, ImagingException {
 		return _readImage(file, null);
 	}
 
-	public BufferedImage readImage(byte[] bytes) throws IOException, ImageReadException {
+	public BufferedImage readImage(byte[] bytes) throws IOException, ImagingException {
 		return _readImage(null, bytes);
 	}
 
-	private BufferedImage _readImage(File file, byte[] bytes) throws IOException, ImageReadException {
+	private BufferedImage _readImage(File file, byte[] bytes) throws IOException, ImagingException {
 		colorType = COLOR_TYPE_RGB;
 		hasAdobeMarker = false;
 		ImageInputStream stream = file != null ? ImageIO.createImageInputStream(file) : ImageIO.createImageInputStream(new ByteArrayInputStream(bytes));
@@ -66,11 +64,11 @@ public class JPEGDecoder {
 				catch (IIOException e) {
 					colorType = COLOR_TYPE_CMYK;
 					ByteSource bs;
-					if (file != null) bs = new ByteSourceFile(file);
-					else bs = new ByteSourceArray(bytes);
+					if (file != null) bs = ByteSource.file(file);
+					else bs = ByteSource.array(bytes);
 
 					checkAdobeMarker(bs);
-					profile = file != null ? Imaging.getICCProfile(file) : Imaging.getICCProfile(bytes);
+					profile = file != null ? Imaging.getIccProfile(file) : Imaging.getIccProfile(bytes);
 					WritableRaster raster = (WritableRaster) reader.readRaster(0, null);
 					if (colorType == COLOR_TYPE_YCCK) {
 						convertYcckToCmyk(raster);
@@ -87,12 +85,11 @@ public class JPEGDecoder {
 		return file != null ? ImageIO.read(file) : ImageIO.read(new ByteArrayInputStream(bytes));
 	}
 
-	private void checkAdobeMarker(ByteSource byteSource) throws IOException, ImageReadException {
+	private void checkAdobeMarker(ByteSource byteSource) throws IOException, ImagingException {
 		JpegImageParser parser = new JpegImageParser();
-		@SuppressWarnings("rawtypes")
-		List<Segment> segments = parser.readSegments(byteSource, new int[] { 0xffee }, true);
+		List<AbstractSegment> segments = parser.readSegments(byteSource, new int[] { 0xffee }, true);
 		if (segments != null && segments.size() >= 1) {
-			GenericSegment app14Segment = (GenericSegment) segments.get(0);
+			AbstractGenericSegment app14Segment = (AbstractGenericSegment) segments.get(0);
 			byte[] data = app14Segment.getSegmentData();
 			if (data.length >= 12 && data[0] == 'A' && data[1] == 'd' && data[2] == 'o' && data[3] == 'b' && data[4] == 'e') {
 				hasAdobeMarker = true;

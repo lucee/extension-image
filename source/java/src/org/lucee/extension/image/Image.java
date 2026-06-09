@@ -68,8 +68,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 
-import org.apache.commons.imaging.ImageReadException;
-import org.apache.commons.imaging.ImageWriteException;
+import org.apache.commons.imaging.ImagingException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.GenericImageMetadata.GenericImageMetadataItem;
 import org.apache.commons.imaging.common.ImageMetadata;
@@ -203,11 +202,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		ImageIO.scanForPlugins();
 	}
 
-	public Image(byte[] binary) throws IOException, ImageReadException, PageException {
+	public Image(byte[] binary) throws IOException, ImagingException, PageException {
 		this(binary, null);
 	}
 
-	public Image(byte[] binary, String format) throws IOException, ImageReadException, PageException {
+	public Image(byte[] binary, String format) throws IOException, ImagingException, PageException {
 		if (eng().getStringUtil().isEmpty(format))
 			format = ImageUtil.getFormat(binary, null);
 		this.format = format;
@@ -219,11 +218,11 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		fromNew = false;
 	}
 
-	public Image(Resource res) throws IOException, ImageReadException, PageException {
+	public Image(Resource res) throws IOException, ImagingException, PageException {
 		this(res, null);
 	}
 
-	public Image(Resource res, String format) throws IOException, ImageReadException, PageException {
+	public Image(Resource res, String format) throws IOException, ImagingException, PageException {
 		if (eng().getStringUtil().isEmpty(format))
 			format = ImageUtil.getFormat(res);
 		this.format = format;
@@ -244,7 +243,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public static Image getInstance(PageContext pc, String str, String format)
-			throws IOException, ImageReadException, PageException {
+			throws IOException, ImagingException, PageException {
 
 		if (str.length() < 4000) {
 			if (pc == null)
@@ -260,7 +259,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	}
 
-	private Image(String b64str, String format) throws IOException, ImageReadException, PageException {
+	private Image(String b64str, String format) throws IOException, ImagingException, PageException {
 
 		// load binary from base64 string and get format
 		StringBuilder mimetype = new StringBuilder();
@@ -1645,7 +1644,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		image( ResampleHelper.resize( bi, width, height, interpolation, blurFactor ) );
 	}
 
-	private void checkOrientation(Object input) throws PageException, ImageReadException, IOException {
+	private void checkOrientation(Object input) throws PageException, ImagingException, IOException {
 		try {
 			ImageMetadata metadata;
 			if (input instanceof Resource)
@@ -1742,7 +1741,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void changeExifMetadata(ImageMetadata metadata, final Resource dst)
-			throws IOException, ImageReadException, ImageWriteException {
+			throws IOException, ImagingException, ImagingException {
 		OutputStream os = null;
 		boolean canThrow = false;
 		try {
@@ -1803,7 +1802,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 				final double latitude = 40 + 43 / 60.0; // 40 degrees N (in Degrees
 				// North)
 
-				outputSet.setGPSInDegrees(longitude, latitude);
+				outputSet.setGpsInDegrees(longitude, latitude);
 			}
 
 			final TiffOutputDirectory exifDirectory = outputSet.getOrCreateRootDirectory();
