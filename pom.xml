@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.lucee</groupId>
     <artifactId>image-extension</artifactId>
-    <version>3.0.1.3-SNAPSHOT</version>
+    <version>3.1.0.0-ALPHA</version>
     <packaging>pom</packaging>
     <name>Image Extension</name>
 
@@ -14,7 +14,11 @@
         <maven.compiler.target>11</maven.compiler.target>
         <id>B737ABC4-D43F-4D91-8E8E973E37C40D1B</id>
         <bundlename>org.lucee.image.extension</bundlename>
-        <luceeCoreVersion>6.2.5.38</luceeCoreVersion>
+        <mvnGroupId>org.lucee</mvnGroupId>
+        <mvnGroupPath>org/lucee</mvnGroupPath>
+        <mvnArtifactId>image</mvnArtifactId>
+        <filename>image-extension</filename>
+        <luceeCoreVersion>7.0.0.211-BETA</luceeCoreVersion>
         <releaseType>server</releaseType>
         <label>Image Extension for Jakarta EE (Lucee 7+)</label>
         <release.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</release.url>
@@ -139,10 +143,16 @@
                                     <property name="releaseType" value="${releaseType}"/>
                                     <property name="label" value="${label}"/>
                                     <property name="description" value="${project.description}"/>
-                                <property name="srcversion" value="${maven.compiler.source}"/>
-                                    <property name="trgversion" value="${maven.compiler.target}"/>
-                                
-</ant>
+                                    <property name="maven.goal" value="${goal}"/>
+                                    <property name="mvnGroupId" value="${mvnGroupId}"/>
+                                    <property name="mvnGroupPath" value="${mvnGroupPath}"/>
+                                    <property name="mvnArtifactId" value="${mvnArtifactId}"/>
+                                    <property name="mvnVersion" value="${project.version}"/>
+
+                                    <property name="maven.username" value="${env.MAVEN_USERNAME}"/>
+                                    <property name="maven.password" value="${env.MAVEN_PASSWORD}"/>
+                                    <property name="gpg.passphrase" value="${env.GPG_PASSPHRASE}"/>
+                                </ant>
                                 <condition property="isSnapshot" value="true" else="false">
                                     <matches string="${project.version}" pattern=".*-SNAPSHOT"/>
                                 </condition>
@@ -155,6 +165,11 @@
                                 <echo message="Deploying to URL: ${deploy.url}" />
                             </target>
                             <exportAntProperties>true</exportAntProperties>
+                              <propertySets>
+                                <propertySet>
+                                  <propertyRef prefix="env."/>
+                                </propertySet>
+                              </propertySets>
                         </configuration>
                     </execution>
                 </executions>

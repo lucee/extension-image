@@ -18,9 +18,7 @@
  **/
 package org.lucee.extension.image.functions;
 
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.lucee.extension.image.Image;
-import org.osgi.framework.Bundle;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -34,11 +32,9 @@ public class ImageInfo extends FunctionSupport implements Function {
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct info = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
-		ClassLoader cl = Image.class.getClassLoader();
-		if (cl instanceof BundleClassLoader) {
-			BundleClassLoader bcl = (BundleClassLoader) cl;
-			Bundle b = bcl.getBundle();
-			info.set("version", b.getVersion().toString());
+		Package pkg = Image.class.getPackage();
+		if (pkg != null && pkg.getImplementationVersion() != null) {
+			info.set("version", pkg.getImplementationVersion());
 		}
 		return info;
 	}

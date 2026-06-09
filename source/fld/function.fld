@@ -11,7 +11,7 @@
 	</description>
 	<function>
 		<name>GetReadableImageFormats</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.GetReadableImageFormats</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.GetReadableImageFormats</class>
 		<keywords>image</keywords>
 		<description>Returns a list of image formats that Lucee can read on the operating system where Lucee is deployed.</description>
 		<return>
@@ -20,7 +20,7 @@
 	</function>
 	<function>
 		<name>GetWriteableImageFormats</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.GetWriteableImageFormats</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.GetWriteableImageFormats</class>
 		<keywords>image</keywords>
 		<description>Returns a list of image formats that Lucee can write on the operating system where Lucee is deployed.</description>
 		<return>
@@ -29,7 +29,7 @@
 	</function>
 	<function>
 	    <name>ImageAddBorder</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageAddBorder</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageAddBorder</class>
 	    <member-name>addBorder</member-name>
 	    <member-type>image</member-type>
 	    <keywords>image,border,effect</keywords>
@@ -76,7 +76,7 @@
 	</function>
 	<function>
 	    <name>ImageBlur</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageBlur</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageBlur</class>
 	    <member-name>blur</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -102,7 +102,7 @@
 	</function>
 	<function>
 		<name>ImageClearRect</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageClearRect</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageClearRect</class>
 		<member-name>clearRect</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -145,7 +145,7 @@
 	</function>
 	<function>
 		<name>ImageFilterColorMap</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterColorMap</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFilterColorMap</class>
 		<member-name>filterColorMap</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -179,7 +179,7 @@
 	</function>
 	<function>
 		<name>ImageFilterKernel</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterKernel</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFilterKernel</class>
 		<keywords>image</keywords>
 		<description>These are passed to the function ImageFilters (see ImageFilter documentation).
 		The ImageFilterKernel function defines a matrix that describes how a specified pixel and its surrounding pixels affect the value computed for the pixel's position in the output image of a filtering operation.
@@ -210,7 +210,7 @@
 	</function>
 	<function>
 		<name>ImageFilterWarpGrid</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterWarpGrid</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFilterWarpGrid</class>
 		<keywords>image</keywords>
 		<description>A warp grid. These are passed to the function ImageFilters (see ImageFilter documentation).</description>
 		<argument>
@@ -243,7 +243,7 @@
 	</function>
 	<function>
 		<name>ImageFilterCurves</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilterCurves</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFilterCurves</class>
 		<keywords>image</keywords>
 		<description>the curves for the wrap grid</description>
 		<return>
@@ -252,7 +252,7 @@
 	</function>
 	<function>
 	    <name>ImageCopy</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCopy</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageCopy</class>
 	    <member-name>copy</member-name>
 	    <member-type>image</member-type>
 	    <keywords>image</keywords>
@@ -307,7 +307,7 @@
 	    </return>
 	</function><function>
 	    <name>ImageCrop</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCrop</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageCrop</class>
 	    <member-name>crop</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -350,7 +350,7 @@
 	</function>
 	<function>
 		<name>ImageDrawArc</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawArc</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawArc</class>
 		<member-name>drawArc</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -413,7 +413,7 @@
 	</function>
 	<function>
 		<name>ImageDrawBeveledRect</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawBeveledRect</class>
 		<member-name>drawBeveledRect</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -472,7 +472,7 @@
 	</function>
 	<function>
 		<name>ImageDrawCubicCurve</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawCubicCurve</class>
 		<member-name>drawCubicCurve</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -539,7 +539,7 @@
 	</function>
 	<function>
 		<name>ImageDrawLine</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLine</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawLine</class>
 		<member-name>drawLine</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -582,7 +582,7 @@
 	</function>
 	<function>
 		<name>ImageDrawLines</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawLines</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawLines</class>
 		<member-name>drawDrawLines</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>		
@@ -629,7 +629,7 @@
 	</function>
 	<function>
 		<name>ImageDrawOval</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawOval</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawOval</class>
 		<member-name>drawOval</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -680,7 +680,7 @@
 	</function>
 	<function>
 		<name>ImageDrawPoint</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawPoint</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawPoint</class>
 		<member-name>drawPoint</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -711,7 +711,7 @@
 	</function>
 	<function>
 		<name>ImageDrawQuadraticCurve</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawQuadraticCurve</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawQuadraticCurve</class>
 		<member-name>drawQuadraticCurve</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -766,7 +766,7 @@
 	</function>
 	<function>
 		<name>ImageDrawRect</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawRect</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawRect</class>
 		<member-name>drawRect</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -817,7 +817,7 @@
 	</function>
 	<function>
 		<name>ImageDrawRoundRect</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawRoundRect</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawRoundRect</class>
 		<member-name>drawRoundRect</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -882,7 +882,7 @@
 	</function>
 	<function>
 		<name>ImageDrawText</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawText</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawText</class>
 		<member-name>drawText</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>		
@@ -931,7 +931,7 @@
 	</function>
 	<function>
 		<name>ImageFilter</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFilter</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFilter</class>
 		<member-name>filter</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -962,7 +962,7 @@
 	</function>
 	<function>
 	    <name>ImageFlip</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFlip</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageFlip</class>
 	    <member-name>flip</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -995,7 +995,7 @@
 	</function>
 	<function>
 		<name>ImageCaptcha</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCaptcha</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageCaptcha</class>
 		<keywords>image</keywords>
 		<description>Creates a captcha image</description>
 		<argument>
@@ -1055,7 +1055,7 @@
 	</function>
 	<function>
 		<name>ImageGetBlob</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetBlob</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetBlob</class>
 		<member-name>getBlob</member-name>
 		<member-type>image</member-type>		
 		<keywords>image</keywords>
@@ -1073,7 +1073,7 @@
 	</function>
 	<function>
 		<name>ImageGetBufferedImage</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetBufferedImage</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetBufferedImage</class>
 		<member-name>getBufferedImage</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1091,7 +1091,7 @@
 	</function>
 	<function>
 		<name>ImageGetIptcMetadata</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIptcMetadata</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetIptcMetadata</class>
 		<member-name>getIptcMetadata</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1109,7 +1109,7 @@
 	</function>
 	<function>
 		<name>ImageGetEXIFMetadata</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetEXIFMetadata</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetEXIFMetadata</class>
 		<member-name>getEXIFMetadata</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1127,7 +1127,7 @@
 	</function>
 	<function>
 		<name>ImageGetEXIFTag</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetEXIFTag</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetEXIFTag</class>
 		<member-name>getEXIFTag</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1151,7 +1151,7 @@
 	</function>
 	<function>
 		<name>ImageGetHeight</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetHeight</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetHeight</class>
 		<member-name>getHeight</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1169,7 +1169,7 @@
 	</function>
 	<function>
 		<name>ImageGetWidth</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetWidth</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetWidth</class>
 		<member-name>getWidth</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1187,7 +1187,7 @@
 	</function>
 	<function>
 		<name>ImageGetIPTCTag</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetIPTCTag</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetIPTCTag</class>
 		<status>unimplemented</status>
 		<member-name>getIPTCTag</member-name>
 		<member-type>image</member-type>
@@ -1212,7 +1212,7 @@
 	</function>
 	<function>
 		<name>ImageGrayscale</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGrayscale</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGrayscale</class>
 		<member-name>grayscale</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1231,7 +1231,7 @@
 	</function>
 	<function>
 		<name>ImageFormats</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFormats</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFormats</class>
 		<keywords>image</keywords>
 		<description>return all available readers and writers</description>
 		<argument>
@@ -1246,7 +1246,7 @@
 	</function>
 	<function>
 		<name>ImageFonts</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageFonts</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageFonts</class>
 		<keywords>image</keywords>
 		<description>return all available</description>
 		<return>
@@ -1255,11 +1255,11 @@
 	</function>
 	<function>
 	    <name>ImageInfo</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageInfo</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageInfo</class>
 	    <member-name>info</member-name>
 	    <member-type>image</member-type>
 	    <keywords>image</keywords>
-	    <description>Returns a structure containing image information. When called with an image argument, returns details about the specific image including height, width, color model, size, and filename. When called without arguments, returns information about the Lucee image processing extension including its OSGi bundle version and status.</description>
+	    <description>Returns a structure containing image information. When called with an image argument, returns details about the specific image including height, width, color model, size, and filename. When called without arguments, returns information about the Lucee image processing extension including its version and status.</description>
 	    <argument>
 	        <name>image</name>
 	        <alias>name</alias>
@@ -1273,7 +1273,7 @@
 	</function>
 	<function>
 		<name>ImageCoderInfo</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageCoderInfo</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageCoderInfo</class>
 		<member-name>coderInfo</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1291,7 +1291,7 @@
 	</function>
 	<function>
 	    <name>ImageNegative</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNegative</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageNegative</class>
 	    <member-name>negative</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -1310,7 +1310,7 @@
 	</function>
 	<function>
 		<name>ImageNew</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageNew</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageNew</class>
 		<keywords>image</keywords>
 		<description>Creates a image.</description>
 		<argument>
@@ -1356,7 +1356,7 @@
 	</function>
 	<function>
 	    <name>ImageOverlay</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageOverlay</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageOverlay</class>
 	    <member-name>overlay</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -1380,7 +1380,7 @@
 	</function>
 	<function>
 	    <name>ImagePaste</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImagePaste</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImagePaste</class>
 	    <member-name>paste</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -1416,7 +1416,7 @@
 	</function>
 	<function>
 		<name>ImageReadBase64</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageReadBase64</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageReadBase64</class>
 		<member-name>readBase64</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1434,7 +1434,7 @@
 	</function>
 	<function>
 		<name>ImageRead</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRead</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageRead</class>
 		<keywords>image</keywords>
 		<description>Reads the source pathname or URL and creates a image.</description>
 		<argument>
@@ -1449,7 +1449,7 @@
 	</function>
 	<function>
 		<name>ImageResize</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageResize</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageResize</class>
 		<member-name>resize</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1513,7 +1513,7 @@
 	</function>
 	<function>
 		<name>ImageRotate</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRotate</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageRotate</class>
 		<member-name>rotate</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1563,7 +1563,7 @@
 	</function>
 	<function>
 		<name>ImageRotateDrawingAxis</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageRotateDrawingAxis</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageRotateDrawingAxis</class>
 		<member-name>rotateDrawingAxis</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1600,7 +1600,7 @@
 	</function>
 	<function>
 		<name>ImageScaleToFit</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageScaleToFit</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageScaleToFit</class>
 		<member-name>scaleToFit</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1663,7 +1663,7 @@
 	</function>
 	<function>
 		<name>ImageWrite</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWrite</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageWrite</class>
 		<member-name>write</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1712,7 +1712,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageWriteBase64</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWriteBase64</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageWriteBase64</class>
 		<member-name>writeBase64</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1750,7 +1750,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageWriteToBrowser</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageWriteToBrowser</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageWriteToBrowser</class>
 		<member-name>writeToBrowser</member-name>
 		<member-type>image</member-type>
 		<keywords>image</keywords>
@@ -1768,7 +1768,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetAntialiasing</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetAntialiasing</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetAntialiasing</class>
 		<member-name>setAntialiasing</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1796,7 +1796,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetBackgroundColor</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetBackgroundColor</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetBackgroundColor</class>
 		<member-name>setBackgroundColor</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1825,7 +1825,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetDrawingAlpha</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingAlpha</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetDrawingAlpha</class>
 		<member-name>setDrawingAlpha</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1850,7 +1850,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetDrawingColor</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingColor</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetDrawingColor</class>
 		<member-name>setDrawingColor</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1879,7 +1879,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetDrawingStroke</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingStroke</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetDrawingStroke</class>
 		<member-name>setDrawingStroke</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1910,7 +1910,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 	<function>
 		<name>ImageSetDrawingTransparency</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSetDrawingTransparency</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageSetDrawingTransparency</class>
 		<member-name>setDrawingTransparency</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -1936,7 +1936,7 @@ The file format is derived from the extension of the filename. The default value
 	</function>
 <function>
     <name>ImageSharpen</name>
-    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageSharpen</class>
+    <class maven="{maven}">org.lucee.extension.image.functions.ImageSharpen</class>
     <member-name>sharpen</member-name>
     <member-type>image</member-type>
     <member-chaining>true</member-chaining>
@@ -1978,7 +1978,7 @@ This technique works by:
 </function>
 	<function>
 	    <name>ImageShear</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShear</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageShear</class>
 	    <member-name>shear</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -2022,7 +2022,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>ImageShearDrawingAxis</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageShearDrawingAxis</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageShearDrawingAxis</class>
 		<member-name>shearDrawingAxis</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -2053,7 +2053,7 @@ This technique works by:
 	</function>
 	<function>
     <name>ImageTranslate</name>
-	    <class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslate</class>
+	    <class maven="{maven}">org.lucee.extension.image.functions.ImageTranslate</class>
 	    <member-name>translate</member-name>
 	    <member-type>image</member-type>
 	    <member-chaining>true</member-chaining>
@@ -2094,7 +2094,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>ImageTranslateDrawingAxis</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageTranslateDrawingAxis</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageTranslateDrawingAxis</class>
 		<member-name>translateDrawingAxis</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -2126,7 +2126,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>ImageXORDrawingMode</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageXORDrawingMode</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageXORDrawingMode</class>
 		<member-name>XORDrawingMode</member-name>
 		<member-type>image</member-type>
 		<member-chaining>true</member-chaining>
@@ -2155,7 +2155,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>IsImage</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.IsImage</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.IsImage</class>
 		<keywords>image,decision</keywords>
 		<description>Determines whether a variable returns a image.</description>
 		<argument>
@@ -2171,7 +2171,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>IsImageFile</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.IsImageFile</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.IsImageFile</class>
 		<keywords>decision,image</keywords>
 		<description>Verifies whether an image file is valid.</description>
 		<argument>
@@ -2187,7 +2187,7 @@ This technique works by:
 	</function>
 	<function>
 		<name>ImageDrawImage</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageDrawImage</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageDrawImage</class>
 		<status>deprecated</status>
 		<member-name>drawImage</member-name>
 		<member-type>image</member-type>

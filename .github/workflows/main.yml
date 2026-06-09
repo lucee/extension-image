@@ -86,9 +86,13 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and Install with Maven
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          echo "------- Maven Install -------";
-          mvn -B -e -f pom.xml clean install
+          echo "------- Maven Install (to create a local test build) -------";
+          mvn -B -e -f pom.xml clean install -Dgoal=install
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -171,6 +175,16 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
+      - name: Debug env
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        run: |
+          if [[ -z "${MAVEN_USERNAME}" ]]; then echo "MAVEN_USERNAME is empty"; exit 1; fi
+          echo "::add-mask::${MAVEN_USERNAME}"
+          echo "MAVEN_USERNAME (masked): ${MAVEN_USERNAME}"
+          echo "MAVEN_USERNAME length: ${#MAVEN_USERNAME}"
+          printf "MAVEN_USERNAME sha256: %s\n" "$(printf %s "$MAVEN_USERNAME" | sha256sum | cut -d' ' -f1)"
+
       - name: Build and Deploy with Maven
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
@@ -179,8 +193,11 @@ jobs:
         run: |
           if [[ "${{ needs.setup.outputs.version }}" == *-SNAPSHOT ]]; then
             echo "------- Maven Deploy snapshot on ${{ github.event_name }} -------";
-            mvn -B -e -f pom.xml clean deploy --settings maven-settings.xml
+            mvn -B -e -f pom.xml clean deploy -Dgoal=deploy --settings maven-settings.xml
+          elif [[ "${{ needs.setup.outputs.version }}" == *-ALPHA ]]; then
+            echo "------- Maven Install alpha on ${{ github.event_name }} -------";
+            mvn -B -e -f pom.xml clean install -Dgoal=install --settings maven-settings.xml
           else
             echo "------- Maven Deploy release on ${{ github.event_name }} -------";
-            mvn -B -e -f pom.xml clean deploy -DperformRelease=true --settings maven-settings.xml
+            mvn -B -e -f pom.xml clean deploy -Dgoal=deploy -DperformRelease=true --settings maven-settings.xml
           fi
