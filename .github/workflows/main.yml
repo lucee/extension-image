@@ -55,11 +55,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     env:
-      LUCEE_TEST_VERSIONS_7: ${{ vars.LUCEE_TEST_VERSIONS_7 }}
+      LUCEE_TEST_VERSIONS_71: ${{ vars.LUCEE_TEST_VERSIONS_71 }}
     strategy:
       fail-fast: false
       matrix:
-        lucee: ${{ fromJSON(vars.LUCEE_TEST_VERSIONS_7) }}
+        lucee: ${{ fromJSON(vars.LUCEE_TEST_VERSIONS_71) }}
     steps:
       - uses: actions/checkout@v4
 
