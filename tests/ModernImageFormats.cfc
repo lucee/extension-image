@@ -69,8 +69,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		return false;
 	}
 
-	private string function createCodecsURI(){
-		return getDirectoryFromPath( getCurrentTemplatePath() ) & "codecs";
+	private string function createURI( required string calledName ){
+		var baseURI = getDirectoryFromPath( contractPath( getCurrentTemplatePath() ) );
+		return baseURI & calledName;
 	}
 
 	private void function expectCodecReadsFixture( required string codec, required string fixtureKey ){
@@ -78,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			return;
 		}
 		var result = _internalRequest(
-			template: createCodecsURI() & "/read_fixture.cfm",
+			template: "#createURI( 'codecs' )#/read_fixture.cfm",
 			url: {
 				codec: codec,
 				fixture: fixtureKey
