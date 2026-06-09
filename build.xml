@@ -33,7 +33,7 @@
         <mkdir dir="${dist}/"/>
     </target>
 
-    <target name="maven-build">
+    <target name="maven-build" depends="init">
 
         <condition property="is.deploy" value="true" else="false">
             <equals arg1="${maven.goal}" arg2="deploy"/>
@@ -189,6 +189,13 @@ start-bundles: false
         <!-- Zip everything -->
         <zip destfile="${dist}/${filename}-${bundleversion}.lex">
             <zipfileset dir="${dist}/extension"/>
+        </zip>
+
+        <!-- Lite artifact: same but without bundled Maven dependencies -->
+        <zip destfile="${dist}/${filename}-${bundleversion}.lite.lex">
+            <zipfileset dir="${dist}/extension">
+                <exclude name="maven/**"/>
+            </zipfileset>
         </zip>
     </target>
 
