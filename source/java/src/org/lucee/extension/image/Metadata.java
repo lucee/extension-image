@@ -102,6 +102,13 @@ public class Metadata {
 				}
 			}
 		}
+
+		// normally i would never catch a null pointer exception, but the underlying library has a bug that
+		// causes a NPE instead of returning null.
+		catch (NullPointerException npe) {
+			// ignore NPE
+			return;
+		}
 		catch (Exception ex) {
 			if (log != null) log.error("imaging", ex);
 		}
