@@ -95,6 +95,20 @@
             <arg value="${temp}/dependency"/>
         </exec>
 
+        <!-- NightMonkeys SPIs load native libs in onRegistration; strip auto-discovery
+             so ImageIO init does not require libheif/libjxl on the classpath. Our
+             NightMonkeysCoder registers readers explicitly when natives are present. -->
+        <apply executable="zip" parallel="false" failonerror="true">
+            <arg value="-q"/>
+            <arg value="-d"/>
+            <srcfile/>
+            <arg value="META-INF/services/javax.imageio.spi.ImageReaderSpi"/>
+            <fileset dir="${temp}/dependency">
+                <include name="**/nightmonkeys/imageio-heif/**/*.jar"/>
+                <include name="**/nightmonkeys/imageio-jxl/**/*.jar"/>
+            </fileset>
+        </apply>
+
 
     </target>
 

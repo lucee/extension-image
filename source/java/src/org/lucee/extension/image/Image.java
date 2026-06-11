@@ -573,9 +573,17 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			}
 
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
-			if (readers.hasNext()) {
-				// pick the first available ImageReader
-				ImageReader reader = readers.next();
+			ImageReader reader = null;
+			while (readers.hasNext()) {
+				try {
+					reader = readers.next();
+					break;
+				}
+				catch (Throwable t) {
+					// skip SPIs that fail canDecodeInput (e.g. NightMonkeys without native libs)
+				}
+			}
+			if (reader != null) {
 				IIOMetadata meta = null;
 				synchronized (sync) {
 					// attach source to the reader
