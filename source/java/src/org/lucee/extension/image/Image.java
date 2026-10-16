@@ -479,6 +479,8 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		Struct sctInfo = eng().getCreationUtil().createStruct(), sct;
 		ImageMetaDrew.addInfo(format, source, sctInfo);
+		// JPEG keeps the legacy Commons Imaging EXIF pass below (same keys/values as before, LDEV-6083)
+		boolean legacyExif = ImageUtil.isJPEG(getFormat()) || ImageUtil.isJPEG(format);
 
 		// Check if EXIF data exists before flattening
 		boolean hasExif = false;
@@ -548,7 +550,19 @@ public class Image extends StructSupport implements Cloneable, Struct {
 		}
 
 		// Create exif struct only if EXIF data was found (matches Commons Imaging behavior)
-		if (hasExif) {
+		if (legacyExif) {
+			// header-only parse, does not decode pixels
+			try {
+				Log log = null;
+				Config c = CFMLEngineFactory.getInstance().getThreadConfig();
+				if (c != null) log = c.getLog("application");
+				Metadata.addExifInfoToStruct(source, sctInfo, log);
+			}
+			catch (Exception e) {
+				throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+			}
+		}
+		else if (hasExif) {
 			Struct exif = eng().getCreationUtil().createStruct();
 			Iterator it = sctInfo.keyIterator();
 			while (it.hasNext()) {

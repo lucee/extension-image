@@ -47,7 +47,10 @@ public class ImageMetaDrew {
 	 */
 	public static void addInfo(String format, Resource res, Struct info) {
 		try {
-			extractAll(res, info);
+			// formats supported before LDEV-6083 keep their original reader and key names (backward compatibility)
+			if (ImageUtil.isJPEG(format)) legacy(res, info, false);
+			else if ("tiff".equalsIgnoreCase(format) || "tif".equalsIgnoreCase(format)) legacy(res, info, true);
+			else extractAll(res, info);
 		}
 		catch (Exception ex) {
 			try {
@@ -105,6 +108,25 @@ public class ImageMetaDrew {
 		}
 	}
 
+	private static void legacy(Resource res, Struct info, boolean tiff) throws IOException, com.drew.imaging.ImageProcessingException {
+		InputStream is = null;
+		try {
+			is = res.getInputStream();
+			Metadata md = tiff ? com.drew.imaging.tiff.TiffMetadataReader.readMetadata(is) : com.drew.imaging.jpeg.JpegMetadataReader.readMetadata(is);
+			CFMLEngine eng = CFMLEngineFactory.getInstance();
+			for (Directory directory: md.getDirectories()) {
+				Struct sct = eng.getCreationUtil().createStruct();
+				info.setEL(eng.getCreationUtil().createKey(CommonUtil.unwrap(directory.getName())), sct);
+				for (Tag tag: directory.getTags()) {
+					sct.setEL(eng.getCreationUtil().createKey(CommonUtil.unwrap(tag.getTagName())), CommonUtil.unwrap(tag.getDescription()));
+				}
+			}
+		}
+		finally {
+			Util.closeEL(is);
+		}
+	}
+
 	private static void extractAll(Resource res, Struct info) throws IOException, com.drew.imaging.ImageProcessingException {
 		InputStream is = null;
 		BufferedInputStream bis = null;
@@ -123,15 +145,6 @@ public class ImageMetaDrew {
 		Iterator<Directory> directories = metadata.getDirectories().iterator();
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 
-		// Check if Exif SubIFD exists - if so, add synthetic ExifOffset for Commons Imaging compatibility
-		boolean hasExifSubIFD = false;
-		for (Directory dir : metadata.getDirectories()) {
-			if (dir.getName().contains("Exif SubIFD")) {
-				hasExifSubIFD = true;
-				break;
-			}
-		}
-
 		while (directories.hasNext()) {
 			Directory directory = directories.next();
 			String dirName = CommonUtil.unwrap(directory.getName());
@@ -143,12 +156,6 @@ public class ImageMetaDrew {
 			}
 
 			info.setEL(eng.getCreationUtil().createKey(dirName), sct);
-
-			// Add synthetic ExifOffset for IFD0 when Exif SubIFD exists (Drew doesn't store pointer tags)
-			if (directory instanceof ExifIFD0Directory && hasExifSubIFD) {
-				sct.setEL(eng.getCreationUtil().createKey("ExifOffset"), "204");
-				info.setEL(eng.getCreationUtil().createKey("ExifOffset"), "204");
-			}
 
 			Iterator<Tag> tags = directory.getTags().iterator();
 			while (tags.hasNext()) {
@@ -179,10 +186,6 @@ public class ImageMetaDrew {
 				// Set value in directory struct
 				sct.setEL(eng.getCreationUtil().createKey(normalizedName), valueToStore);
 
-				// Also set "Subject Location" with space for test compatibility
-				if ("SubjectLocation".equals(normalizedName)) {
-					info.setEL(eng.getCreationUtil().createKey("Subject Location"), valueToStore);
-				}
 			}
 		}
 	}
