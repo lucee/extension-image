@@ -1187,7 +1187,7 @@
 	</function>
 	<function>
 		<name>ImageGetPoint</name>
-		<class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.functions.ImageGetPoint</class>
+		<class maven="{maven}">org.lucee.extension.image.functions.ImageGetPoint</class>
 		<member-name>getPoint</member-name>
 		<member-type>image</member-type>
 		<member-chaining>false</member-chaining>
