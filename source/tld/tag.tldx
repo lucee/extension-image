@@ -16,7 +16,8 @@
 	<!-- Image -->
 	<tag>
 		<name>Image</name>
-		<tag-class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.tag.Image</tag-class>
+		<tag-class maven="{maven}">org.lucee.extension.image.tag.jakarta.Image</tag-class>
+		<javax-tag-class maven="{maven}">org.lucee.extension.image.tag.javax.Image</javax-tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
@@ -192,6 +193,14 @@
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>should action "writetobrowser" embed the source of the image as base64 encoded string, default is false.</description>
+		</attribute>
+
+		<attribute>
+			<type>boolean</type>
+			<name>nometadata</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>only used for action "write", if set to true, the meta data from a source image are NOT written to the destination image.</description>
 		</attribute>
 	</tag>
 </taglib>

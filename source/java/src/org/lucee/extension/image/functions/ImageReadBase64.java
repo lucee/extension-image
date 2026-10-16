@@ -18,30 +18,29 @@
  **/
 package org.lucee.extension.image.functions;
 
-
-import java.io.IOException;
+import org.lucee.extension.image.Image;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
-import org.lucee.extension.image.Image;
-
-
 public class ImageReadBase64 extends FunctionSupport implements Function {
-	
+
+	private static final long serialVersionUID = -5085866652116211122L;
+
 	public static Object call(PageContext pc, String source) throws PageException {
 		try {
-			return new Image(source);
-		} catch (IOException e) {
+			return Image.getInstance(pc, source, null);
+		}
+		catch (Exception e) {
 			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
 		}
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1) return call(pc, cast.toString(args[0]));
+		if (args.length == 1) return call(pc, cast.toString(args[0]));
 		throw exp.createFunctionException(pc, "ImageReadBase64", 1, 1, args.length);
 	}
 }

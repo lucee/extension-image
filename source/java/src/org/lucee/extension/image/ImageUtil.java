@@ -18,265 +18,751 @@
  **/
 package org.lucee.extension.image;
 
+import java.awt.Graphics2D;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageInputStream;
-
-import lucee.commons.io.res.Resource;
-
-
-
-import lucee.loader.engine.CFMLEngineFactory;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.lucee.extension.image.coder.Coder;
+import org.lucee.extension.image.format.FormatExtract;
+import org.lucee.extension.image.format.FormatNames;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+
+import lucee.commons.io.res.Resource;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 public class ImageUtil {
-	
-	private static Coder coder;
-	
-	static {
-		coder = Coder.getInstance();
-	}
-	
 
+	private static final boolean useSunCodec = getSunCodec();
+	private static Class JPEGCodec;
+	private static Class JPEGEncodeParam;
 
-	public static String[] getWriterFormatNames() {
-		return coder.getWriterFormatNames();
+	private static int counter = 0;
+
+	private static Coder getCoder() {
+		return Coder.getInstance(CFMLEngineFactory.getInstance().getThreadPageContext());
 	}
-	public static String[] getReaderFormatNames() {
-		return coder.getReaderFormatNames();
+
+	public static String getOneWriterFormatName(String... preferences) throws IOException {
+		Set<String> pref = new HashSet<>();
+
+		for (String fn: preferences) {
+			pref.add(fn.toLowerCase().trim());
+		}
+
+		// first look for a preference
+		String[] formats = getWriterFormatNames();
+		if (formats == null || formats.length == 0) return null;
+		for (String fn: formats) {
+			if (pref.contains(fn.toLowerCase())) return fn;
+		}
+
+		return formats[0];
 	}
-	
+
+	public static String[] getWriterFormatNames() throws IOException {
+		Coder c = getCoder();
+		if (c instanceof FormatNames) return ((FormatNames) c).getWriterFormatNames();
+		return new String[] {};
+	}
+
+	public static String getOneReaderFormatName(String... preferences) throws IOException {
+		Set<String> pref = new HashSet<>();
+
+		for (String fn: preferences) {
+			pref.add(fn.toLowerCase().trim());
+		}
+
+		// first look for a preference
+		String[] formats = getReaderFormatNames();
+		if (formats == null || formats.length == 0) return null;
+		for (String fn: formats) {
+			if (pref.contains(fn.toLowerCase())) return fn;
+		}
+
+		return formats[0];
+	}
+
+	public static String[] getReaderFormatNames() throws IOException {
+		Coder c = getCoder();
+		if (c instanceof FormatNames) return ((FormatNames) c).getReaderFormatNames();
+		return new String[] {};
+	}
 
 	/**
 	 * translate a file resource to a buffered image
+	 * 
 	 * @param res
 	 * @return
 	 * @throws IOException
 	 */
-	public static BufferedImage toBufferedImage(Resource res,String format) throws IOException {
-		return coder.toBufferedImage(res, format);
+	public static BufferedImage toBufferedImage(Resource res, String format) throws IOException {
+		return getCoder().read(res, format);
 	}
 
 	/**
 	 * translate a binary array to a buffered image
+	 * 
 	 * @param binary
 	 * @return
 	 * @throws IOException
 	 */
-	public static BufferedImage toBufferedImage(byte[] bytes,String format) throws IOException {
-		return coder.toBufferedImage(bytes, format);
+	public static BufferedImage toBufferedImage(byte[] bytes, String format) throws IOException {
+		return getCoder().read(bytes, format);
 	}
 
-	
-	
-	
+	public static void writeOut(Image img, Resource destination, String format, float quality, boolean noMeta) throws IOException {
+		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
+		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("could not find a format for [" + destination + "]");
+		getCoder().write(img, destination, format, quality, noMeta);
+	}
+
+	public static void writeOut(Image img, OutputStream os, String format, float quality, boolean closeStream, boolean noMeta) throws IOException {
+		if (quality < 0 || quality > 1) throw new IOException("quality has an invalid value [" + quality + "], value has to be between 0 and 1");
+		if (eng().getStringUtil().isEmpty(format)) format = img.getFormat();
+		if (eng().getStringUtil().isEmpty(format)) throw new IOException("missing format defintion");
+
+		Resource tmp = createTempFile(format);
+		try {
+			getCoder().write(img, tmp, format, quality, noMeta);
+			eng().getIOUtil().copy(tmp.getInputStream(), os, true, closeStream);
+		}
+		finally {
+			if (!tmp.delete() && tmp instanceof File) ((File) tmp).deleteOnExit();
+		}
+	}
+
+	public static Resource createTempFile(String format) {
+		return eng().getResourceUtil().getTempDirectory().getRealResource("tmp" + id() + "." + format);
+	}
 
 	public static byte[] readBase64(String b64str, StringBuilder mimetype) throws IOException {
-		if(CFMLEngineFactory.getInstance().getStringUtil().isEmpty(b64str))
-			throw new IOException("base64 string is empty");
-		
+		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(b64str)) throw new IOException("base64 string is empty");
+
 		// data:image/png;base64,
 		int index = b64str.indexOf("base64,");
-		if(index!=-1){
-			int semiIndex=b64str.indexOf(";");
-			if(mimetype!=null && semiIndex<index && CFMLEngineFactory.getInstance().getStringUtil().startsWithIgnoreCase(b64str, "data:")){
-				mimetype.append(b64str.substring(5,semiIndex).trim());
+		if (index != -1) {
+			int semiIndex = b64str.indexOf(";");
+			if (mimetype != null && semiIndex < index && CFMLEngineFactory.getInstance().getStringUtil().startsWithIgnoreCase(b64str, "data:")) {
+				mimetype.append(b64str.substring(5, semiIndex).trim());
 			}
-			
-			b64str=b64str.substring(index + 7);
+
+			b64str = b64str.substring(index + 7);
 		}
 		return Base64.decodeBase64(b64str.getBytes());
 	}
-	
+
+	/**
+	 * Detect the image format for a resource. The detection order is:
+	 * 1. Coder-specific magic byte detection (JDeli, TwelveMonkeys etc) — handles misnamed files
+	 * 2. MIME type detection via Tika (content-based) — fallback for formats coders don't recognise
+	 * 3. File extension — last resort, trusts the filename
+	 *
+	 * MIME type (Tika) is resolved once and passed to all coders to avoid repeated detection.
+	 * This is critical for performance — Tika's magic byte scanning is expensive (~600k allocations
+	 * per 5k image ops when called per-coder).
+	 *
+	 * Misnamed files (e.g. a JPEG saved as .png) are handled by steps 1 and 2 which inspect
+	 * actual file content, not the extension.
+	 */
 	public static String getFormat(Resource res) throws IOException {
-		String ext=getFormatFromExtension(res,null);
-		if(ext!=null) return ext;
-		String mt=CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
-		if(mt==null) return null;//throw new IOException("can't extract mimetype from ["+res+"]");
-		return getFormatFromMimeType(mt);
+		long len = res.length();
+		// resolve MIME type once and pass to coders — avoids repeated Tika detection
+		String mt = len > 0 ? getMimeType(res, null) : null;
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(res, mt, null);
+			if (!Util.isEmpty(format, true)) {
+				return format;
+			}
+		}
+		if (!Util.isEmpty(mt)) {
+			String format = getImageFormatFromMimeType(mt, null);
+			if (!Util.isEmpty(format)) {
+				return format;
+			}
+		}
+		return getFormatFromExtension(res, null);
+	}
+
+	public static String getMimeType(Resource res, String defaultValue) {
+		return CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(res, null);
+	}
+
+	public static String getMimeType(byte[] binary, String defaultValue) {
+		return CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, null);
 	}
 
 	public static String getFormat(byte[] binary) throws IOException {
-		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""));
+		String mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, "");
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(binary, mt, null);
+			if (!Util.isEmpty(format, true)) return format;
+		}
+		return getFormatFromMimeType(mt);
 	}
 
-	public static String getFormat(byte[] binary,String defaultValue) {
-		return getFormatFromMimeType(CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, ""),defaultValue);
+	public static String getFormat(byte[] binary, String defaultValue) {
+		String mt = CFMLEngineFactory.getInstance().getResourceUtil().getMimeType(binary, "");
+		Coder c = getCoder();
+		if (c instanceof FormatExtract) {
+			String format = ((FormatExtract) c).getFormat(binary, mt, null);
+			if (!Util.isEmpty(format, true)) return format;
+		}
+		return getImageFormatFromMimeType(mt, defaultValue);
+	}
+
+	public static String toFormat(String format) {
+		if (format == null) return format;
+		if ("jpg".equalsIgnoreCase(format)) return "jpeg";
+		if ("jpe".equalsIgnoreCase(format)) return "jpeg";
+		if ("tif".equalsIgnoreCase(format)) return "tiff";
+		return format.trim();
 	}
 
 	public static String getFormatFromExtension(Resource res, String defaultValue) {
-		String ext=CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res,null);
-		if("gif".equalsIgnoreCase(ext))return "gif";
-		if("jpg".equalsIgnoreCase(ext))return "jpg";
-		if("jpe".equalsIgnoreCase(ext))return "jpg";
-		if("jpeg".equalsIgnoreCase(ext))return "jpg";
-		if("png".equalsIgnoreCase(ext))return "png";
-		if("tiff".equalsIgnoreCase(ext))return "tiff";
-		if("tif".equalsIgnoreCase(ext))return "tiff";
-		if("bmp".equalsIgnoreCase(ext))return "bmp";
-		if("bmp".equalsIgnoreCase(ext))return "bmp";
-		if("wbmp".equalsIgnoreCase(ext))return "wbmp";
-		if("ico".equalsIgnoreCase(ext))return "bmp";
-		if("wbmp".equalsIgnoreCase(ext))return "wbmp";
-		if("psd".equalsIgnoreCase(ext))return "psd";
-		if("fpx".equalsIgnoreCase(ext))return "fpx";
-		
-		if("pnm".equalsIgnoreCase(ext))return "pnm";
-		if("pgm".equalsIgnoreCase(ext))return "pgm";
-		if("pbm".equalsIgnoreCase(ext))return "pbm";
-		if("ppm".equalsIgnoreCase(ext))return "ppm";
-		return defaultValue;	
-	}
-	
-	
-	
-	
-	public static String getFormatFromMimeType(String mt) throws IOException {
-		String format = getFormatFromMimeType(mt, null);
-		if(format!=null) return format;
-		
-		if(CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt))throw new IOException("cannot find Format of given image");//31
-		throw new IOException("can't find Format ("+mt+") of given image");
-	}
-	
-	public static String getFormatFromMimeType(String mt, String defaultValue) {
-		if("image/gif".equals(mt)) return "gif";
-		if("image/gi_".equals(mt)) return "gif";
-		
-		if("image/jpeg".equals(mt)) return "jpg";
-		if("image/jpg".equals(mt)) return "jpg";
-		if("image/jpe".equals(mt)) return "jpg";
-		if("image/pjpeg".equals(mt)) return "jpg";
-		if("image/vnd.swiftview-jpeg".equals(mt)) return "jpg";
-		if("image/pipeg".equals(mt)) return "jpg";
-		if("application/x-jpg".equals(mt)) return "jpg";
-		if("application/jpg".equals(mt)) return "jpg";
-		if("image/jp_".equals(mt)) return "jpg";
-		
-		if("image/png".equals(mt)) return "png";
-		if("image/x-png".equals(mt))return "png";
-		if("application/x-png".equals(mt)) return "png";
-		if("application/png".equals(mt)) return "png";
-		
-		if("image/tiff".equals(mt)) return "tiff";
-		if("image/tif".equals(mt)) return "tiff";
-		if("image/x-tif".equals(mt)) return "tiff";
-		if("image/x-tiff".equals(mt)) return "tiff";
-		if("application/tif".equals(mt)) return "tiff";
-		if("application/x-tif".equals(mt)) return "tiff";
-		if("application/tiff".equals(mt)) return "tiff";
-		if("application/x-tiff".equals(mt)) return "tiff";
-		
-		if("image/bmp".equals(mt)) return "bmp";
-		if("image/vnd.wap.wbmp".equals(mt)) return "wbmp";
-		
-		if("image/fpx".equals(mt)) return "fpx";
-		if("image/x-fpx".equals(mt)) return "fpx";
-		if("image/vnd.fpx".equals(mt)) return "fpx";
-		if("image/vnd.netfpx".equals(mt)) return "fpx";
-		if("image/vnd.fpx".equals(mt)) return "fpx";
-		if("application/vnd.netfpx".equals(mt)) return "fpx";
-		if("application/vnd.fpx".equals(mt)) return "fpx";
-		
-		if("image/x-portable-anymap".equals(mt)) return "pnm";
-		if("image/x-portable/anymap".equals(mt)) return "pnm";
-		if("image/x-pnm".equals(mt)) return "pnm";
-		if("image/pnm".equals(mt)) return "pnm";
-		
-		if("image/x-portable-graymap".equals(mt)) return "pgm";
-		if("image/x-portable/graymap".equals(mt)) return "pgm";
-		if("image/x-pgm".equals(mt)) return "pgm";
-		if("image/pgm".equals(mt)) return "pgm";
-		
-		if("image/portable bitmap".equals(mt)) return "pbm";
-		if("image/x-portable-bitmap".equals(mt)) return "pbm";
-		if("image/x-portable/bitmap".equals(mt)) return "pbm";
-		if("image/x-pbm".equals(mt)) return "pbm";
-		if("image/pbm".equals(mt)) return "pbm";
-		
-		if("image/x-portable-pixmap".equals(mt)) return "ppm";
-		if("application/ppm".equals(mt)) return "ppm";
-		if("application/x-ppm".equals(mt)) return "ppm";
-		if("image/x-p".equals(mt)) return "ppm";
-		if("image/x-ppm".equals(mt)) return "ppm";
-		if("image/ppm".equals(mt)) return "ppm";
+		String ext = CFMLEngineFactory.getInstance().getResourceUtil().getExtension(res, null);
 
-		if("image/ico".equals(mt)) return "ico";
-		if("image/x-icon".equals(mt)) return "ico";
-		if("application/ico".equals(mt)) return "ico";
-		if("application/x-ico".equals(mt)) return "ico";
+		if ("dicom".equalsIgnoreCase(ext)) return "dicom";
+		if ("emf".equalsIgnoreCase(ext)) return "emf";
+		if ("sgi".equalsIgnoreCase(ext)) return "sgi";
+		if ("".equalsIgnoreCase(ext)) return "";
+		if ("xbm".equalsIgnoreCase(ext)) return "xbm";
+		if ("xpm".equalsIgnoreCase(ext)) return "xpm";
+		if ("gif".equalsIgnoreCase(ext)) return "gif";
+		if ("jpg".equalsIgnoreCase(ext)) return "jpeg";
+		if ("jpg2000".equalsIgnoreCase(ext)) return "jpeg2000";
+		if ("jpeg2000".equalsIgnoreCase(ext)) return "jpeg2000";
+		if ("jpe".equalsIgnoreCase(ext)) return "jpeg";
+		if ("jpeg".equalsIgnoreCase(ext)) return "jpeg";
+		if ("icns".equalsIgnoreCase(ext)) return "icns";
+		if ("ico".equalsIgnoreCase(ext)) return "ico";
+		if ("tiff".equalsIgnoreCase(ext)) return "tiff";
+		if ("tif".equalsIgnoreCase(ext)) return "tiff";
+		if ("bmp".equalsIgnoreCase(ext)) return "bmp";
+		if ("bmp".equalsIgnoreCase(ext)) return "bmp";
+		if ("wbmp".equalsIgnoreCase(ext)) return "wbmp";
+		if ("wbp".equalsIgnoreCase(ext)) return "wbp";
+		if ("webp".equalsIgnoreCase(ext)) return "webp";
+		if ("ico".equalsIgnoreCase(ext)) return "bmp";
+		if ("wbmp".equalsIgnoreCase(ext)) return "wbmp";
+		if ("wmf".equalsIgnoreCase(ext)) return "wmf";
+		if ("psd".equalsIgnoreCase(ext)) return "psd";
+		if ("fpx".equalsIgnoreCase(ext)) return "fpx";
 
-		if("image/photoshop".equals(mt)) return "psd";
-		if("image/x-photoshop".equals(mt)) return "psd";
-		if("image/psd".equals(mt)) return "psd";
-		if("application/photoshop".equals(mt)) return "psd";
-		if("application/psd".equals(mt)) return "psd";
-		if("zz-application/zz-winassoc-psd".equals(mt)) return "psd";
-		
-		// can not terminate this types exactly
-		// image/x-xbitmap
-		// application/x-win-bitmap
-		// image/x-win-bitmap
-		// application/octet-stream
+		if ("pcx".equalsIgnoreCase(ext)) return "pcx";
+		if ("pdf".equalsIgnoreCase(ext)) return "pdf";
+		if ("pnm".equalsIgnoreCase(ext)) return "pnm";
+		if ("png".equalsIgnoreCase(ext)) return "png";
+		if ("pgm".equalsIgnoreCase(ext)) return "pgm";
+		if ("pbm".equalsIgnoreCase(ext)) return "pbm";
+		if ("ppm".equalsIgnoreCase(ext)) return "ppm";
+		if ("psb".equalsIgnoreCase(ext)) return "psb";
+		if ("psd".equalsIgnoreCase(ext)) return "psd";
+		if ("heic".equalsIgnoreCase(ext)) return "heic";
+		if ("heif".equalsIgnoreCase(ext)) return "heif";
+		if ("avif".equalsIgnoreCase(ext)) return "avif";
+		if ("jxl".equalsIgnoreCase(ext)) return "jxl";
 		return defaultValue;
 	}
-	
-	
-	public static String getMimeTypeFromFormat(String mt) throws IOException {
-		if("gif".equals(mt)) return "image/gif";
-		if("jpeg".equals(mt)) return "image/jpg";
-		if("jpg".equals(mt)) return "image/jpg";
-		if("jpe".equals(mt)) return "image/jpg";
-		if("png".equals(mt)) return "image/png";
-		if("tiff".equals(mt)) return "image/tiff";
-		if("tif".equals(mt)) return "image/tiff";
-		if("bmp".equals(mt)) return "image/bmp";
-		if("bmp".equals(mt)) return "image/bmp";
-		if("wbmp".equals(mt)) return "image/vnd.wap.wbmp";
-		if("fpx".equals(mt)) return "image/fpx";
-		
-		if("pgm".equals(mt)) return "image/x-portable-graymap";
-		if("pnm".equals(mt)) return "image/x-portable-anymap";
-		if("pbm".equals(mt)) return "image/x-portable-bitmap";
-		if("ppm".equals(mt)) return "image/x-portable-pixmap";
 
-		if("ico".equals(mt)) return "image/ico";
-		if("psd".equals(mt)) return "image/psd";
-		
-		if(CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt))throw new IOException("can't find Format of given image");//31
-		throw new IOException("can't find Format ("+mt+") of given image");
+	public static String getFormatFromMimeType(String mt) throws IOException {
+		String format = getImageFormatFromMimeType(mt, null);
+		if (format != null) return format;
+
+		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt)) throw new IOException("cannot find Format of given image");// 31
+		throw new IOException("can't find Format for mime type [" + mt + "].");
+	}
+
+	public static String getImageFormatFromMimeType(String mt, String defaultValue) {
+		if ("image/gif".equals(mt)) return "gif";
+		if ("image/gi_".equals(mt)) return "gif";
+
+		if ("image/jpeg".equals(mt)) return "jpg";
+		if ("image/jpg".equals(mt)) return "jpg";
+		if ("image/jpe".equals(mt)) return "jpg";
+		if ("image/pjpeg".equals(mt)) return "jpg";
+		if ("image/vnd.swiftview-jpeg".equals(mt)) return "jpg";
+		if ("image/pipeg".equals(mt)) return "jpg";
+		if ("application/x-jpg".equals(mt)) return "jpg";
+		if ("application/jpg".equals(mt)) return "jpg";
+		if ("image/jp_".equals(mt)) return "jpg";
+
+		if ("image/png".equals(mt)) return "png";
+		if ("image/x-png".equals(mt)) return "png";
+		if ("application/x-png".equals(mt)) return "png";
+		if ("application/png".equals(mt)) return "png";
+
+		if ("image/tiff".equals(mt)) return "tiff";
+		if ("image/tif".equals(mt)) return "tiff";
+		if ("image/x-tif".equals(mt)) return "tiff";
+		if ("image/x-tiff".equals(mt)) return "tiff";
+		if ("application/tif".equals(mt)) return "tiff";
+		if ("application/x-tif".equals(mt)) return "tiff";
+		if ("application/tiff".equals(mt)) return "tiff";
+		if ("application/x-tiff".equals(mt)) return "tiff";
+
+		if ("image/bmp".equals(mt)) return "bmp";
+		if ("image/vnd.wap.wbmp".equals(mt)) return "wbmp";
+
+		if ("image/fpx".equals(mt)) return "fpx";
+		if ("image/x-fpx".equals(mt)) return "fpx";
+		if ("image/vnd.fpx".equals(mt)) return "fpx";
+		if ("image/vnd.netfpx".equals(mt)) return "fpx";
+		if ("image/vnd.fpx".equals(mt)) return "fpx";
+		if ("application/vnd.netfpx".equals(mt)) return "fpx";
+		if ("application/vnd.fpx".equals(mt)) return "fpx";
+
+		if ("image/x-portable-anymap".equals(mt)) return "pnm";
+		if ("image/x-portable/anymap".equals(mt)) return "pnm";
+		if ("image/x-pnm".equals(mt)) return "pnm";
+		if ("image/pnm".equals(mt)) return "pnm";
+
+		if ("image/x-portable-graymap".equals(mt)) return "pgm";
+		if ("image/x-portable/graymap".equals(mt)) return "pgm";
+		if ("image/x-pgm".equals(mt)) return "pgm";
+		if ("image/pgm".equals(mt)) return "pgm";
+
+		if ("image/portable bitmap".equals(mt)) return "pbm";
+		if ("image/x-portable-bitmap".equals(mt)) return "pbm";
+		if ("image/x-portable/bitmap".equals(mt)) return "pbm";
+		if ("image/x-pbm".equals(mt)) return "pbm";
+		if ("image/pbm".equals(mt)) return "pbm";
+
+		if ("image/x-portable-pixmap".equals(mt)) return "ppm";
+		if ("application/ppm".equals(mt)) return "ppm";
+		if ("application/x-ppm".equals(mt)) return "ppm";
+		if ("image/x-p".equals(mt)) return "ppm";
+		if ("image/x-ppm".equals(mt)) return "ppm";
+		if ("image/ppm".equals(mt)) return "ppm";
+
+		if ("image/ico".equals(mt)) return "ico";
+		if ("image/x-icon".equals(mt)) return "ico";
+		if ("image/vnd.microsoft.icon".equals(mt)) return "ico";
+		if ("application/ico".equals(mt)) return "ico";
+		if ("application/x-ico".equals(mt)) return "ico";
+		if ("application/vnd.microsoft.icon".equals(mt)) return "ico";
+
+		if ("image/photoshop".equals(mt)) return "psd";
+		if ("image/x-photoshop".equals(mt)) return "psd";
+		if ("image/psd".equals(mt)) return "psd";
+		if ("application/photoshop".equals(mt)) return "psd";
+		if ("application/psd".equals(mt)) return "psd";
+		if ("image/vnd.adobe.photoshop".equals(mt)) return "psd";
+		if ("application/vnd.adobe.photoshop".equals(mt)) return "psd";
+		if ("zz-application/zz-winassoc-psd".equals(mt)) return "psd";
+
+		if ("image/heif".equals(mt)) return "heif";
+		if ("image/heic".equals(mt)) return "heic";
+		if ("image/heif-sequence".equals(mt)) return "heif";
+		if ("image/heic-sequence".equals(mt)) return "heic";
+		if ("image/avif".equals(mt)) return "avif";
+		if ("image/jxl".equals(mt)) return "jxl";
+		if ("image/webp".equals(mt)) return "webp";
+
+		return defaultValue;
+	}
+
+	public static String getMimeTypeFromFormat(String mt) throws IOException {
+		mt = mt.toLowerCase();
+		if ("gif".equals(mt)) return "image/gif";
+		if ("jpeg".equals(mt)) return "image/jpg";
+		if ("jpg".equals(mt)) return "image/jpg";
+		if ("jpe".equals(mt)) return "image/jpg";
+		if ("png".equals(mt)) return "image/png";
+		if ("tiff".equals(mt)) return "image/tiff";
+		if ("tif".equals(mt)) return "image/tiff";
+		if ("bmp".equals(mt)) return "image/bmp";
+		if ("bmp".equals(mt)) return "image/bmp";
+		if ("wbmp".equals(mt)) return "image/vnd.wap.wbmp";
+		if ("fpx".equals(mt)) return "image/fpx";
+
+		if ("pgm".equals(mt)) return "image/x-portable-graymap";
+		if ("pnm".equals(mt)) return "image/x-portable-anymap";
+		if ("pbm".equals(mt)) return "image/x-portable-bitmap";
+		if ("ppm".equals(mt)) return "image/x-portable-pixmap";
+
+		if ("ico".equals(mt)) return "image/ico";
+		if ("psd".equals(mt)) return "image/psd";
+
+		if (CFMLEngineFactory.getInstance().getStringUtil().isEmpty(mt)) throw new IOException("can't find Format of given image");// 31
+		throw new IOException("can't find Format (" + mt + ") of given image");
 	}
 
 	public static void closeEL(ImageInputStream iis) {
-		 try {
-    		 if(iis!=null)iis.close();
-    	 } 
-    	 catch(Exception e) {}
-		
-		
+		try {
+			if (iis != null) iis.close();
+		}
+		catch (Exception e) {
+		}
+	}
+
+	public static void closeEL(ImageOutputStream ios) {
+		try {
+			if (ios != null) ios.close();
+		}
+		catch (Exception e) {
+		}
 	}
 
 	public static BufferedImage createBufferedImage(BufferedImage image, int columns, int rows) {
-        ColorModel colormodel = image.getColorModel();
-        BufferedImage newImage;
-        if(colormodel instanceof IndexColorModel) {
-            if(colormodel.getTransparency() != 1)
-                newImage = new BufferedImage(columns, rows, 2);
-            else
-                newImage = new BufferedImage(columns, rows, 1);
-        } 
-        else {
-            newImage = new BufferedImage(colormodel, image.getRaster().createCompatibleWritableRaster(columns, rows), colormodel.isAlphaPremultiplied(), null);
-        }
-        return newImage;
-    }
-    
-    public static BufferedImage createBufferedImage(BufferedImage image) {
-        return createBufferedImage(image, image.getWidth(), image.getHeight());
-    }
+		ColorModel colormodel = image.getColorModel();
+		BufferedImage newImage;
+		if (colormodel instanceof IndexColorModel) {
+			if (colormodel.getTransparency() != 1) newImage = new BufferedImage(columns, rows, 2);
+			else newImage = new BufferedImage(columns, rows, 1);
+		}
+		else {
+			newImage = new BufferedImage(colormodel, image.getRaster().createCompatibleWritableRaster(columns, rows), colormodel.isAlphaPremultiplied(), null);
+		}
+		return newImage;
+	}
+
+	public static BufferedImage createBufferedImage(BufferedImage image) {
+		return createBufferedImage(image, image.getWidth(), image.getHeight());
+	}
+
+	public static boolean isJPEG(String format) {
+		return "jpg".equalsIgnoreCase(format) || "jpeg".equalsIgnoreCase(format);
+	}
+
+	public static boolean isBMP(String format) {
+		return "bmp".equalsIgnoreCase(format);
+	}
+
+	private static CFMLEngine eng() {
+		return CFMLEngineFactory.getInstance();
+	}
+
+	public static BufferedImage resize(BufferedImage input, int width, int height, boolean maintainRatio) {
+
+		// long startTime = getStartTime();
+
+		int outputWidth = width;
+		int outputHeight = height;
+
+		int w = input.getWidth();
+		int h = input.getHeight();
+
+		if (maintainRatio) {
+
+			double ratio = 0;
+
+			if (w > h) {
+				ratio = (double) width / (double) w;
+			}
+			else {
+				ratio = (double) height / (double) h;
+			}
+
+			double dw = w * ratio;
+			double dh = h * ratio;
+
+			outputWidth = (int) Math.round(dw);
+			outputHeight = (int) Math.round(dh);
+
+			if (outputWidth > w || outputHeight > h) {
+				outputWidth = w;
+				outputHeight = h;
+			}
+		}
+
+		// Resize the image (create new buffered image)
+		java.awt.Image outputImage = input.getScaledInstance(outputWidth, outputHeight, BufferedImage.SCALE_AREA_AVERAGING);
+		BufferedImage bi = new BufferedImage(outputWidth, outputHeight, getImageType(input));
+		Graphics2D g2d = bi.createGraphics();
+		g2d.drawImage(outputImage, 0, 0, null);
+		g2d.dispose();
+		return bi;
+	}
+
+	private static int getImageType(BufferedImage bufferedImage) {
+		int imageType = bufferedImage.getType();
+		if (imageType <= 0 || imageType == 12) {
+			imageType = BufferedImage.TYPE_INT_ARGB;
+		}
+		return imageType;
+	}
+
+	// **************************************************************************
+	// ** getByteArray
+	// **************************************************************************
+	/** Returns the image as a byte array. */
+
+	public static byte[] getByteArray(BufferedImage bi, String format, float quality) {
+		byte[] rgb = null;
+
+		format = format.toLowerCase();
+		if (format.startsWith("image/")) {
+			format = format.substring(format.indexOf("/") + 1);
+		}
+
+		try {
+			if (isJPEG(format)) {
+				rgb = getJPEGByteArray(bi, quality);
+			}
+			else {
+				ByteArrayOutputStream bas = new ByteArrayOutputStream();
+				ImageIO.write(bi, format.toLowerCase(), bas);
+				rgb = bas.toByteArray();
+			}
+		}
+		catch (Exception e) {
+		}
+		return rgb;
+	}
+
+	// **************************************************************************
+	// ** getJPEGByteArray
+	// **************************************************************************
+	/** Returns a JPEG compressed byte array. */
+
+	private static byte[] getJPEGByteArray(BufferedImage bufferedImage, float outputQuality) throws IOException {
+		if (outputQuality >= 0f && outputQuality <= 1.2f) {
+			ByteArrayOutputStream bas = new ByteArrayOutputStream();
+			BufferedImage bi = bufferedImage;
+			int t = bufferedImage.getTransparency();
+
+			if (t == BufferedImage.TRANSLUCENT) {
+				bi = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+				Graphics2D biContext = bi.createGraphics();
+				biContext.drawImage(bufferedImage, 0, 0, null);
+			}
+
+			// First we will try to compress the image using the com.sun.image.codec.jpeg
+			// package. These classes are marked as deprecated in JDK 1.7 and several
+			// users have reported problems with this method. Instead, we are
+			// supposed to use the JPEGImageWriteParam class. However, I have not
+			// been able to adequatly test the compression quality or find an
+			// anology to the setHorizontalSubsampling and setVerticalSubsampling
+			// methods. Therefore, we will attempt to compress the image using the
+			// com.sun.image.codec.jpeg package. If the compression fails, we will
+			// use the JPEGImageWriteParam.
+			if (useSunCodec) {
+
+				try {
+
+					// For Java 1.7 users, we will try to invoke the Sun JPEG Codec using reflection
+					Object encoder = JPEGCodec.getMethod("createJPEGEncoder", java.io.OutputStream.class).invoke(JPEGCodec, bas);
+					Object params = JPEGCodec.getMethod("getDefaultJPEGEncodeParam", BufferedImage.class).invoke(JPEGCodec, bi);
+					params.getClass().getMethod("setQuality", float.class, boolean.class).invoke(params, outputQuality, true);
+					params.getClass().getMethod("setHorizontalSubsampling", int.class, int.class).invoke(params, 0, 2);
+					params.getClass().getMethod("setVerticalSubsampling", int.class, int.class).invoke(params, 0, 2);
+
+					// Here's the original compression code without reflection
+					/*
+					 * JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(bas); JPEGEncodeParam params =
+					 * JPEGCodec.getDefaultJPEGEncodeParam(bi); params.setQuality(outputQuality, true); //true
+					 * params.setHorizontalSubsampling(0,2); params.setVerticalSubsampling(0,2);
+					 * params.setMarkerData(...); encoder.encode(bi, params);
+					 */
+
+					encoder.getClass().getMethod("encode", BufferedImage.class, JPEGEncodeParam).invoke(encoder, bi, params);
+				}
+				catch (Exception e) {
+					bas.reset();
+				}
+			}
+
+			// If the com.sun.image.codec.jpeg package is not found or if the
+			// compression failed, we will use the JPEGImageWriteParam class.
+			if (bas.size() == 0) {
+
+				if (outputQuality > 1f) outputQuality = 1f;
+
+				ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+				ImageOutputStream ios = null;
+				try {
+					JPEGImageWriteParam params = (JPEGImageWriteParam) writer.getDefaultWriteParam();
+					params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+					params.setCompressionQuality(outputQuality);
+					ios = ImageIO.createImageOutputStream(bas);
+					writer.setOutput(ios);
+					writer.write(null, new IIOImage(bi, null, null), params);
+				}
+				finally {
+					closeEL(ios);
+					writer.dispose();
+				}
+
+			}
+
+			bas.flush();
+			return bas.toByteArray();
+		}
+		else {
+			return getByteArray(bufferedImage, "jpeg", 1f);
+		}
+	}
+
+	private static boolean getSunCodec() {
+		try {
+			JPEGCodec = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
+			JPEGEncodeParam = Class.forName("com.sun.image.codec.jpeg.JPEGEncodeParam");
+			return true;
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	public static BufferedImage toABGR(BufferedImage src) {
+		if (src.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+			BufferedImage bff = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+			int h = src.getHeight();
+			int w = src.getWidth();
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					int argb = src.getRGB(x, y);
+					bff.setRGB(x, y, argb & 0xFF000000); // same color alpha 100%
+				}
+			}
+			return bff;
+		}
+		return src;
+	}
+
+	public static BufferedImage fromABGR2BGR(BufferedImage src) {
+		// bufferedImage is your image.
+		if (src.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
+			int h = src.getHeight();
+			int w = src.getWidth();
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					int argb = src.getRGB(x, y);
+					if ((argb & 0x00FFFFFF) == 0x00FFFFFF) { // if the pixel is transparent
+						src.setRGB(x, y, 0xFFFFFFFF); // white color.
+					}
+				}
+			}
+		}
+		return src;
+	}
+
+	final public static BufferedImage convertColorspace(BufferedImage image, int newType) {
+
+		BufferedImage raw_image = image;
+		image = new BufferedImage(raw_image.getWidth(), raw_image.getHeight(), newType);
+		ColorConvertOp xformOp = new ColorConvertOp(null);
+		xformOp.filter(raw_image, image);
+
+		return image;
+	}
+
+	public static synchronized String id() {
+		return (++counter) + "x" + System.currentTimeMillis();
+	}
+
+	public static String getColorType(BufferedImage image, IIOMetadata meta, String defaultValue) {
+		ColorModel cm = image.getColorModel();
+
+		int type = cm.getColorSpace().getType();
+
+		if (type == ColorSpace.TYPE_CMYK && meta != null && isAdobeEncoded(meta)) {
+			return "YCCK";
+		}
+		switch (type) {
+		case ColorSpace.TYPE_XYZ:
+			return "XYZ";
+		case ColorSpace.TYPE_Lab:
+			return "Lab";
+		case ColorSpace.TYPE_Luv:
+			return "Luv";
+		case ColorSpace.TYPE_YCbCr:
+			return "YCbCr";
+		case ColorSpace.TYPE_Yxy:
+			return "Yxy";
+		case ColorSpace.TYPE_RGB:
+			return "RGB";
+		case ColorSpace.TYPE_GRAY:
+			return "GRAY";
+		case ColorSpace.TYPE_HSV:
+			return "HSV";
+		case ColorSpace.TYPE_CMYK:
+			return "CMYK";
+		case ColorSpace.TYPE_CMY:
+			return "CMY";
+		case ColorSpace.TYPE_2CLR:
+			return "2CLR";
+		case ColorSpace.TYPE_3CLR:
+			return "3CLR";
+		case ColorSpace.TYPE_4CLR:
+			return "4CLR";
+		case ColorSpace.TYPE_5CLR:
+			return "5CLR";
+		case ColorSpace.TYPE_6CLR:
+			return "6CLR";
+		case ColorSpace.TYPE_7CLR:
+			return "7CLR";
+		case ColorSpace.TYPE_8CLR:
+			return "8CLR";
+		case ColorSpace.TYPE_9CLR:
+			return "9CLR";
+		case ColorSpace.TYPE_ACLR:
+			return "ACLR";
+		case ColorSpace.TYPE_BCLR:
+			return "BCLR";
+		case ColorSpace.TYPE_CCLR:
+			return "CCLR";
+		case ColorSpace.TYPE_ECLR:
+			return "ECLR";
+		case ColorSpace.TYPE_FCLR:
+			return "FCLR";
+
+		}
+		return defaultValue;
+	}
+
+	private static boolean isAdobeEncoded(IIOMetadata metadata) {
+		// Check for the Adobe marker in the metadata
+		try {
+			Node tree = metadata.getAsTree("javax_imageio_jpeg_image_1.0");
+			Node markerSequence = tree.getFirstChild();
+
+			while (markerSequence != null) {
+				if ("markerSequence".equals(markerSequence.getNodeName())) {
+					Node child = markerSequence.getFirstChild();
+					while (child != null) {
+						if ("app14Adobe".equals(child.getNodeName())) {
+							NamedNodeMap attrs = child.getAttributes();
+							Node version = attrs.getNamedItem("version");
+							if (version != null && "100".equals(version.getNodeValue())) {
+								return true;
+							}
+						}
+						child = child.getNextSibling();
+					}
+				}
+				markerSequence = markerSequence.getNextSibling();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

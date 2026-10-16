@@ -18,24 +18,34 @@
  **/
 package org.lucee.extension.image.functions;
 
+import org.lucee.extension.image.Image;
 
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-
-import org.lucee.extension.image.Image;
-
 import lucee.runtime.type.Struct;
 
 public class ImageInfo extends FunctionSupport implements Function {
-	
+
+	private static final long serialVersionUID = 9065415013985813612L;
+
+	public static Struct call(PageContext pc) throws PageException {
+		Struct info = CFMLEngineFactory.getInstance().getCreationUtil().createStruct();
+		Package pkg = Image.class.getPackage();
+		if (pkg != null && pkg.getImplementationVersion() != null) {
+			info.set("version", pkg.getImplementationVersion());
+		}
+		return info;
+	}
+
 	public static Struct call(PageContext pc, Object source) throws PageException {
-		return Image.createImage(pc, source, true, false,true,null).info();
+		return Image.createImage(pc, source, true, false, true, null).info();
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1) return call(pc, args[0]);
+		if (args.length == 1) return call(pc, args[0]);
 		throw exp.createFunctionException(pc, "ImageInfo", 1, 1, args.length);
 	}
 }

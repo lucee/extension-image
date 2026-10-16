@@ -32,7 +32,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package org.lucee.extension.image.filter;import java.awt.Image;
+package org.lucee.extension.image.filter;
+
+import java.awt.Image;
 import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.MemoryImageSource;
@@ -43,12 +45,12 @@ public class ImageCombiningFilter {
 	public int filterRGB(int x, int y, int rgb1, int rgb2) {
 		int a1 = (rgb1 >> 24) & 0xff;
 		int r1 = (rgb1 >> 16) & 0xff;
-		//int g1 = (rgb1 >> 8) & 0xff;
-		//int b1 = rgb1 & 0xff;
-		//int a2 = (rgb2 >> 24) & 0xff;
+		// int g1 = (rgb1 >> 8) & 0xff;
+		// int b1 = rgb1 & 0xff;
+		// int a2 = (rgb2 >> 24) & 0xff;
 		int r2 = (rgb2 >> 16) & 0xff;
-		//int g2 = (rgb2 >> 8) & 0xff;
-		//int b2 = rgb2 & 0xff;
+		// int g2 = (rgb2 >> 8) & 0xff;
+		// int b2 = rgb2 & 0xff;
 		int r = PixelUtils.clamp(r1 + r2);
 		int g = PixelUtils.clamp(r1 + r2);
 		int b = PixelUtils.clamp(r1 + r2);
@@ -64,23 +66,21 @@ public class ImageCombiningFilter {
 		try {
 			pg1.grabPixels();
 			pg2.grabPixels();
-		} catch (InterruptedException e) {
-			System.err.println("interrupted waiting for pixels!");
+		}
+		catch (InterruptedException e) {
 			return null;
 		}
 		if ((pg1.status() & ImageObserver.ABORT) != 0) {
-			System.err.println("image fetch aborted or errored");
 			return null;
 		}
 		if ((pg2.status() & ImageObserver.ABORT) != 0) {
-			System.err.println("image fetch aborted or errored");
 			return null;
 		}
 
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
 				int k = j * w + i;
-				pixels3[k] = filterRGB(x+i, y+j, pixels1[k], pixels2[k]);
+				pixels3[k] = filterRGB(x + i, y + j, pixels1[k], pixels2[k]);
 			}
 		}
 		return new MemoryImageSource(w, h, pixels3, 0, w);

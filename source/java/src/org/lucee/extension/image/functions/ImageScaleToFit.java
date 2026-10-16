@@ -18,33 +18,33 @@
  **/
 package org.lucee.extension.image.functions;
 
+import org.lucee.extension.image.Image;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-import org.lucee.extension.image.Image;
-
 public class ImageScaleToFit extends FunctionSupport {
-	
-	public static String call(PageContext pc, Object name,String fitWidth, String fitHeight) throws PageException {
-		return call(pc, name, fitWidth, fitHeight, "highestQuality",1.0);
-	}
-	
-	public static String call(PageContext pc, Object name,String fitWidth, String fitHeight, String interpolation) throws PageException {
-		return call(pc, name, fitWidth, fitHeight, interpolation,1.0);
-	}
-	
-	public static String call(PageContext pc, Object name, String fitWidth, String fitHeight, String strInterpolation, double blurFactor) throws PageException {
-		//if(name instanceof String) name=pc.getVariable(Caster.toString(name));
-		Image img = Image.toImage(pc,name);
-		img.scaleToFit(fitWidth, fitHeight, strInterpolation, blurFactor);
-		return null;
-	}
 
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==5) return call(pc, args[0],cast.toString(args[1]),cast.toString(args[2]),cast.toString(args[3]),cast.toDoubleValue(args[4]));
-		if(args.length==4) return call(pc, args[0],cast.toString(args[1]),cast.toString(args[2]),cast.toString(args[3]));
-		if(args.length==3) return call(pc, args[0],cast.toString(args[1]),cast.toString(args[2]));
-		throw exp.createFunctionException(pc, "ImageScaleToFit", 3, 5, args.length);
-	}
+    public static String call(PageContext pc, Object name, String fitWidth, String fitHeight) throws PageException {
+	return call(pc, name, fitWidth, fitHeight, "automatic", 1.0);
+    }
+
+    public static String call(PageContext pc, Object name, String fitWidth, String fitHeight, String interpolation) throws PageException {
+	return call(pc, name, fitWidth, fitHeight, interpolation, 1.0);
+    }
+
+    public static String call(PageContext pc, Object name, String fitWidth, String fitHeight, String strInterpolation, double blurFactor) throws PageException {
+	// if(name instanceof String) name=pc.getVariable(Caster.toString(name));
+	Image img = Image.toImage(pc, name);
+	img.scaleToFit(fitWidth, fitHeight, strInterpolation, blurFactor);
+	return null;
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 5) return call(pc, args[0], cast.toString(args[1]), cast.toString(args[2]), cast.toString(args[3]), cast.toDoubleValue(args[4]));
+	if (args.length == 4) return call(pc, args[0], cast.toString(args[1]), cast.toString(args[2]), cast.toString(args[3]));
+	if (args.length == 3) return call(pc, args[0], cast.toString(args[1]), cast.toString(args[2]));
+	throw exp.createFunctionException(pc, "ImageScaleToFit", 3, 5, args.length);
+    }
 }

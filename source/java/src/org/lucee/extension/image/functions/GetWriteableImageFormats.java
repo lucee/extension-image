@@ -18,29 +18,39 @@
  **/
 package org.lucee.extension.image.functions;
 
-import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
+import java.io.IOException;
 
 import org.lucee.extension.image.ImageUtil;
 
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
+
 public class GetWriteableImageFormats extends FunctionSupport {
 
-	public static String call(PageContext pc) {
-		return GetReadableImageFormats.format(add(ImageUtil.getWriterFormatNames(),"gif"));
+	private static final long serialVersionUID = -60088825150776253L;
+
+	public static String call(PageContext pc) throws PageException {
+		try {
+			return GetReadableImageFormats.format(add(ImageUtil.getWriterFormatNames(), "gif"));
+		}
+		catch (IOException e) {
+			throw CFMLEngineFactory.getInstance().getCastUtil().toPageException(e);
+		}
 	}
 
 	private static String[] add(String[] formats, String value) {
-		String[] rtn=new String[formats.length+1];
-		for(int i=0;i<formats.length;i++) {
-			rtn[i]=formats[i];
+		String[] rtn = new String[formats.length + 1];
+		for (int i = 0; i < formats.length; i++) {
+			rtn[i] = formats[i];
 		}
-		rtn[formats.length]=value;
+		rtn[formats.length] = value;
 		return rtn;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==0) return call(pc);
+		if (args.length == 0) return call(pc);
 		throw exp.createFunctionException(pc, "GetWriteableImageFormats", 0, 0, args.length);
 	}
 }

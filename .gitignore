@@ -17,6 +17,7 @@ target
 target/*
 *.lock
 *.DS_Store
+temp
 *.cfc.hbm.xml
 /cache
 WEB-INF
@@ -28,3 +29,4 @@ WEB-INF
 *.iml
 *.ipr
 *.iws
+test-output/
