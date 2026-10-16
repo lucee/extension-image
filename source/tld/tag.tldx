@@ -16,8 +16,8 @@
 	<!-- Image -->
 	<tag>
 		<name>Image</name>
-		<tag-class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.tag.jakarta.Image</tag-class>
-		<javax-tag-class bundle-name="{bundle-name}" bundle-version="{bundle-version}">org.lucee.extension.image.tag.javax.Image</javax-tag-class>
+		<tag-class maven="{maven}">org.lucee.extension.image.tag.jakarta.Image</tag-class>
+		<javax-tag-class maven="{maven}">org.lucee.extension.image.tag.javax.Image</javax-tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>

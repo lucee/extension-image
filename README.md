@@ -8,6 +8,20 @@ Docs: https://docs.lucee.org/categories/image.html
 
 Issues: https://luceeserver.atlassian.net/issues/?jql=labels%20%3D%20%22Image%22
 
+## Versioning and releases
+
+`pom.xml` holds the next version as a 4-part `-SNAPSHOT` (e.g. `3.1.0.13-SNAPSHOT`). It is not edited by hand.
+
+* **Every push** deploys that `-SNAPSHOT` to the [Central snapshot repository](https://central.sonatype.com/repository/maven-snapshots/)
+  and S3, then the workflow commits the next `-SNAPSHOT` (`Set version to ...`), so every commit gets its own build number.
+* **Pull requests** only build and test, they never deploy.
+* **Release**: run the workflow by hand (Actions > Run workflow) and pick a type:
+  * `release` publishes `X.Y.Z.N` to Maven Central and S3
+  * `rc`, `beta`, `alpha` publish `X.Y.Z.N-RC` / `-BETA` / `-ALPHA` to S3 only (signed `mvn install`, never Central)
+  * `snapshot` deploys the current `-SNAPSHOT` without a bump
+
+  `N` comes from the `-SNAPSHOT` in `pom.xml`; afterwards the workflow commits the next `-SNAPSHOT`.
+
 ## Image Format Support
 
 - WEBP support is now read and write in v2
@@ -105,6 +119,10 @@ Since Version 2, you can limit the image codecs being used via `this.image.coder
 
 Supported codecs are:
 
-`["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI"]`
+`["JDeli","Gotson","NightMonkeys","OpenizeHeic","Aspose","Lucee","TwelveMonkeys","ImageIO","ApacheImaging"]`
+
+**NightMonkeys** (HEIF/HEIC/AVIF read, JPEG XL read) is bundled but only active on **Java 22+** with native libraries installed (`libheif`, `libjxl`) and JVM flag `--enable-native-access=ALL-UNNAMED`.
+
+**OpenizeHeic** (HEIC/HEIF read, pure Java) is bundled but only active on **Java 11–21**. On Java 22+ it is skipped in favour of NightMonkeys. Note: Openize.HEIC uses HEVC/H.265 — see [Openize license](https://github.com/openize-com/openize-heic-java/blob/main/LICENSE) for patent considerations in commercial use.
 
 To test and profile codec support and performance, there is a new function `ImageCoderInfo(image)`

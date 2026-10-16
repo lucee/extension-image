@@ -2,7 +2,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function run( testResults, testBox ) localmode=true{
 
-		var codecs = ["JDeli","Aspose","Gotson","TwelveMonkeys","ImageIO","Lucee","ApacheImaging","JAI",""];
+		var codecs = ["JDeli","Gotson","NightMonkeys","OpenizeHeic","Aspose","Lucee","TwelveMonkeys","ImageIO","ApacheImaging",""];
 
 		loop array="#codecs#" value="local.codec" {
 			describe("test image codect: [#codec#]", function(){
@@ -171,10 +171,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				data={ codec=codec },
 				body=function( data ) {
 
-				if ( listfind( getWriteableImageFormats(), "webp") gt 0) {
-					return; // codec is installed
+				if ( listFindNoCase( getWriteableImageFormats(), "heic" ) ) {
+					return; // HEIC write supported (e.g. JDeli)
 				}
-				// systemOutput("codec: " & data.codec, true);
 				local.result = _internalRequest(
 					template : "#createURI("codecs")#/encode_unsupported.cfm",
 					url: {
@@ -182,11 +181,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						format: "heic"
 					}
 				);
-				if ( listFindNoCase( getReadableImageFormats(), "heic" ) ){
-					expect ( result.filecontent.trim() ).notToBeEmpty( result.filecontent );
-				} else {
-					expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
-				}
+				// OpenizeHeic/NightMonkeys are read-only; ImageWrite must throw for .heic
+				expect ( result.filecontent.trim() ).toBeEmpty( result.filecontent );
 			});
 		});
 	}

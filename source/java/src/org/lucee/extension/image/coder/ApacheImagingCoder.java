@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.imaging.ImageFormat;
 import org.apache.commons.imaging.ImageFormats;
-import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImagingException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.formats.jpeg.JpegImageParser;
 import org.apache.commons.imaging.formats.jpeg.JpegImagingParameters;
@@ -73,7 +73,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 		try {
 			return Imaging.getBufferedImage(is = res.getInputStream());
 		}
-		catch (ImageReadException e) {
+		catch (ImagingException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 		finally {
@@ -94,7 +94,7 @@ class ApacheImagingCoder extends Coder implements FormatNames, FormatExtract {
 		try {
 			return Imaging.getBufferedImage(new ByteArrayInputStream(bytes));
 		}
-		catch (ImageReadException e) {
+		catch (ImagingException e) {
 			throw CFMLEngineFactory.getInstance().getExceptionUtil().toIOException(e);
 		}
 	}

@@ -60,22 +60,28 @@ public abstract class Coder {
 			Config config = eng.getThreadConfig();
 			Log log = config == null ? null : config.getLog("application");
 			MultiCoder mc = new MultiCoder();
+			// Order matters: first successful coder wins. Optional commercial libs first,
+			// then Gotson (WebP write), NightMonkeys (HEIF/AVIF/JXL on Java 22+),
+			// OpenizeHeic (HEIC/HEIF read on Java 11–21), Lucee (CMYK JPEG / native GIF / legacy PSD),
+			// ApacheImaging last as fallback.
 			if (coderAllowed(coders, "JDeli"))
 				add(mc, "org.lucee.extension.image.coder.JDeliCoder", log);
 			if (coderAllowed(coders, "Gotson"))
 				add(mc, "org.lucee.extension.image.coder.GotsonCoder", log);
+			if (coderAllowed(coders, "NightMonkeys"))
+				add(mc, "org.lucee.extension.image.coder.NightMonkeysCoder", log);
+			if (coderAllowed(coders, "OpenizeHeic"))
+				add(mc, "org.lucee.extension.image.coder.OpenizeHeicCoder", log);
 			if (coderAllowed(coders, "Aspose"))
 				add(mc, "org.lucee.extension.image.coder.AsposeCoder", log);
+			if (coderAllowed(coders, "Lucee"))
+				add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
 			if (coderAllowed(coders, "TwelveMonkeys"))
 				add(mc, "org.lucee.extension.image.coder.TwelveMonkeysCoder", log);
 			if (coderAllowed(coders, "ImageIO"))
 				add(mc, "org.lucee.extension.image.coder.ImageIOCoder", log);
-			if (coderAllowed(coders, "Lucee"))
-				add(mc, "org.lucee.extension.image.coder.LuceeCoder", log);
 			if (coderAllowed(coders, "ApacheImaging"))
 				add(mc, "org.lucee.extension.image.coder.ApacheImagingCoder", log);
-			if (coderAllowed(coders, "JAI"))
-				add(mc, "org.lucee.extension.image.coder.jai.JAICoder", log);
 			instances.put(hash, instance = mc);
 		}
 		return instance;

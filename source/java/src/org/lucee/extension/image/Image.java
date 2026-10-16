@@ -39,7 +39,6 @@ import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.ConvolveOp;
@@ -48,7 +47,6 @@ import java.awt.image.Kernel;
 import java.awt.image.PackedColorModel;
 import java.awt.image.PixelGrabber;
 import java.awt.image.WritableRaster;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -69,7 +67,6 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 
-import org.imgscalr.Scalr;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
 import org.lucee.extension.image.metadata.TwelveMonkeysMetadataExtractor;
@@ -597,9 +594,17 @@ public class Image extends StructSupport implements Cloneable, Struct {
 			}
 
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
-			if (readers.hasNext()) {
-				// pick the first available ImageReader
-				ImageReader reader = readers.next();
+			ImageReader reader = null;
+			while (readers.hasNext()) {
+				try {
+					reader = readers.next();
+					break;
+				}
+				catch (Throwable t) {
+					// skip SPIs that fail canDecodeInput (e.g. NightMonkeys without native libs)
+				}
+			}
+			if (reader != null) {
 				IIOMetadata meta = null;
 				// reader + iis are per-call instances; no shared state to protect
 				reader.setInput(iis, true);
@@ -2469,33 +2474,6 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 		throw CFMLEngineFactory.getInstance().getExceptionUtil()
 				.createExpressionException("interpolation definition [" + strInterpolation + "] is invalid");
-	}
-
-	private Scalr.Method toMethod(int ip) {
-		if (IP_AUTOMATIC == ip)
-			return Scalr.Method.AUTOMATIC;
-
-		else if (IP_HIGHESTQUALITY == ip)
-			return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_HIGHQUALITY == ip)
-			return Scalr.Method.ULTRA_QUALITY;
-		else if (IP_MEDIUMQUALITY == ip)
-			return Scalr.Method.QUALITY;
-		else if (IP_MEDIUMPERFORMANCE == ip)
-			return Scalr.Method.QUALITY;
-		else if (IP_HIGHPERFORMANCE == ip)
-			return Scalr.Method.SPEED;
-		else if (IP_HIGHESTPERFORMANCE == ip)
-			return Scalr.Method.SPEED;
-
-		else if (IPC_NEAREST == ip)
-			return Scalr.Method.SPEED;
-		else if (IPC_BILINEAR == ip)
-			return Scalr.Method.BALANCED;
-		else if (IPC_BICUBIC == ip)
-			return Scalr.Method.QUALITY;
-
-		return null;
 	}
 
 	/**
