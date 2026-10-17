@@ -267,7 +267,7 @@ class LuceeCoder extends Coder implements FormatNames {
 			// TODO correct the bands in case a CMYK image is read in when creating the BufferedImage
 
 			IIOMetadata metadata = img2.getMetaData(null, null);
-			String ct = ImageUtil.getColorType(img2.image(), metadata, null);
+			String ct = ImageUtil.getColorType(img2.image().getColorModel(), metadata, null);
 
 			if (ct != null && (iioe.getMessage() + "").indexOf("Metadata components != number of destination bands") != -1) {
 				ImageUtil.closeEL(ios);

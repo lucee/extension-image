@@ -18,15 +18,36 @@
  **/
 package org.lucee.extension.image.functions;
 
+import org.lucee.extension.image.Image;
+
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Struct;
 
 
 public class ImageGetIPTCTag extends FunctionSupport {
 
 	public static Object call(PageContext pc, Object name, String tagName) throws PageException {
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createApplicationException("method ImageGetIPTCTag not implemented yet");
+		Image img = Image.toImage(pc, name);
+		Struct metadata = img.getIPTCMetadata();
+
+		// Check if image has any IPTC tags at all
+		if (metadata.isEmpty()) {
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createApplicationException(
+				"This image does not contain any IPTC metadata"
+			);
+		}
+
+		// Check if specific tag exists
+		Object value = metadata.get(tagName, null);
+		if (value == null) {
+			throw CFMLEngineFactory.getInstance().getExceptionUtil().createApplicationException(
+				"IPTC tag [" + tagName + "] does not exist in this image"
+			);
+		}
+
+		return value;
 	}
 
 	@Override

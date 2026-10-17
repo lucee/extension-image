@@ -30,7 +30,11 @@ import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
+import org.lucee.extension.image.format.LazyReader;
 import org.lucee.extension.image.util.MultiException;
+
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
@@ -42,7 +46,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Creation;
 
-public class MultiCoder extends Coder implements FormatNames, FormatExtract {
+public class MultiCoder extends Coder implements FormatNames, FormatExtract, LazyReader {
 
 	private List<Coder> coders = new ArrayList();
 
@@ -304,6 +308,21 @@ public class MultiCoder extends Coder implements FormatNames, FormatExtract {
 			if (!Util.isEmpty(format)) return format;
 		}
 		return defaultValue;
+	}
+
+	@Override
+	public ImageReader getReader(String format, ImageInputStream iis) throws IOException {
+		for (Coder coder: coders) {
+			if (!(coder instanceof LazyReader)) continue;
+			try {
+				ImageReader reader = ((LazyReader) coder).getReader(format, iis);
+				if (reader != null) return reader;
+			}
+			catch (Exception e) {
+				// try next coder
+			}
+		}
+		return null;
 	}
 
 	@Override
