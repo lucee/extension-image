@@ -59,6 +59,10 @@ public class MarpleCaptcha extends AbstractCaptcha {
 	
 	@Override
 	public Font getFont(String font, Font defaultValue) {
-		return FontUtil.getFont(font,defaultValue);
+		try {
+			return FontUtil.getFont(font,defaultValue);
+		} catch(PageException e){
+			return Font.decode(font);
+		}
 	}
 }
