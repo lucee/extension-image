@@ -26,12 +26,18 @@ import java.io.OutputStream;
 import javax.imageio.ImageIO;
 
 import lucee.runtime.exp.PageException;
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.font.FontUtil;
 
 /**
  * concrete captcha implementation
  */
 public final class Captcha extends AbstractCaptcha {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 	
 	private static final char[] chars=new char[]{
 		 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'

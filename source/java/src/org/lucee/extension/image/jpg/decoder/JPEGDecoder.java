@@ -24,9 +24,15 @@ import org.apache.commons.imaging.bytesource.ByteSource;
 import org.apache.commons.imaging.formats.jpeg.JpegImageParser;
 import org.apache.commons.imaging.formats.jpeg.segments.AbstractGenericSegment;
 import org.apache.commons.imaging.formats.jpeg.segments.AbstractSegment;
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.util.CommonUtil;
 
 public class JPEGDecoder {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 
 	public static final int COLOR_TYPE_RGB = 1;
 	public static final int COLOR_TYPE_CMYK = 2;

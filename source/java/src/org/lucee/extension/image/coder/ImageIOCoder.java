@@ -14,6 +14,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.format.FormatExtract;
@@ -27,9 +28,13 @@ import lucee.runtime.exp.PageException;
 
 class ImageIOCoder extends Coder implements FormatNames, FormatExtract {
 
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
+
 	protected ImageIOCoder() {
 		super();
-		ImageIO.setUseCache(false);
 	}
 
 	@Override

@@ -25,8 +25,14 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
+import org.lucee.extension.image.util.ImageIOCache;
 
 public class TwelveMonkeysMetadataExtractor implements MetadataExtractor {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 
 	@Override
 	public Struct extractIPTC(File source, String format) throws Exception {

@@ -41,6 +41,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.coder.Coder;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
@@ -53,6 +54,11 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 
 public class ImageUtil {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 
 	private static final boolean useSunCodec = getSunCodec();
 	private static Class JPEGCodec;

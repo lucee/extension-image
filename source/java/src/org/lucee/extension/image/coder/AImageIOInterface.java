@@ -32,6 +32,7 @@ import javax.imageio.spi.ServiceRegistry;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.format.FormatExtract;
 import org.lucee.extension.image.format.FormatNames;
@@ -44,6 +45,11 @@ import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 
 public abstract class AImageIOInterface extends Coder implements FormatNames, FormatExtract, LazyReader {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 
 	private static final Class<?>[] READ_CONSTR0 = new Class[] {};
 	private static final Class<?>[] READ_CONSTR1 = new Class[] { ImageReaderSpi.class };

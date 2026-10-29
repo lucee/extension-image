@@ -28,6 +28,24 @@ Issues: https://luceeserver.atlassian.net/issues/?jql=labels%20%3D%20%22Image%22
 
 Dump out `imageFormats( true )` (v2 only) to see which formats / codecs are loaded and available
 
+## ImageIO temp file cache
+
+By default the extension switches the Java ImageIO disk cache off (`ImageIO.setUseCache( false )`), so reading and writing images uses memory and does not create temp files ([LDEV-3327](https://luceeserver.atlassian.net/browse/LDEV-3327)). The setting is applied once, before the first ImageIO call made by the extension.
+
+`ImageIO.setUseCache` is **JVM wide**: it applies to everything running in the same JVM, not only to this extension, so every other library and web app on that JVM that uses ImageIO is affected as well.
+
+To turn the cache back on, set the environment variable `LUCEE_IMAGE_USE_CACHE` or the system property `lucee.image.use.cache` to `true`. If both are set, the system property wins. Any other value keeps the cache off.
+
+```shell
+# environment variable
+export LUCEE_IMAGE_USE_CACHE=true
+
+# or system property
+java -Dlucee.image.use.cache=true ...
+```
+
+The value is read once, when the extension first uses ImageIO, so a change needs a restart of the JVM.
+
 ## Twelve Monkeys
 
 Version 2.0 includes the [Twelve Monkeys](https://github.com/haraldk/TwelveMonkeys) ImageIO library
