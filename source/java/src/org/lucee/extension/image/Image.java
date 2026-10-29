@@ -67,6 +67,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
 import org.lucee.extension.image.metadata.TwelveMonkeysMetadataExtractor;
@@ -188,6 +189,7 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	private Struct sctInfo;
 
 	static {
+		ImageIOCache.init();
 		ImageIO.scanForPlugins();
 	}
 

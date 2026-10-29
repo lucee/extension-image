@@ -49,6 +49,7 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
 
+import org.lucee.extension.image.util.ImageIOCache;
 import org.lucee.extension.image.Image;
 import org.lucee.extension.image.ImageUtil;
 import org.lucee.extension.image.PSDReader;
@@ -66,6 +67,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
 class LuceeCoder extends Coder implements FormatNames {
+
+	// LDEV-3327 apply the JVM wide ImageIO cache setting before the first ImageIO call
+	static {
+		ImageIOCache.init();
+	}
 
 	private String[] writerFormatNames = sortAndMerge(new String[] { "GIF", "JPEG" });
 	private String[] readerFormatNames = sortAndMerge(new String[] { "GIF", "PSD", "JPEG" });
