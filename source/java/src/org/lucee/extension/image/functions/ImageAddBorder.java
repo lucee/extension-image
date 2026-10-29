@@ -18,6 +18,8 @@
  **/
 package org.lucee.extension.image.functions;
 
+import java.awt.Color;
+
 import org.lucee.extension.image.Image;
 
 import lucee.loader.engine.CFMLEngineFactory;
@@ -27,18 +29,22 @@ import lucee.runtime.ext.function.Function;
 
 public class ImageAddBorder extends FunctionSupport implements Function {
 	public static String call(PageContext pc, Object name) throws PageException {
-		return call(pc, name, 1D, "black", "constant");
+		return call(pc, name, 1D, "black", "constant", false);
 	}
 
 	public static String call(PageContext pc, Object name, double thickness) throws PageException {
-		return call(pc, name, thickness, "black", "constant");
+		return call(pc, name, thickness, "black", "constant", false);
 	}
 
 	public static String call(PageContext pc, Object name, double thickness, String color) throws PageException {
-		return call(pc, name, thickness, color, "constant");
+		return call(pc, name, thickness, color, "constant", false);
 	}
 
 	public static String call(PageContext pc, Object name, double thickness, String color, String strBorderType) throws PageException {
+		return call(pc, name, thickness, color, strBorderType, false);
+	}
+
+	public static String call(PageContext pc, Object name, double thickness, String color, String strBorderType, boolean inside) throws PageException {
 		// if(name instanceof String) name=pc.getVariable(Caster.toString(name));
 		strBorderType = strBorderType.trim().toLowerCase();
 		int borderType = Image.BORDER_CONSTANT;
@@ -49,17 +55,21 @@ public class ImageAddBorder extends FunctionSupport implements Function {
 		else if ("wrap".equals(strBorderType)) borderType = Image.BORDER_WRAP;
 
 		Image image = Image.toImage(pc, name);
-		image.addBorder((int) thickness, CFMLEngineFactory.getInstance().getCastUtil().toColor(color), borderType);
+		Color border;
+		if ("transparent".equalsIgnoreCase(color.trim())) border = new Color(0, 0, 0, 0);
+		else border = CFMLEngineFactory.getInstance().getCastUtil().toColor(color);
+		image.addBorder((int) thickness, border, borderType, inside);
 
 		return null;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 5) return call(pc, args[0], cast.toDoubleValue(args[1]), cast.toString(args[2]), cast.toString(args[3]), cast.toBooleanValue(args[4]));
 		if (args.length == 4) return call(pc, args[0], cast.toDoubleValue(args[1]), cast.toString(args[2]), cast.toString(args[3]));
 		if (args.length == 3) return call(pc, args[0], cast.toDoubleValue(args[1]), cast.toString(args[2]));
 		if (args.length == 2) return call(pc, args[0], cast.toDoubleValue(args[1]));
 		if (args.length == 1) return call(pc, args[0]);
-		throw exp.createFunctionException(pc, "ImageAddBorder", 1, 4, args.length);
+		throw exp.createFunctionException(pc, "ImageAddBorder", 1, 5, args.length);
 	}
 }
