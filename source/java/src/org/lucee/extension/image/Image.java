@@ -288,20 +288,49 @@ public class Image extends StructSupport implements Cloneable, Struct {
 	}
 
 	public void addBorder(int thickness, Color color, int borderType) throws PageException {
+		addBorder(thickness, color, borderType, false);
+	}
+
+	/**
+	 * @param inside if true the border is drawn over the outer edge of the image, so the image keeps its
+	 *            dimensions. The border types are then applied to the remaining inner area of the image.
+	 */
+	public void addBorder(int thickness, Color color, int borderType, boolean inside) throws PageException {
 		BufferedImage src = image();
+		int outerWidth = src.getWidth();
+		int outerHeight = src.getHeight();
+		if (inside) {
+			if (thickness < 0) {
+				throw eng().getExceptionUtil().createApplicationException("invalid thickness [" + thickness + "], thickness must not be negative");
+			}
+			if (thickness * 2 >= outerWidth || thickness * 2 >= outerHeight) {
+				throw eng().getExceptionUtil().createApplicationException("invalid thickness [" + thickness + "], an inside border needs to be smaller than half of the image width ["
+						+ outerWidth + "] and height [" + outerHeight + "]");
+			}
+			// the area not covered by the border, the border is drawn around it
+			src = src.getSubimage(thickness, thickness, outerWidth - 2 * thickness, outerHeight - 2 * thickness);
+		}
 		int width = src.getWidth();
 		int height = src.getHeight();
 		int newWidth = width + 2 * thickness;
 		int newHeight = height + 2 * thickness;
 
+		// a border with transparency needs an image with an alpha channel
+		int imageType = src.getType();
+		boolean transparent = borderType == BORDER_CONSTANT && color.getAlpha() < 255;
+		if (transparent && !src.getColorModel().hasAlpha()) imageType = BufferedImage.TYPE_INT_ARGB;
+
 		// Create a new image with extra space for the border
-		BufferedImage borderedImage = new BufferedImage(newWidth, newHeight, src.getType());
+		BufferedImage borderedImage = new BufferedImage(newWidth, newHeight, imageType);
 		Graphics2D g2d = borderedImage.createGraphics();
 
 		// Sets the border to the specified color (default).
 		if (borderType == BORDER_CONSTANT) {
+			// replace the pixels instead of blending, so a transparent color stays transparent
+			g2d.setComposite(AlphaComposite.Src);
 			g2d.setColor(color);
 			g2d.fillRect(0, 0, newWidth, newHeight);
+			g2d.setComposite(AlphaComposite.SrcOver);
 		}
 		// Sets sample values to copies of the nearest valid pixel. For example, pixels
 		// to the left of the

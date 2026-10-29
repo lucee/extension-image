@@ -33,7 +33,7 @@
 	    <member-name>addBorder</member-name>
 	    <member-type>image</member-type>
 	    <keywords>image,border,effect</keywords>
-    	<description>Adds a rectangular border around the outside edge of an image. The border can be a solid color or generated using various edge extension methods. The original image remains centered while the border increases the image dimensions.</description>
+    	<description>Adds a rectangular border around the outside edge of an image. The border can be a solid color or generated using various edge extension methods. By default the border is added outside the image and increases the image dimensions. With inside=true the border is drawn over the outer edge of the image and the dimensions stay the same.</description>
 	    <argument>
 	        <name>image</name>
 	        <alias>name</alias>
@@ -46,7 +46,7 @@
 	        <type>number</type>
 	        <required>No</required>
 	        <default>1</default>
-	        <description>Thickness of the border in pixels. The border is added to the outside edge of the image, increasing the image dimensions by 2 * thickness in both width and height.</description>
+	        <description>Thickness of the border in pixels. By default the border is added to the outside edge of the image, increasing the image dimensions by 2 * thickness in both width and height. With inside=true the image dimensions do not change and the thickness must be smaller than half of the image width and height.</description>
 	    </argument>
 	    <argument>
 	        <name>color</name>
@@ -54,7 +54,7 @@
 	        <type>string</type>
 	        <required>No</required>
 	        <default>black</default>
-	        <description>The color of the border when borderType is "constant". Has no effect with other border types. Can be any valid color name or hex value.</description>
+	        <description>The color of the border when borderType is "constant". Has no effect with other border types. Can be any valid color name or hex value, or "transparent" for a transparent border (the image gets an alpha channel, so use a format that supports transparency like png).</description>
 	    </argument>
 	    <argument>
 	        <name>borderType</name>
@@ -69,6 +69,13 @@
 * `copy`: Extends edge pixels outward. Each border pixel copies the value of the nearest edge pixel. Corner areas are filled with the color of the nearest corner pixel
 * `reflect`: Creates a mirror effect by reflecting the image at its edges. Edge pixels are mirrored outward, and corners are created by mirroring the already reflected edges horizontally
 * `wrap`: Creates a tiled effect by wrapping the image content around to the opposite side, as if the image were repeated in all directions</description>
+	    </argument>
+	    <argument>
+	        <name>inside</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>false</default>
+	        <description>If true, the border is drawn over the outer edge of the image instead of around it, so the image keeps its width and height. The border types are applied to the remaining inner area of the image. Useful where the image dimensions are fixed, for example in HTML emails.</description>
 	    </argument>
 	    <return>
 	        <type>void</type>
