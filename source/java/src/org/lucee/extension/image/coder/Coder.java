@@ -102,7 +102,9 @@ public abstract class Coder {
 				if (log != null)
 					log.info("image", "sucessfully loaded Coder [" + className + "]");
 			}
-		} catch (Exception e) {
+		} catch (Exception | LinkageError e) {
+			// LinkageError: a coder whose library or native part cannot be loaded (NoClassDefFoundError,
+			// UnsatisfiedLinkError) is skipped like any other coder that fails to load (LDEV-6592)
 			if (log != null) {
 				IOException ioe = new IOException("Failed to load image Coder [" + className
 						+ "]. This is one of multiple coders being loaded, continuing with remaining coders.");

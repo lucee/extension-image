@@ -140,10 +140,13 @@ jobs:
               MATRIX=$(echo "$MATRIX" | jq -c --arg l "$LINE" '. + [{version: ($l + "/all/light"), query: ($l + "/all/light")}]')
             fi
           done
+          # LDEV-6592: NightMonkeys (HEIF/AVIF/JXL) only activates on Java 22+, so also test the latest 8.0 build
+          # on Java 25, the other entries run on Java 21
+          MATRIX=$(echo "$MATRIX" | jq -c '. + [{version: "8.0/all/light", query: "8.0/all/light", java: "25"}]')
           # artifact names cannot contain "/", so give every entry a label.
           # testRef is the lucee/lucee branch of the same line (6.2, 7.1, ...), so each core runs the test suite
           # written for it; tests for core fixes on newer lines would otherwise fail on older cores.
-          MATRIX=$(echo "$MATRIX" | jq -c 'map(. + {label: ((.version // .query) | gsub("[^A-Za-z0-9._-]"; "-")), testRef: (((.query // .version) | capture("(?<l>[0-9]+\\.[0-9]+)").l) // "")})')
+          MATRIX=$(echo "$MATRIX" | jq -c 'map(. + {label: (((.version // .query) | gsub("[^A-Za-z0-9._-]"; "-")) + (if .java then "-java" + .java else "" end)), testRef: (((.query // .version) | capture("(?<l>[0-9]+\\.[0-9]+)").l) // "")})')
           echo "Lucee test matrix: ${MATRIX}"
           echo "MATRIX=${MATRIX}" >> "$GITHUB_OUTPUT"
 
@@ -219,6 +222,14 @@ jobs:
 
       - name: Prepare extension dir for tests
         run: rm -f target/*.lite.lex
+
+      # the extension is always built with Java 21, a matrix entry with "java" runs the tests on that version
+      - name: Set up JDK ${{ matrix.lucee.java }} for the tests
+        if: matrix.lucee.java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.lucee.java }}
+          distribution: 'temurin'
 
       - name: Log Lucee test matrix version
         run: |

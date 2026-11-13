@@ -68,6 +68,7 @@ import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
 
 import org.lucee.extension.image.util.ImageIOCache;
+import org.lucee.extension.image.util.ImageIOPlugins;
 import org.lucee.extension.image.font.FontUtil;
 import org.lucee.extension.image.functions.ImageGetEXIFMetadata;
 import org.lucee.extension.image.metadata.TwelveMonkeysMetadataExtractor;
@@ -190,7 +191,9 @@ public class Image extends StructSupport implements Cloneable, Struct {
 
 	static {
 		ImageIOCache.init();
-		ImageIO.scanForPlugins();
+		// LDEV-6592: not ImageIO.scanForPlugins(), a broken plugin (NightMonkeys HEIF without libheif on
+		// Java 22+) must not fail the initialization of this class and with it every image function
+		ImageIOPlugins.scanForPlugins();
 	}
 
 	public Image(byte[] binary) throws IOException, PageException {

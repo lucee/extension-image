@@ -5,14 +5,14 @@ package org.lucee.extension.image.coder;
  * Used to avoid registering ImageIO SPIs when natives are absent — otherwise
  * {@code HeifImageReaderSpi.onRegistration} poisons {@code ImageIO} init on Java 22+.
  */
-final class NightMonkeysNative {
+public final class NightMonkeysNative {
 
 	private static Boolean available;
 
 	private NightMonkeysNative() {
 	}
 
-	static boolean isAvailable() {
+	public static boolean isAvailable() {
 		if (available != null)
 			return available;
 		if (Runtime.version().feature() < 22)
@@ -26,7 +26,7 @@ final class NightMonkeysNative {
 			System.loadLibrary(name);
 			return true;
 		}
-		catch (UnsatisfiedLinkError e) {
+		catch (UnsatisfiedLinkError | SecurityException e) {
 			return false;
 		}
 	}
