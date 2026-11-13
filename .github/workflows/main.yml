@@ -1,11 +1,13 @@
 name: Java CI Combined
 
-# Push publishes the -SNAPSHOT version already in pom.xml to the Sonatype snapshot repo (and S3, until the cut-off).
+# Push publishes the -SNAPSHOT version already in pom.xml to Sonatype and the Lucee Maven repository.
 # A manual run picks a type: release (default) X.Y.Z.N, rc X.Y.Z.N-RC, beta X.Y.Z.N-BETA, alpha X.Y.Z.N-ALPHA
 # (N from the -SNAPSHOT in pom.xml), then commits the next -SNAPSHOT. Type "snapshot" only deploys the current snapshot.
 # Where each version goes:
-#   final (X.Y.Z.N) and -SNAPSHOT: mvn deploy (Maven Central / snapshot repo) + S3 Maven layout
-#   -RC, -BETA, -ALPHA:            mvn install (signed), S3 Maven layout only (maven.lucee-services.com), never Central
+#   final (X.Y.Z.N) and -SNAPSHOT: mvn deploy (Maven Central / Sonatype snapshots) plus the Lucee Maven repository
+#   -RC, -BETA, -ALPHA:            signed mvn install, then the Lucee Maven repository and a GitHub release
+# The shared S3/R2 uploader feeds mvn.lucee-services.com; RC/BETA/ALPHA do not go to Central.
+# Finals, RCs, BETAs and ALPHAs also get a GitHub release (tag = exact version) with the .lex files.
 # A push to a branch with a -SNAPSHOT version also commits the next -SNAPSHOT after the deploy,
 # so every commit gets its own build number. The bump commit itself does not bump again.
 on:
@@ -34,20 +36,27 @@ jobs:
       lucee_matrix: ${{ steps.lucee-matrix.outputs.MATRIX }}
       publish: ${{ steps.publish.outputs.PUBLISH }}
     steps:
-      # Only pushes and manual runs on master, a version branch (1.0, 2.0, ...) or release/* may
+      # Only pushes and manual runs on master/main, a version branch (1.0, 2.0, ...) or release/* may
       # publish (deploy, s3) or commit (bump). Feature and PR branches only build and test.
       - name: Decide whether this run may publish
         id: publish
         env:
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           PUBLISH=false
           if [[ "$EVENT" == "push" || "$EVENT" == "workflow_dispatch" ]]; then
             BRANCH="${REF#refs/heads/}"
-            if [[ "$REF" == refs/heads/* ]] && [[ "$BRANCH" == "master" || "$BRANCH" =~ ^[0-9]+(\.[0-9]+)*$ || "$BRANCH" == release/* ]]; then
+            if [[ "$REF" == refs/heads/* ]] && [[ "$BRANCH" == "master" || "$BRANCH" == "main" || "$BRANCH" =~ ^[0-9]+(\.[0-9]+)*$ || "$BRANCH" == release/* ]]; then
               PUBLISH=true
             fi
+          fi
+          # LDEV-5262: a version-bump push must not republish, even if a token that
+          # triggers workflows is used. Keep manual runs available for intentional retries.
+          if [[ "$EVENT" == "push" ]] && [[ "$ACTOR" == "github-actions[bot]" || "$COMMIT_MESSAGE" == "Set version to "* || "$COMMIT_MESSAGE" == *"[skip ci]"* ]]; then
+            PUBLISH=false
           fi
           echo "event=${EVENT} ref=${REF} publish=${PUBLISH}"
           echo "PUBLISH=${PUBLISH}" >> "$GITHUB_OUTPUT"
@@ -72,7 +81,7 @@ jobs:
       - name: Extract version number
         id: extract-version
         env:
-          # A manual run releases unless the box is unticked. Push and pull_request never do.
+          # A manual run releases unless the selected type is snapshot. Push and pull_request never do.
           RELEASE_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.type || 'snapshot' }}
         run: |
           set -euo pipefail
@@ -287,7 +296,23 @@ jobs:
         # in org/lucee/image-extension/; Central then rejects the bundle
         # ("Bundle has content that does NOT have a .pom file"). Pin 3.9.16 for the deploy.
         run: |
-          curl -fsSL -o /tmp/maven.tar.gz https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz
+          # Retry downloads and fall back to the permanent archive if the CDN is unavailable.
+          downloaded=false
+          for url in \
+            https://dlcdn.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz \
+            https://archive.apache.org/dist/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz
+          do
+            if curl --fail --location --connect-timeout 20 --max-time 60 \
+              --retry 2 --retry-delay 2 --retry-all-errors \
+              --output /tmp/maven.tar.gz "$url"; then
+              downloaded=true
+              break
+            fi
+          done
+          if [ "$downloaded" != true ]; then
+            echo "Failed to download Maven 3.9.16 from all configured URLs" >&2
+            exit 1
+          fi
           echo "831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6  /tmp/maven.tar.gz" | sha512sum -c -
           tar -xzf /tmp/maven.tar.gz -C /tmp
           echo "/tmp/apache-maven-3.9.16/bin" >> "$GITHUB_PATH"
@@ -324,16 +349,39 @@ jobs:
             echo "------- Maven Deploy snapshot ${VERSION} on ${{ github.event_name }} -------";
             mvn -B -e -f pom.xml clean deploy -Dgoal=deploy --settings maven-settings.xml
           elif [[ "$VERSION" =~ -(RC|BETA|ALPHA)$ ]]; then
-            # pre-releases are not published to Maven Central, only to S3 (s3 job below)
-            echo "------- Maven Install (signed) ${VERSION} on ${{ github.event_name }}, S3 only -------";
+            # Pre-releases go to the Lucee Maven repository and GitHub releases, never Maven Central.
+            echo "------- Maven Install (signed) ${VERSION} on ${{ github.event_name }}, Lucee Maven repository and GitHub release -------";
             mvn -B -e -f pom.xml clean install -Dgoal=install -DperformRelease=true --settings maven-settings.xml
           else
             echo "------- Maven Deploy release ${VERSION} on ${{ github.event_name }} -------";
             mvn -B -e -f pom.xml clean deploy -Dgoal=deploy -DperformRelease=true --settings maven-settings.xml
           fi
 
-      # everything the S3 upload needs (LDEV-6568): full and lite .lex plus the flattened POM
-      - name: Upload artifact for S3
+      # LDEV-5262: fail before either publisher can receive an incomplete build.
+      - name: Verify Lucee Maven repository and GitHub release files
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          for FILE in "target/image-extension-${VERSION}.lex" "target/image-extension-${VERSION}.lite.lex" .flattened-pom.xml; do
+            if [[ ! -s "$FILE" ]]; then
+              echo "::error::Missing or empty published build file: $FILE"
+              exit 1
+            fi
+          done
+          python3 - "$VERSION" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          pom = ET.parse(".flattened-pom.xml").getroot()
+          ns = {"m": "http://maven.apache.org/POM/4.0.0"}
+          expected = {"groupId": "org.lucee", "artifactId": "image-extension", "version": sys.argv[1]}
+          for field, value in expected.items():
+              actual = pom.findtext(f"m:{field}", namespaces=ns)
+              if actual != value:
+                  raise SystemExit(f"Flattened POM {field}: expected {value}, found {actual}")
+          PY
+
+      # Both publishers use this exact build (LDEV-6568): full/lite .lex and the generated POM.
+      - name: Upload artifact for Lucee Maven repository and GitHub release
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -342,10 +390,11 @@ jobs:
           path: |
             target/*.lex
             .flattened-pom.xml
+          if-no-files-found: error
 
   # LDEV-6605: publish every final, ALPHA, BETA and RC build as a GitHub release with its .lex files attached,
   # so ext.lucee.org can redirect downloads to GitHub releases (LDEV-6511). -SNAPSHOT builds get no GitHub release.
-  # Separate job, so a failure here never blocks the Maven Central or S3 upload.
+  # Separate job, so a failure here never blocks the Maven Central or Lucee Maven repository upload.
   github-release:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -414,7 +463,8 @@ jobs:
       version: ${{ needs.setup.outputs.version }}
     secrets: inherit
 
-  # After a release deploy, or a SNAPSHOT deploy on a push, commit the next -SNAPSHOT.
+  # After deploy AND the Lucee Maven repository upload succeed, commit the next -SNAPSHOT.
+  # Do not consume a version when the upload job fails, is cancelled, or is skipped.
   # No loop: the push uses the workflow token, which does not start another workflow run,
   # and runs started by github-actions[bot] or with the bump message are skipped anyway.
   bump:
@@ -423,7 +473,7 @@ jobs:
     if: >-
       always() && needs.deploy.result == 'success'
       && needs.setup.outputs.publish == 'true'
-      && (needs.s3.result == 'success' || needs.s3.result == 'skipped')
+      && needs.s3.result == 'success'
       && (needs.setup.outputs.release == 'true'
         || (github.event_name == 'push'
           && startsWith(github.ref, 'refs/heads/')
