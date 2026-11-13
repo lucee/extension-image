@@ -139,6 +139,8 @@ Supported codecs are:
 
 `["JDeli","Gotson","NightMonkeys","OpenizeHeic","Aspose","Lucee","TwelveMonkeys","ImageIO","ApacheImaging"]`
 
+**Gotson** (WebP read and write, native) uses [com.github.usefulness:webp-imageio](https://github.com/usefulness/webp-imageio) (Apache-2.0, libwebp 1.6.0), the maintained fork of the archived `com.github.gotson:webp-imageio`. It ships natives for Windows x86/x86_64, Linux x86/x86_64/aarch64/arm/ppc64 and macOS x86_64/arm64 (Apple Silicon), extracted to `java.io.tmpdir` (override with `-Dcom.luciad.imageio.webp.tmpdir`). On other platforms (e.g. Alpine/musl) WebP can still be read through TwelveMonkeys. The coder keeps the name `Gotson` so existing `this.image.coder` settings keep working.
+
 **NightMonkeys** (HEIF/HEIC/AVIF read, JPEG XL read) is bundled but only active on **Java 22+** with native libraries installed (`libheif`, `libjxl`) and JVM flag `--enable-native-access=ALL-UNNAMED`.
 
 **OpenizeHeic** (HEIC/HEIF read, pure Java) is bundled but only active on **Java 11–21**. On Java 22+ it is skipped in favour of NightMonkeys. Note: Openize.HEIC uses HEVC/H.265 — see [Openize license](https://github.com/openize-com/openize-heic-java/blob/main/LICENSE) for patent considerations in commercial use.

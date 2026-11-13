@@ -204,10 +204,13 @@
       <version>6.1.11</version>
       <scope>compile</scope>
     </dependency>
+    <!-- WebP read/write ("Gotson" coder). LDEV-6525: the maintained fork of com.github.gotson:webp-imageio
+         (archived at 0.2.2, libwebp 1.0.0, no macOS arm64 native). Same com.luciad.imageio.webp API,
+         natives built from libwebp 1.6.0 incl. Mac/aarch64. Apache-2.0. Pulls in kotlin-stdlib. -->
     <dependency>
-      <groupId>com.github.gotson</groupId>
+      <groupId>com.github.usefulness</groupId>
       <artifactId>webp-imageio</artifactId>
-      <version>0.2.2</version>
+      <version>0.11.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
